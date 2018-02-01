@@ -79,18 +79,18 @@
 
 
 
-<meta name="description" content="hello world!">
+<meta name="description" content="[TOC]  Abstract这篇论文主要介绍了一下google内部实现的基于paxos算法的分布式锁服务Chubby的一些工程问题  IntroductionBackgroundArchitecture outlineOn PaxosPaxos BasicsMulti-PaxosArchitecture ChallengesHandling disk corruptionMaster lease">
 <meta name="keywords" content="paper">
 <meta property="og:type" content="article">
-<meta property="og:title" content="2018第一篇">
-<meta property="og:url" content="http://yoursite.com/2018/02/01/2018第一篇/index.html">
+<meta property="og:title" content="Paxos Made Live - An Engineering Perspective">
+<meta property="og:url" content="http://yoursite.com/2018/02/01/paxos_make_live/index.html">
 <meta property="og:site_name" content="Hexo">
-<meta property="og:description" content="hello world!">
+<meta property="og:description" content="[TOC]  Abstract这篇论文主要介绍了一下google内部实现的基于paxos算法的分布式锁服务Chubby的一些工程问题  IntroductionBackgroundArchitecture outlineOn PaxosPaxos BasicsMulti-PaxosArchitecture ChallengesHandling disk corruptionMaster lease">
 <meta property="og:locale" content="zh-Hans">
-<meta property="og:updated_time" content="2018-02-01T02:14:59.000Z">
+<meta property="og:updated_time" content="2018-02-01T02:25:51.000Z">
 <meta name="twitter:card" content="summary">
-<meta name="twitter:title" content="2018第一篇">
-<meta name="twitter:description" content="hello world!">
+<meta name="twitter:title" content="Paxos Made Live - An Engineering Perspective">
+<meta name="twitter:description" content="[TOC]  Abstract这篇论文主要介绍了一下google内部实现的基于paxos算法的分布式锁服务Chubby的一些工程问题  IntroductionBackgroundArchitecture outlineOn PaxosPaxos BasicsMulti-PaxosArchitecture ChallengesHandling disk corruptionMaster lease">
 
 
 
@@ -120,13 +120,13 @@
 
 
 
-  <link rel="canonical" href="http://yoursite.com/2018/02/01/2018第一篇/"/>
+  <link rel="canonical" href="http://yoursite.com/2018/02/01/paxos_make_live/"/>
 
 
 
 
 
-  <title>2018第一篇 | Hexo</title>
+  <title>Paxos Made Live - An Engineering Perspective | Hexo</title>
   
 
 
@@ -233,7 +233,7 @@
   
   
   <div class="post-block">
-    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2018/02/01/2018第一篇/">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2018/02/01/paxos_make_live/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
       <meta itemprop="name" content="John Doe">
@@ -250,7 +250,7 @@
 
         
         
-          <h1 class="post-title" itemprop="name headline">2018第一篇</h1>
+          <h1 class="post-title" itemprop="name headline">Paxos Made Live - An Engineering Perspective</h1>
         
 
         <div class="post-meta">
@@ -300,8 +300,11 @@
       
 
       
-        <p>hello world!</p>
-
+        <p>[TOC]</p>
+<blockquote>
+<p>Abstract<br>这篇论文主要介绍了一下google内部实现的基于paxos算法的分布式锁服务Chubby的一些工程问题</p>
+</blockquote>
+<h1 id="Introduction"><a href="#Introduction" class="headerlink" title="Introduction"></a>Introduction</h1><h1 id="Background"><a href="#Background" class="headerlink" title="Background"></a>Background</h1><h1 id="Architecture-outline"><a href="#Architecture-outline" class="headerlink" title="Architecture outline"></a>Architecture outline</h1><h1 id="On-Paxos"><a href="#On-Paxos" class="headerlink" title="On Paxos"></a>On Paxos</h1><h2 id="Paxos-Basics"><a href="#Paxos-Basics" class="headerlink" title="Paxos Basics"></a>Paxos Basics</h2><h2 id="Multi-Paxos"><a href="#Multi-Paxos" class="headerlink" title="Multi-Paxos"></a>Multi-Paxos</h2><h1 id="Architecture-Challenges"><a href="#Architecture-Challenges" class="headerlink" title="Architecture Challenges"></a>Architecture Challenges</h1><h2 id="Handling-disk-corruption"><a href="#Handling-disk-corruption" class="headerlink" title="Handling disk corruption"></a>Handling disk corruption</h2><h2 id="Master-leases"><a href="#Master-leases" class="headerlink" title="Master leases"></a>Master leases</h2><h2 id="Epoch-numbers"><a href="#Epoch-numbers" class="headerlink" title="Epoch numbers"></a>Epoch numbers</h2><h2 id="Group-membership"><a href="#Group-membership" class="headerlink" title="Group membership"></a>Group membership</h2><h2 id="Snapshots"><a href="#Snapshots" class="headerlink" title="Snapshots"></a>Snapshots</h2><h2 id="Database-transactions"><a href="#Database-transactions" class="headerlink" title="Database transactions"></a>Database transactions</h2><h1 id="SoftWare-Engineering"><a href="#SoftWare-Engineering" class="headerlink" title="SoftWare Engineering"></a>SoftWare Engineering</h1><h2 id="Expressing-the-algorithm-effectively"><a href="#Expressing-the-algorithm-effectively" class="headerlink" title="Expressing the algorithm effectively"></a>Expressing the algorithm effectively</h2><h2 id="Runtime-consistency-checking"><a href="#Runtime-consistency-checking" class="headerlink" title="Runtime consistency checking"></a>Runtime consistency checking</h2><h2 id="Testing"><a href="#Testing" class="headerlink" title="Testing"></a>Testing</h2><h2 id="Concurrency"><a href="#Concurrency" class="headerlink" title="Concurrency"></a>Concurrency</h2><h1 id="Unexpected-failures"><a href="#Unexpected-failures" class="headerlink" title="Unexpected failures"></a>Unexpected failures</h1><h1 id="Measurements"><a href="#Measurements" class="headerlink" title="Measurements"></a>Measurements</h1><h1 id="Summary-and-open-problems"><a href="#Summary-and-open-problems" class="headerlink" title="Summary and open problems"></a>Summary and open problems</h1>
       
     </div>
     
@@ -391,8 +394,17 @@
       
 
       
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap">
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview-wrap">
+            站点概览
+          </li>
+        </ul>
+      
 
-      <section class="site-overview-wrap sidebar-panel sidebar-panel-active">
+      <section class="site-overview-wrap sidebar-panel">
         <div class="site-overview">
           <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
             
@@ -443,6 +455,22 @@
         </div>
       </section>
 
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#Introduction"><span class="nav-number">1.</span> <span class="nav-text">Introduction</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#Background"><span class="nav-number">2.</span> <span class="nav-text">Background</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#Architecture-outline"><span class="nav-number">3.</span> <span class="nav-text">Architecture outline</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#On-Paxos"><span class="nav-number">4.</span> <span class="nav-text">On Paxos</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#Paxos-Basics"><span class="nav-number">4.1.</span> <span class="nav-text">Paxos Basics</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Multi-Paxos"><span class="nav-number">4.2.</span> <span class="nav-text">Multi-Paxos</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#Architecture-Challenges"><span class="nav-number">5.</span> <span class="nav-text">Architecture Challenges</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#Handling-disk-corruption"><span class="nav-number">5.1.</span> <span class="nav-text">Handling disk corruption</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Master-leases"><span class="nav-number">5.2.</span> <span class="nav-text">Master leases</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Epoch-numbers"><span class="nav-number">5.3.</span> <span class="nav-text">Epoch numbers</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Group-membership"><span class="nav-number">5.4.</span> <span class="nav-text">Group membership</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Snapshots"><span class="nav-number">5.5.</span> <span class="nav-text">Snapshots</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Database-transactions"><span class="nav-number">5.6.</span> <span class="nav-text">Database transactions</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#SoftWare-Engineering"><span class="nav-number">6.</span> <span class="nav-text">SoftWare Engineering</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#Expressing-the-algorithm-effectively"><span class="nav-number">6.1.</span> <span class="nav-text">Expressing the algorithm effectively</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Runtime-consistency-checking"><span class="nav-number">6.2.</span> <span class="nav-text">Runtime consistency checking</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Testing"><span class="nav-number">6.3.</span> <span class="nav-text">Testing</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Concurrency"><span class="nav-number">6.4.</span> <span class="nav-text">Concurrency</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#Unexpected-failures"><span class="nav-number">7.</span> <span class="nav-text">Unexpected failures</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#Measurements"><span class="nav-number">8.</span> <span class="nav-text">Measurements</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#Summary-and-open-problems"><span class="nav-number">9.</span> <span class="nav-text">Summary and open problems</span></a></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
       
 
       
