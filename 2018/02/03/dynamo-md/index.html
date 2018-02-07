@@ -68,7 +68,7 @@
 
 
 
-  <meta name="keywords" content="Hexo, NexT" />
+  <meta name="keywords" content="paper," />
 
 
 
@@ -79,13 +79,18 @@
 
 
 
-<meta property="og:type" content="website">
-<meta property="og:title" content="Hexo">
-<meta property="og:url" content="http://yoursite.com/index.html">
+<meta name="description" content="Abstract介绍Dynamo，一个分布式的kv存储系统，具有非常高的可用性和可靠性  Introduction主要目标： Reliability Scalability 提供key-value接口（最受欢迎清单，购物车，用户偏好等）  实现技术 使用一致性哈希进行数据分区和备份 使用对象版本信息来处理单个数据备份一致性问题 多副本之间的一致性可以通过类似quorum的协议处理（NWR），以及">
+<meta name="keywords" content="paper">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Dynamo Amazon&#39;s Highly Available Key-value Store">
+<meta property="og:url" content="http://yoursite.com/2018/02/03/dynamo-md/index.html">
 <meta property="og:site_name" content="Hexo">
+<meta property="og:description" content="Abstract介绍Dynamo，一个分布式的kv存储系统，具有非常高的可用性和可靠性  Introduction主要目标： Reliability Scalability 提供key-value接口（最受欢迎清单，购物车，用户偏好等）  实现技术 使用一致性哈希进行数据分区和备份 使用对象版本信息来处理单个数据备份一致性问题 多副本之间的一致性可以通过类似quorum的协议处理（NWR），以及">
 <meta property="og:locale" content="zh-Hans">
+<meta property="og:updated_time" content="2018-02-07T02:19:13.000Z">
 <meta name="twitter:card" content="summary">
-<meta name="twitter:title" content="Hexo">
+<meta name="twitter:title" content="Dynamo Amazon&#39;s Highly Available Key-value Store">
+<meta name="twitter:description" content="Abstract介绍Dynamo，一个分布式的kv存储系统，具有非常高的可用性和可靠性  Introduction主要目标： Reliability Scalability 提供key-value接口（最受欢迎清单，购物车，用户偏好等）  实现技术 使用一致性哈希进行数据分区和备份 使用对象版本信息来处理单个数据备份一致性问题 多副本之间的一致性可以通过类似quorum的协议处理（NWR），以及">
 
 
 
@@ -115,13 +120,13 @@
 
 
 
-  <link rel="canonical" href="http://yoursite.com/"/>
+  <link rel="canonical" href="http://yoursite.com/2018/02/03/dynamo-md/"/>
 
 
 
 
 
-  <title>Hexo</title>
+  <title>Dynamo Amazon's Highly Available Key-value Store | Hexo</title>
   
 
 
@@ -140,8 +145,7 @@
     
   
 
-  <div class="container sidebar-position-left 
-  page-home">
+  <div class="container sidebar-position-left page-post-detail">
     <div class="headband"></div>
 
     <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
@@ -214,9 +218,9 @@
         <div class="content-wrap">
           <div id="content" class="content">
             
-  <section id="posts" class="posts-expand">
+
+  <div id="posts" class="posts-expand">
     
-      
 
   
 
@@ -246,9 +250,7 @@
 
         
         
-          <h1 class="post-title" itemprop="name headline">
-                
-                <a class="post-title-link" href="/2018/02/03/dynamo-md/" itemprop="url">Dynamo Amazon's Highly Available Key-value Store</a></h1>
+          <h1 class="post-title" itemprop="name headline">Dynamo Amazon's Highly Available Key-value Store</h1>
         
 
         <div class="post-meta">
@@ -298,9 +300,7 @@
       
 
       
-        
-          
-            <blockquote>
+        <blockquote>
 <p>Abstract<br>介绍Dynamo，一个分布式的kv存储系统，具有非常高的可用性和可靠性</p>
 </blockquote>
 <h1 id="Introduction"><a href="#Introduction" class="headerlink" title="Introduction"></a>Introduction</h1><h2 id="主要目标："><a href="#主要目标：" class="headerlink" title="主要目标："></a>主要目标：</h2><ol>
@@ -534,8 +534,6 @@
 </tbody>
 </table>
 
-          
-        
       
     </div>
     
@@ -550,264 +548,36 @@
 
     <footer class="post-footer">
       
-
-      
-
-      
-
-      
-      
-        <div class="post-eof"></div>
-      
-    </footer>
-  </div>
-  
-  
-  
-  </article>
-
-
-    
-      
-
-  
-
-  
-  
-  
-
-  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
-  
-  
-  
-  <div class="post-block">
-    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2018/02/01/paxos_make_live/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="name" content="Jason">
-      <meta itemprop="description" content="">
-      <meta itemprop="image" content="/images/avatar.gif">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="Hexo">
-    </span>
-
-    
-      <header class="post-header">
-
-        
-        
-          <h1 class="post-title" itemprop="name headline">
-                
-                <a class="post-title-link" href="/2018/02/01/paxos_make_live/" itemprop="url">Paxos Made Live - An Engineering Perspective</a></h1>
-        
-
-        <div class="post-meta">
-          <span class="post-time">
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-calendar-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">发表于</span>
-              
-              <time title="创建于" itemprop="dateCreated datePublished" datetime="2018-02-01T09:37:34+08:00">
-                2018-02-01
-              </time>
-            
-
-            
-
-            
-          </span>
-
+        <div class="post-tags">
           
-
+            <a href="/tags/paper/" rel="tag"># paper</a>
           
-            
-          
-
-          
-          
-
-          
-
-          
-
-          
-
         </div>
-      </header>
-    
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-      
-
-      
-        
-          
-            <blockquote>
-<p>Abstract<br>这篇论文主要介绍了一下google内部实现的基于paxos算法的分布式锁服务Chubby的一些工程问题</p>
-</blockquote>
-<h1 id="Introduction"><a href="#Introduction" class="headerlink" title="Introduction"></a>Introduction</h1><h1 id="Background"><a href="#Background" class="headerlink" title="Background"></a>Background</h1><h1 id="Architecture-outline"><a href="#Architecture-outline" class="headerlink" title="Architecture outline"></a>Architecture outline</h1><h1 id="On-Paxos"><a href="#On-Paxos" class="headerlink" title="On Paxos"></a>On Paxos</h1><h2 id="Paxos-Basics"><a href="#Paxos-Basics" class="headerlink" title="Paxos Basics"></a>Paxos Basics</h2><h2 id="Multi-Paxos"><a href="#Multi-Paxos" class="headerlink" title="Multi-Paxos"></a>Multi-Paxos</h2><h1 id="Architecture-Challenges"><a href="#Architecture-Challenges" class="headerlink" title="Architecture Challenges"></a>Architecture Challenges</h1><h2 id="Handling-disk-corruption"><a href="#Handling-disk-corruption" class="headerlink" title="Handling disk corruption"></a>Handling disk corruption</h2><h2 id="Master-leases"><a href="#Master-leases" class="headerlink" title="Master leases"></a>Master leases</h2><h2 id="Epoch-numbers"><a href="#Epoch-numbers" class="headerlink" title="Epoch numbers"></a>Epoch numbers</h2><h2 id="Group-membership"><a href="#Group-membership" class="headerlink" title="Group membership"></a>Group membership</h2><h2 id="Snapshots"><a href="#Snapshots" class="headerlink" title="Snapshots"></a>Snapshots</h2><h2 id="Database-transactions"><a href="#Database-transactions" class="headerlink" title="Database transactions"></a>Database transactions</h2><h1 id="SoftWare-Engineering"><a href="#SoftWare-Engineering" class="headerlink" title="SoftWare Engineering"></a>SoftWare Engineering</h1><h2 id="Expressing-the-algorithm-effectively"><a href="#Expressing-the-algorithm-effectively" class="headerlink" title="Expressing the algorithm effectively"></a>Expressing the algorithm effectively</h2><h2 id="Runtime-consistency-checking"><a href="#Runtime-consistency-checking" class="headerlink" title="Runtime consistency checking"></a>Runtime consistency checking</h2><h2 id="Testing"><a href="#Testing" class="headerlink" title="Testing"></a>Testing</h2><h2 id="Concurrency"><a href="#Concurrency" class="headerlink" title="Concurrency"></a>Concurrency</h2><h1 id="Unexpected-failures"><a href="#Unexpected-failures" class="headerlink" title="Unexpected failures"></a>Unexpected failures</h1><h1 id="Measurements"><a href="#Measurements" class="headerlink" title="Measurements"></a>Measurements</h1><h1 id="Summary-and-open-problems"><a href="#Summary-and-open-problems" class="headerlink" title="Summary and open problems"></a>Summary and open problems</h1>
-          
-        
-      
-    </div>
-    
-    
-    
-
-    
-
-    
-
-    
-
-    <footer class="post-footer">
-      
-
-      
-
       
 
       
       
-        <div class="post-eof"></div>
-      
-    </footer>
-  </div>
-  
-  
-  
-  </article>
-
-
-    
       
 
-  
-
-  
-  
-  
-
-  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
-  
-  
-  
-  <div class="post-block">
-    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2018/02/01/hello-world/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="name" content="Jason">
-      <meta itemprop="description" content="">
-      <meta itemprop="image" content="/images/avatar.gif">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="Hexo">
-    </span>
-
-    
-      <header class="post-header">
-
-        
-        
-          <h1 class="post-title" itemprop="name headline">
-                
-                <a class="post-title-link" href="/2018/02/01/hello-world/" itemprop="url">Hello World</a></h1>
-        
-
-        <div class="post-meta">
-          <span class="post-time">
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
             
-              <span class="post-meta-item-icon">
-                <i class="fa fa-calendar-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">发表于</span>
-              
-              <time title="创建于" itemprop="dateCreated datePublished" datetime="2018-02-01T09:22:10+08:00">
-                2018-02-01
-              </time>
+              <a href="/2018/02/01/paxos_make_live/" rel="next" title="Paxos Made Live - An Engineering Perspective">
+                <i class="fa fa-chevron-left"></i> Paxos Made Live - An Engineering Perspective
+              </a>
             
+          </div>
 
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
             
-
-            
-          </span>
-
-          
-
-          
-            
-          
-
-          
-          
-
-          
-
-          
-
-          
-
+          </div>
         </div>
-      </header>
-    
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
       
 
       
-        
-          
-            <p>Welcome to <a href="https://hexo.io/" target="_blank" rel="noopener">Hexo</a>! This is your very first post. Check <a href="https://hexo.io/docs/" target="_blank" rel="noopener">documentation</a> for more info. If you get any problems when using Hexo, you can find the answer in <a href="https://hexo.io/docs/troubleshooting.html" target="_blank" rel="noopener">troubleshooting</a> or you can ask me on <a href="https://github.com/hexojs/hexo/issues" target="_blank" rel="noopener">GitHub</a>.</p>
-<h2 id="Quick-Start"><a href="#Quick-Start" class="headerlink" title="Quick Start"></a>Quick Start</h2><h3 id="Create-a-new-post"><a href="#Create-a-new-post" class="headerlink" title="Create a new post"></a>Create a new post</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ hexo new <span class="string">"My New Post"</span></span><br></pre></td></tr></table></figure>
-<p>More info: <a href="https://hexo.io/docs/writing.html" target="_blank" rel="noopener">Writing</a></p>
-<h3 id="Run-server"><a href="#Run-server" class="headerlink" title="Run server"></a>Run server</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ hexo server</span><br></pre></td></tr></table></figure>
-<p>More info: <a href="https://hexo.io/docs/server.html" target="_blank" rel="noopener">Server</a></p>
-<h3 id="Generate-static-files"><a href="#Generate-static-files" class="headerlink" title="Generate static files"></a>Generate static files</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ hexo generate</span><br></pre></td></tr></table></figure>
-<p>More info: <a href="https://hexo.io/docs/generating.html" target="_blank" rel="noopener">Generating</a></p>
-<h3 id="Deploy-to-remote-sites"><a href="#Deploy-to-remote-sites" class="headerlink" title="Deploy to remote sites"></a>Deploy to remote sites</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ hexo deploy</span><br></pre></td></tr></table></figure>
-<p>More info: <a href="https://hexo.io/docs/deployment.html" target="_blank" rel="noopener">Deployment</a></p>
-
-          
-        
-      
-    </div>
-    
-    
-    
-
-    
-
-    
-
-    
-
-    <footer class="post-footer">
-      
-
-      
-
-      
-
-      
-      
-        <div class="post-eof"></div>
       
     </footer>
   </div>
@@ -817,10 +587,11 @@
   </article>
 
 
-    
-  </section>
 
-  
+    <div class="post-spread">
+      
+    </div>
+  </div>
 
 
           </div>
@@ -828,6 +599,10 @@
 
 
           
+
+  
+
+
 
         </div>
         
@@ -848,8 +623,17 @@
       
 
       
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap">
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview-wrap">
+            站点概览
+          </li>
+        </ul>
+      
 
-      <section class="site-overview-wrap sidebar-panel sidebar-panel-active">
+      <section class="site-overview-wrap sidebar-panel">
         <div class="site-overview">
           <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
             
@@ -900,6 +684,22 @@
         </div>
       </section>
 
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#Introduction"><span class="nav-number">1.</span> <span class="nav-text">Introduction</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#主要目标："><span class="nav-number">1.1.</span> <span class="nav-text">主要目标：</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#实现技术"><span class="nav-number">1.2.</span> <span class="nav-text">实现技术</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#BackGround"><span class="nav-number">2.</span> <span class="nav-text">BackGround</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#系统假设和要求"><span class="nav-number">2.1.</span> <span class="nav-text">系统假设和要求</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#SLA"><span class="nav-number">2.2.</span> <span class="nav-text">SLA</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#设计考虑"><span class="nav-number">2.3.</span> <span class="nav-text">设计考虑</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#Related-Work"><span class="nav-number">3.</span> <span class="nav-text">Related Work</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#System-Architecture"><span class="nav-number">4.</span> <span class="nav-text">System Architecture</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#dynamo接口"><span class="nav-number">4.1.</span> <span class="nav-text">dynamo接口</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#数据分区算法"><span class="nav-number">4.2.</span> <span class="nav-text">数据分区算法</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#数据副本"><span class="nav-number">4.3.</span> <span class="nav-text">数据副本</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#数据版本"><span class="nav-number">4.4.</span> <span class="nav-text">数据版本</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#get和put操作的执行"><span class="nav-number">4.5.</span> <span class="nav-text">get和put操作的执行</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#处理失败"><span class="nav-number">4.6.</span> <span class="nav-text">处理失败</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#处理持久化失败"><span class="nav-number">4.7.</span> <span class="nav-text">处理持久化失败</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#成员管理和失败发现"><span class="nav-number">4.8.</span> <span class="nav-text">成员管理和失败发现</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#添加和移除节点"><span class="nav-number">4.9.</span> <span class="nav-text">添加和移除节点</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#实现"><span class="nav-number">5.</span> <span class="nav-text">实现</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#本地持久化引擎"><span class="nav-number">5.1.</span> <span class="nav-text">本地持久化引擎</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#请求协调者"><span class="nav-number">5.2.</span> <span class="nav-text">请求协调者</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#经验教训"><span class="nav-number">6.</span> <span class="nav-text">经验教训</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#负载均衡性能和持久化性能"><span class="nav-number">6.1.</span> <span class="nav-text">负载均衡性能和持久化性能</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#保证系统负载一致性分布"><span class="nav-number">6.2.</span> <span class="nav-text">保证系统负载一致性分布</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#多版本"><span class="nav-number">6.3.</span> <span class="nav-text">多版本</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#客户端驱动或者服务端驱动定位"><span class="nav-number">6.4.</span> <span class="nav-text">客户端驱动或者服务端驱动定位</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#前台和后台任务均衡"><span class="nav-number">6.5.</span> <span class="nav-text">前台和后台任务均衡</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#讨论"><span class="nav-number">6.6.</span> <span class="nav-text">讨论</span></a></li></ol></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
       
 
       
@@ -1033,6 +833,10 @@
   
 
   
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.1.4"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.1.4"></script>
+
+
 
   
 
