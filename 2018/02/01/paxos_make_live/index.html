@@ -79,18 +79,18 @@
 
 
 
-<meta name="description" content="[TOC]  Abstract这篇论文主要介绍了一下google内部实现的基于paxos算法的分布式锁服务Chubby的一些工程问题  IntroductionBackgroundArchitecture outlineOn PaxosPaxos BasicsMulti-PaxosArchitecture ChallengesHandling disk corruptionMaster lease">
+<meta name="description" content="Abstract这篇论文主要介绍了一下google内部实现的基于paxos算法的分布式锁服务Chubby的一些工程问题  IntroductionBackgroundArchitecture outlineOn PaxosPaxos BasicsMulti-PaxosArchitecture ChallengesHandling disk corruptionMaster leasesEpoch">
 <meta name="keywords" content="paper">
 <meta property="og:type" content="article">
 <meta property="og:title" content="Paxos Made Live - An Engineering Perspective">
 <meta property="og:url" content="http://yoursite.com/2018/02/01/paxos_make_live/index.html">
 <meta property="og:site_name" content="Hexo">
-<meta property="og:description" content="[TOC]  Abstract这篇论文主要介绍了一下google内部实现的基于paxos算法的分布式锁服务Chubby的一些工程问题  IntroductionBackgroundArchitecture outlineOn PaxosPaxos BasicsMulti-PaxosArchitecture ChallengesHandling disk corruptionMaster lease">
+<meta property="og:description" content="Abstract这篇论文主要介绍了一下google内部实现的基于paxos算法的分布式锁服务Chubby的一些工程问题  IntroductionBackgroundArchitecture outlineOn PaxosPaxos BasicsMulti-PaxosArchitecture ChallengesHandling disk corruptionMaster leasesEpoch">
 <meta property="og:locale" content="zh-Hans">
-<meta property="og:updated_time" content="2018-02-01T02:25:51.000Z">
+<meta property="og:updated_time" content="2018-02-01T02:29:18.000Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="Paxos Made Live - An Engineering Perspective">
-<meta name="twitter:description" content="[TOC]  Abstract这篇论文主要介绍了一下google内部实现的基于paxos算法的分布式锁服务Chubby的一些工程问题  IntroductionBackgroundArchitecture outlineOn PaxosPaxos BasicsMulti-PaxosArchitecture ChallengesHandling disk corruptionMaster lease">
+<meta name="twitter:description" content="Abstract这篇论文主要介绍了一下google内部实现的基于paxos算法的分布式锁服务Chubby的一些工程问题  IntroductionBackgroundArchitecture outlineOn PaxosPaxos BasicsMulti-PaxosArchitecture ChallengesHandling disk corruptionMaster leasesEpoch">
 
 
 
@@ -236,7 +236,7 @@
     <link itemprop="mainEntityOfPage" href="http://yoursite.com/2018/02/01/paxos_make_live/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="name" content="John Doe">
+      <meta itemprop="name" content="Jason">
       <meta itemprop="description" content="">
       <meta itemprop="image" content="/images/avatar.gif">
     </span>
@@ -300,8 +300,7 @@
       
 
       
-        <p>[TOC]</p>
-<blockquote>
+        <blockquote>
 <p>Abstract<br>这篇论文主要介绍了一下google内部实现的基于paxos算法的分布式锁服务Chubby的一些工程问题</p>
 </blockquote>
 <h1 id="Introduction"><a href="#Introduction" class="headerlink" title="Introduction"></a>Introduction</h1><h1 id="Background"><a href="#Background" class="headerlink" title="Background"></a>Background</h1><h1 id="Architecture-outline"><a href="#Architecture-outline" class="headerlink" title="Architecture outline"></a>Architecture outline</h1><h1 id="On-Paxos"><a href="#On-Paxos" class="headerlink" title="On Paxos"></a>On Paxos</h1><h2 id="Paxos-Basics"><a href="#Paxos-Basics" class="headerlink" title="Paxos Basics"></a>Paxos Basics</h2><h2 id="Multi-Paxos"><a href="#Multi-Paxos" class="headerlink" title="Multi-Paxos"></a>Multi-Paxos</h2><h1 id="Architecture-Challenges"><a href="#Architecture-Challenges" class="headerlink" title="Architecture Challenges"></a>Architecture Challenges</h1><h2 id="Handling-disk-corruption"><a href="#Handling-disk-corruption" class="headerlink" title="Handling disk corruption"></a>Handling disk corruption</h2><h2 id="Master-leases"><a href="#Master-leases" class="headerlink" title="Master leases"></a>Master leases</h2><h2 id="Epoch-numbers"><a href="#Epoch-numbers" class="headerlink" title="Epoch numbers"></a>Epoch numbers</h2><h2 id="Group-membership"><a href="#Group-membership" class="headerlink" title="Group membership"></a>Group membership</h2><h2 id="Snapshots"><a href="#Snapshots" class="headerlink" title="Snapshots"></a>Snapshots</h2><h2 id="Database-transactions"><a href="#Database-transactions" class="headerlink" title="Database transactions"></a>Database transactions</h2><h1 id="SoftWare-Engineering"><a href="#SoftWare-Engineering" class="headerlink" title="SoftWare Engineering"></a>SoftWare Engineering</h1><h2 id="Expressing-the-algorithm-effectively"><a href="#Expressing-the-algorithm-effectively" class="headerlink" title="Expressing the algorithm effectively"></a>Expressing the algorithm effectively</h2><h2 id="Runtime-consistency-checking"><a href="#Runtime-consistency-checking" class="headerlink" title="Runtime consistency checking"></a>Runtime consistency checking</h2><h2 id="Testing"><a href="#Testing" class="headerlink" title="Testing"></a>Testing</h2><h2 id="Concurrency"><a href="#Concurrency" class="headerlink" title="Concurrency"></a>Concurrency</h2><h1 id="Unexpected-failures"><a href="#Unexpected-failures" class="headerlink" title="Unexpected failures"></a>Unexpected failures</h1><h1 id="Measurements"><a href="#Measurements" class="headerlink" title="Measurements"></a>Measurements</h1><h1 id="Summary-and-open-problems"><a href="#Summary-and-open-problems" class="headerlink" title="Summary and open problems"></a>Summary and open problems</h1>
@@ -408,7 +407,7 @@
         <div class="site-overview">
           <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
             
-              <p class="site-author-name" itemprop="name">John Doe</p>
+              <p class="site-author-name" itemprop="name">Jason</p>
               <p class="site-description motion-element" itemprop="description"></p>
           </div>
 
@@ -489,7 +488,7 @@
   <span class="with-love">
     <i class="fa fa-user"></i>
   </span>
-  <span class="author" itemprop="copyrightHolder">John Doe</span>
+  <span class="author" itemprop="copyrightHolder">Jason</span>
 
   
 </div>
