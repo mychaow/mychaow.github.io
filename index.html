@@ -229,6 +229,199 @@
   
   
   <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2018/04/17/stl源码剖析-序列式容器/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="Jason">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/avatar.gif">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Jason's records">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+                
+                <a class="post-title-link" href="/2018/04/17/stl源码剖析-序列式容器/" itemprop="url">stl源码剖析-序列式容器</a></h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2018-04-17T08:41:09+08:00">
+                2018-04-17
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        
+          
+            <h1 id="容器按排列分类"><a href="#容器按排列分类" class="headerlink" title="容器按排列分类"></a>容器按排列分类</h1><table>
+<thead>
+<tr>
+<th style="text-align:left">序列式容器</th>
+<th style="text-align:left"></th>
+<th style="text-align:left">关联式容器</th>
+<th style="text-align:left"></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:left">array(build-in)</td>
+<td style="text-align:left"></td>
+<td style="text-align:left">RB-Tree</td>
+<td style="text-align:left"></td>
+</tr>
+<tr>
+<td style="text-align:left">vector</td>
+<td style="text-align:left"></td>
+<td style="text-align:left"></td>
+<td style="text-align:left">set</td>
+</tr>
+<tr>
+<td style="text-align:left"></td>
+<td style="text-align:left">heap</td>
+<td style="text-align:left"></td>
+<td style="text-align:left">map</td>
+</tr>
+<tr>
+<td style="text-align:left"></td>
+<td style="text-align:left">priority-queue</td>
+<td style="text-align:left"></td>
+<td style="text-align:left">multiset</td>
+</tr>
+<tr>
+<td style="text-align:left">list</td>
+<td style="text-align:left"></td>
+<td style="text-align:left"></td>
+<td style="text-align:left">multimap</td>
+</tr>
+<tr>
+<td style="text-align:left">slist</td>
+<td style="text-align:left"></td>
+<td style="text-align:left">hashtable</td>
+</tr>
+<tr>
+<td style="text-align:left">deque</td>
+<td style="text-align:left"></td>
+<td style="text-align:left"></td>
+<td style="text-align:left">hash_set</td>
+</tr>
+<tr>
+<td style="text-align:left"></td>
+<td style="text-align:left">stack</td>
+<td style="text-align:left"></td>
+<td style="text-align:left">hash_map</td>
+</tr>
+<tr>
+<td style="text-align:left"></td>
+<td style="text-align:left">queue</td>
+<td style="text-align:left"></td>
+<td style="text-align:left">hash_multiset</td>
+</tr>
+<tr>
+<td style="text-align:left"></td>
+<td style="text-align:left"></td>
+<td style="text-align:left"></td>
+<td style="text-align:left">hash_multimap</td>
+</tr>
+</tbody>
+</table>
+<p><em>每一列第二格是第一格的衍生</em></p>
+<h1 id="序列式容器"><a href="#序列式容器" class="headerlink" title="序列式容器"></a>序列式容器</h1><h2 id="vector"><a href="#vector" class="headerlink" title="vector"></a>vector</h2><p>如下代码所示，先来看看vector内部的成员变量，vector是一个线性空间，由三个变量分别记录使用情况和容量，非常直观好理解。<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br></pre></td><td class="code"><pre><span class="line">template &lt;class _Tp, class _Alloc = __STL_DEFAULT_ALLOCATOR(_Tp) &gt;</span><br><span class="line">class vector : protected _Vector_base&lt;_Tp, _Alloc&gt; </span><br><span class="line">&#123;</span><br><span class="line">  // requirements:</span><br><span class="line"></span><br><span class="line">  __STL_CLASS_REQUIRES(_Tp, _Assignable);</span><br><span class="line"></span><br><span class="line">private:</span><br><span class="line">  typedef _Vector_base&lt;_Tp, _Alloc&gt; _Base;</span><br><span class="line">public:</span><br><span class="line">  typedef _Tp value_type;</span><br><span class="line">  typedef value_type* pointer;</span><br><span class="line">  typedef const value_type* const_pointer;</span><br><span class="line">  typedef value_type* iterator;  // 迭代器就是普通指针</span><br><span class="line">  typedef const value_type* const_iterator;</span><br><span class="line">  typedef value_type&amp; reference;</span><br><span class="line">  typedef const value_type&amp; const_reference;</span><br><span class="line">  typedef size_t size_type;</span><br><span class="line">  typedef ptrdiff_t difference_type;</span><br><span class="line"></span><br><span class="line">  typedef typename _Base::allocator_type allocator_type;</span><br><span class="line">  allocator_type get_allocator() const &#123; return _Base::get_allocator(); &#125;</span><br><span class="line"></span><br><span class="line">#ifdef __STL_CLASS_PARTIAL_SPECIALIZATION</span><br><span class="line">  typedef reverse_iterator&lt;const_iterator&gt; const_reverse_iterator;</span><br><span class="line">  typedef reverse_iterator&lt;iterator&gt; reverse_iterator;</span><br><span class="line">#else /* __STL_CLASS_PARTIAL_SPECIALIZATION */</span><br><span class="line">  typedef reverse_iterator&lt;const_iterator, value_type, const_reference, </span><br><span class="line">                           difference_type&gt;  const_reverse_iterator;</span><br><span class="line">  typedef reverse_iterator&lt;iterator, value_type, reference, difference_type&gt;</span><br><span class="line">          reverse_iterator;</span><br><span class="line">#endif /* __STL_CLASS_PARTIAL_SPECIALIZATION */</span><br><span class="line"></span><br><span class="line">protected:</span><br><span class="line">#ifdef __STL_HAS_NAMESPACES</span><br><span class="line">  using _Base::_M_allocate;</span><br><span class="line">  using _Base::_M_deallocate;</span><br><span class="line">  using _Base::_M_start;  // 表示目前使用空间的头部</span><br><span class="line">  using _Base::_M_finish; // 表示目前使用空间的尾部</span><br><span class="line">  using _Base::_M_end_of_storage; // 表示目前可用空间的尾部，也就是容量尾部</span><br><span class="line">#endif /* __STL_HAS_NAMESPACES */</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p>再来看看vector容量不够时扩容的算法，都比较简单直观<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br></pre></td><td class="code"><pre><span class="line">// push_back一个元素时扩容算法</span><br><span class="line">template &lt;class _Tp, class _Alloc&gt;</span><br><span class="line">void </span><br><span class="line">vector&lt;_Tp, _Alloc&gt;::_M_insert_aux(iterator __position, const _Tp&amp; __x)</span><br><span class="line">&#123;</span><br><span class="line">  if (_M_finish != _M_end_of_storage) &#123;  // 空间足够</span><br><span class="line">    construct(_M_finish, *(_M_finish - 1));</span><br><span class="line">    ++_M_finish;</span><br><span class="line">    _Tp __x_copy = __x;</span><br><span class="line">    copy_backward(__position, _M_finish - 2, _M_finish - 1);</span><br><span class="line">    *__position = __x_copy;</span><br><span class="line">  &#125;</span><br><span class="line">  else &#123;  // 空间不够</span><br><span class="line">    const size_type __old_size = size();</span><br><span class="line">    const size_type __len = __old_size != 0 ? 2 * __old_size : 1;  // 原有空间*2</span><br><span class="line">    iterator __new_start = _M_allocate(__len);</span><br><span class="line">    iterator __new_finish = __new_start;</span><br><span class="line">    __STL_TRY &#123;</span><br><span class="line">      __new_finish = uninitialized_copy(_M_start, __position, __new_start);</span><br><span class="line">      construct(__new_finish, __x);</span><br><span class="line">      ++__new_finish;</span><br><span class="line">      __new_finish = uninitialized_copy(__position, _M_finish, __new_finish);</span><br><span class="line">    &#125;</span><br><span class="line">    __STL_UNWIND((destroy(__new_start,__new_finish), </span><br><span class="line">                  _M_deallocate(__new_start,__len)));</span><br><span class="line">    destroy(begin(), end());</span><br><span class="line">    _M_deallocate(_M_start, _M_end_of_storage - _M_start);</span><br><span class="line">    _M_start = __new_start;</span><br><span class="line">    _M_finish = __new_finish;</span><br><span class="line">    _M_end_of_storage = __new_start + __len;</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">// 插入多个数据时扩容算法</span><br><span class="line">template &lt;class _Tp, class _Alloc&gt;</span><br><span class="line">void vector&lt;_Tp, _Alloc&gt;::_M_fill_insert(iterator __position, size_type __n, </span><br><span class="line">                                         const _Tp&amp; __x)</span><br><span class="line">&#123;</span><br><span class="line">  if (__n != 0) &#123;</span><br><span class="line">    if (size_type(_M_end_of_storage - _M_finish) &gt;= __n) &#123;</span><br><span class="line">      _Tp __x_copy = __x;</span><br><span class="line">      const size_type __elems_after = _M_finish - __position;</span><br><span class="line">      iterator __old_finish = _M_finish;</span><br><span class="line">      if (__elems_after &gt; __n) &#123;</span><br><span class="line">        uninitialized_copy(_M_finish - __n, _M_finish, _M_finish);</span><br><span class="line">        _M_finish += __n;</span><br><span class="line">        copy_backward(__position, __old_finish - __n, __old_finish);</span><br><span class="line">        fill(__position, __position + __n, __x_copy);</span><br><span class="line">      &#125;</span><br><span class="line">      else &#123;</span><br><span class="line">        uninitialized_fill_n(_M_finish, __n - __elems_after, __x_copy);</span><br><span class="line">        _M_finish += __n - __elems_after;</span><br><span class="line">        uninitialized_copy(__position, __old_finish, _M_finish);</span><br><span class="line">        _M_finish += __elems_after;</span><br><span class="line">        fill(__position, __old_finish, __x_copy);</span><br><span class="line">      &#125;</span><br><span class="line">    &#125;</span><br><span class="line">    else &#123;</span><br><span class="line">      const size_type __old_size = size();        </span><br><span class="line">      const size_type __len = __old_size + max(__old_size, __n); // 当前空间*2 或者加新加的元素个数</span><br><span class="line">      iterator __new_start = _M_allocate(__len);</span><br><span class="line">      iterator __new_finish = __new_start;</span><br><span class="line">      __STL_TRY &#123;</span><br><span class="line">        __new_finish = uninitialized_copy(_M_start, __position, __new_start);</span><br><span class="line">        __new_finish = uninitialized_fill_n(__new_finish, __n, __x);</span><br><span class="line">        __new_finish</span><br><span class="line">          = uninitialized_copy(__position, _M_finish, __new_finish);</span><br><span class="line">      &#125;</span><br><span class="line">      __STL_UNWIND((destroy(__new_start,__new_finish), </span><br><span class="line">                    _M_deallocate(__new_start,__len)));</span><br><span class="line">      destroy(_M_start, _M_finish);</span><br><span class="line">      _M_deallocate(_M_start, _M_end_of_storage - _M_start);</span><br><span class="line">      _M_start = __new_start;</span><br><span class="line">      _M_finish = __new_finish;</span><br><span class="line">      _M_end_of_storage = __new_start + __len;</span><br><span class="line">    &#125;</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+
+          
+        
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+
+      
+
+      
+
+      
+      
+        <div class="post-eof"></div>
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+    
+      
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
     <link itemprop="mainEntityOfPage" href="http://yoursite.com/2018/04/16/stl源码剖析-迭代器/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
@@ -303,7 +496,7 @@
             <h1 id="Traits编程技法"><a href="#Traits编程技法" class="headerlink" title="Traits编程技法"></a>Traits编程技法</h1><blockquote>
 <p>偏特化（partial specialization）：如果class template拥有一个以上的template参数，我么可以针对其中某个（或数个，但非全部）template参数进行特化工作。即，在泛化设计中提供一个特化版本。</p>
 </blockquote>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br></pre></td><td class="code"><pre><span class="line">template &lt;class T&gt;</span><br><span class="line">struct iterator_traits &#123;</span><br><span class="line">    typedef typename T::iterator_category iterator_category;  // 遍历策略：只读，只写，允许写入型算法读写操作，双向移动，随机读写</span><br><span class="line">    typedef typename T::value_type        value_type;   // 值类型</span><br><span class="line">    typedef typename T::difference_type   difference_type;  // 两个迭代器之间距离类型</span><br><span class="line">    typedef typename T::pointer           pointer;   // 迭代器所指类型指针：左值</span><br><span class="line">    typedef typename T::reference         reference;  // 值引用类型： 左值</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">// 上面是stl中迭代器需要指定的几种数据类型，函数模板通过这几种模板类型来操作相关数据，而真正的数据对象类型会根据传入的数据类型进行相应的调整。</span><br><span class="line"> </span><br><span class="line">#include &lt;iostream&gt;</span><br><span class="line">using namespace std;</span><br><span class="line"> </span><br><span class="line"> </span><br><span class="line">template &lt;class T&gt;</span><br><span class="line">struct flag_traits &#123;</span><br><span class="line">    typedef typename T::value_type   value_type;</span><br><span class="line">&#125;</span><br><span class="line"> </span><br><span class="line">struct B_tag &#123;&#125;;</span><br><span class="line">struct D1_tag ：public B_tag &#123;&#125;;</span><br><span class="line">struct D2_tag : public D1_tag &#123;&#125;;</span><br><span class="line"> </span><br><span class="line">template &lt;class I&gt;</span><br><span class="line">func(I&amp; p, B_tag) &#123;</span><br><span class="line">    cout &lt;&lt; &quot; B version &quot; &lt;&lt; endl;</span><br><span class="line">&#125;</span><br><span class="line"> </span><br><span class="line">template &lt;class I&gt;</span><br><span class="line">func(I&amp; p, D2_tag) &#123;</span><br><span class="line">    cout &lt;&lt; &quot; D2 version &quot; &lt;&lt; endl;</span><br><span class="line">&#125;</span><br><span class="line"> </span><br><span class="line">template &lt;class I&gt;</span><br><span class="line">func(I&amp; p) &#123;</span><br><span class="line">    func(p, typename flag_traits&lt;I&gt;::value_type());</span><br><span class="line">&#125;</span><br><span class="line"> </span><br><span class="line">class B &#123;</span><br><span class="line">    typedef B_tag  value_type;</span><br><span class="line">&#125;</span><br><span class="line"> </span><br><span class="line">class D1 &#123;</span><br><span class="line">    typedef D1_tag value_type;</span><br><span class="line">&#125;</span><br><span class="line"> </span><br><span class="line">class D2 &#123;</span><br><span class="line">    typedef D2_tag  value_type;</span><br><span class="line">&#125;</span><br><span class="line"> </span><br><span class="line">int main() &#123;</span><br><span class="line">    B b;</span><br><span class="line">    D1 d1;</span><br><span class="line">    D2 d2;</span><br><span class="line">    func(b);</span><br><span class="line">    func(d1);</span><br><span class="line">    func(d2);</span><br><span class="line">&#125;</span><br><span class="line"> </span><br><span class="line">可以通过flag_traits::value_type的方式来推导当前调用的函数是哪个函数的重载。这种通过设定一个模板类，间接推导参数类型的方式值得学习。</span><br></pre></td></tr></table></figure>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br></pre></td><td class="code"><pre><span class="line">template &lt;class T&gt;</span><br><span class="line">struct iterator_traits &#123;</span><br><span class="line">    typedef typename T::iterator_category iterator_category;  // 遍历策略：只读，只写，允许写入型算法读写操作，双向移动，随机读写</span><br><span class="line">    typedef typename T::value_type        value_type;   // 值类型</span><br><span class="line">    typedef typename T::difference_type   difference_type;  // 两个迭代器之间距离类型</span><br><span class="line">    typedef typename T::pointer           pointer;   // 迭代器所指类型指针：左值</span><br><span class="line">    typedef typename T::reference         reference;  // 值引用类型： 左值</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">// 上面是stl中迭代器需要指定的几种数据类型，函数模板通过这几种模板类型来操作相关数据，</span><br><span class="line">而真正的数据对象类型会根据传入的数据类型进行相应的调整。</span><br><span class="line"> </span><br><span class="line">#include &lt;iostream&gt;</span><br><span class="line">using namespace std;</span><br><span class="line"> </span><br><span class="line"> </span><br><span class="line">template &lt;class T&gt;</span><br><span class="line">struct flag_traits &#123;</span><br><span class="line">    typedef typename T::value_type   value_type;</span><br><span class="line">&#125;</span><br><span class="line"> </span><br><span class="line">struct B_tag &#123;&#125;;</span><br><span class="line">struct D1_tag ：public B_tag &#123;&#125;;</span><br><span class="line">struct D2_tag : public D1_tag &#123;&#125;;</span><br><span class="line"> </span><br><span class="line">template &lt;class I&gt;</span><br><span class="line">func(I&amp; p, B_tag) &#123;</span><br><span class="line">    cout &lt;&lt; &quot; B version &quot; &lt;&lt; endl;</span><br><span class="line">&#125;</span><br><span class="line"> </span><br><span class="line">template &lt;class I&gt;</span><br><span class="line">func(I&amp; p, D2_tag) &#123;</span><br><span class="line">    cout &lt;&lt; &quot; D2 version &quot; &lt;&lt; endl;</span><br><span class="line">&#125;</span><br><span class="line"> </span><br><span class="line">template &lt;class I&gt;</span><br><span class="line">func(I&amp; p) &#123;</span><br><span class="line">    func(p, typename flag_traits&lt;I&gt;::value_type());</span><br><span class="line">&#125;</span><br><span class="line"> </span><br><span class="line">class B &#123;</span><br><span class="line">    typedef B_tag  value_type;</span><br><span class="line">&#125;</span><br><span class="line"> </span><br><span class="line">class D1 &#123;</span><br><span class="line">    typedef D1_tag value_type;</span><br><span class="line">&#125;</span><br><span class="line"> </span><br><span class="line">class D2 &#123;</span><br><span class="line">    typedef D2_tag  value_type;</span><br><span class="line">&#125;</span><br><span class="line"> </span><br><span class="line">int main() &#123;</span><br><span class="line">    B b;</span><br><span class="line">    D1 d1;</span><br><span class="line">    D2 d2;</span><br><span class="line">    func(b);</span><br><span class="line">    func(d1);</span><br><span class="line">    func(d2);</span><br><span class="line">&#125;</span><br><span class="line"> </span><br><span class="line">可以通过flag_traits::value_type的方式来推导当前调用的函数是哪个函数的重载。</span><br><span class="line">这种通过设定一个模板类，间接推导参数类型的方式值得学习。</span><br></pre></td></tr></table></figure>
 
           
         
@@ -2164,7 +2357,7 @@
               
                 <a href="/archives/">
               
-                  <span class="site-state-item-count">6</span>
+                  <span class="site-state-item-count">7</span>
                   <span class="site-state-item-name">日志</span>
                 </a>
               </div>
