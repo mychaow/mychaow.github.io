@@ -1,0 +1,597 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 5.3.0">
+
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+
+<link rel="stylesheet" href="//cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@5.15.1/css/all.min.css">
+  <link rel="stylesheet" href="//cdn.jsdelivr.net/npm/animate.css@3.1.1/animate.min.css">
+
+<script class="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"example.com","root":"/","images":"/images","scheme":"Gemini","version":"8.2.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12},"copycode":false,"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"fadeInDown","post_body":"fadeInDown","coll_header":"fadeInLeft","sidebar":"fadeInUp"}},"prism":false,"i18n":{"placeholder":"搜索...","empty":"没有找到任何搜索结果：${query}","hits_time":"找到 ${hits} 个搜索结果（用时 ${time} 毫秒）","hits":"找到 ${hits} 个搜索结果"}};
+  </script>
+<meta name="description" content="Abstract介绍Dynamo，一个分布式的kv存储系统，具有非常高的可用性和可靠性  Introduction主要目标： Reliability Scalability 提供key-value接口（最受欢迎清单，购物车，用户偏好等）  实现技术 使用一致性哈希进行数据分区和备份 使用对象版本信息来处理单个数据备份一致性问题 多副本之间的一致性可以通过类似quorum的协议处理（NWR），以及">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Dynamo Amazon&#39;s Highly Available Key-value Store">
+<meta property="og:url" content="http://example.com/2021/01/29/Dynamo-Amazon-s-Highly-Available-Key-value-Store/index.html">
+<meta property="og:site_name" content="我住8楼">
+<meta property="og:description" content="Abstract介绍Dynamo，一个分布式的kv存储系统，具有非常高的可用性和可靠性  Introduction主要目标： Reliability Scalability 提供key-value接口（最受欢迎清单，购物车，用户偏好等）  实现技术 使用一致性哈希进行数据分区和备份 使用对象版本信息来处理单个数据备份一致性问题 多副本之间的一致性可以通过类似quorum的协议处理（NWR），以及">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://mychaow.github.io/2018/02/03/dynamo-md/">
+<meta property="article:published_time" content="2021-01-29T07:00:59.000Z">
+<meta property="article:modified_time" content="2021-01-29T07:13:15.852Z">
+<meta property="article:author" content="Jason Chao">
+<meta property="article:tag" content="paper">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://mychaow.github.io/2018/02/03/dynamo-md/">
+
+
+<link rel="canonical" href="http://example.com/2021/01/29/Dynamo-Amazon-s-Highly-Available-Key-value-Store/">
+
+
+<script class="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'zh-CN'
+  };
+</script>
+<title>Dynamo Amazon's Highly Available Key-value Store | 我住8楼</title>
+  
+
+
+
+
+  <noscript>
+  <style>
+  body { margin-top: 2rem; }
+
+  .use-motion .menu-item,
+  .use-motion .sidebar,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header {
+    visibility: visible;
+  }
+
+  .use-motion .header,
+  .use-motion .site-brand-container .toggle,
+  .use-motion .footer { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle,
+  .use-motion .custom-logo-image {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line {
+    transform: scaleX(1);
+  }
+
+  .search-pop-overlay, .sidebar-nav { display: none; }
+  .sidebar-panel { display: block; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" class="use-motion">
+  <div class="headband"></div>
+
+  <main class="main">
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏" role="button">
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <i class="logo-line"></i>
+      <h1 class="site-title">我住8楼</h1>
+      <i class="logo-line"></i>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+    </div>
+  </div>
+</div>
+
+
+
+<nav class="site-nav">
+  <ul class="main-menu menu">
+        <li class="menu-item menu-item-home"><a href="/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a></li>
+        <li class="menu-item menu-item-tags"><a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>标签</a></li>
+        <li class="menu-item menu-item-categories"><a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>分类</a></li>
+        <li class="menu-item menu-item-archives"><a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档</a></li>
+  </ul>
+</nav>
+
+
+
+
+</div>
+        
+  
+  <div class="toggle sidebar-toggle" role="button">
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+  </div>
+
+  <aside class="sidebar">
+
+    <div class="sidebar-inner sidebar-nav-active sidebar-toc-active">
+      <ul class="sidebar-nav">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <div class="sidebar-panel-container">
+        <!--noindex-->
+        <div class="post-toc-wrap sidebar-panel">
+            <div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#Introduction"><span class="nav-number">1.</span> <span class="nav-text">Introduction</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E4%B8%BB%E8%A6%81%E7%9B%AE%E6%A0%87%EF%BC%9A"><span class="nav-number">1.1.</span> <span class="nav-text">主要目标：</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%AE%9E%E7%8E%B0%E6%8A%80%E6%9C%AF"><span class="nav-number">1.2.</span> <span class="nav-text">实现技术</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#BackGround"><span class="nav-number">2.</span> <span class="nav-text">BackGround</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E7%B3%BB%E7%BB%9F%E5%81%87%E8%AE%BE%E5%92%8C%E8%A6%81%E6%B1%82"><span class="nav-number">2.1.</span> <span class="nav-text">系统假设和要求</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#SLA"><span class="nav-number">2.2.</span> <span class="nav-text">SLA</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E8%AE%BE%E8%AE%A1%E8%80%83%E8%99%91"><span class="nav-number">2.3.</span> <span class="nav-text">设计考虑</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#Related-Work"><span class="nav-number">3.</span> <span class="nav-text">Related Work</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#System-Architecture"><span class="nav-number">4.</span> <span class="nav-text">System Architecture</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#dynamo%E6%8E%A5%E5%8F%A3"><span class="nav-number">4.1.</span> <span class="nav-text">dynamo接口</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%95%B0%E6%8D%AE%E5%88%86%E5%8C%BA%E7%AE%97%E6%B3%95"><span class="nav-number">4.2.</span> <span class="nav-text">数据分区算法</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%95%B0%E6%8D%AE%E5%89%AF%E6%9C%AC"><span class="nav-number">4.3.</span> <span class="nav-text">数据副本</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%95%B0%E6%8D%AE%E7%89%88%E6%9C%AC"><span class="nav-number">4.4.</span> <span class="nav-text">数据版本</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#get%E5%92%8Cput%E6%93%8D%E4%BD%9C%E7%9A%84%E6%89%A7%E8%A1%8C"><span class="nav-number">4.5.</span> <span class="nav-text">get和put操作的执行</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%A4%84%E7%90%86%E5%A4%B1%E8%B4%A5"><span class="nav-number">4.6.</span> <span class="nav-text">处理失败</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%A4%84%E7%90%86%E6%8C%81%E4%B9%85%E5%8C%96%E5%A4%B1%E8%B4%A5"><span class="nav-number">4.7.</span> <span class="nav-text">处理持久化失败</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%88%90%E5%91%98%E7%AE%A1%E7%90%86%E5%92%8C%E5%A4%B1%E8%B4%A5%E5%8F%91%E7%8E%B0"><span class="nav-number">4.8.</span> <span class="nav-text">成员管理和失败发现</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%B7%BB%E5%8A%A0%E5%92%8C%E7%A7%BB%E9%99%A4%E8%8A%82%E7%82%B9"><span class="nav-number">4.9.</span> <span class="nav-text">添加和移除节点</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E5%AE%9E%E7%8E%B0"><span class="nav-number">5.</span> <span class="nav-text">实现</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%9C%AC%E5%9C%B0%E6%8C%81%E4%B9%85%E5%8C%96%E5%BC%95%E6%93%8E"><span class="nav-number">5.1.</span> <span class="nav-text">本地持久化引擎</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E8%AF%B7%E6%B1%82%E5%8D%8F%E8%B0%83%E8%80%85"><span class="nav-number">5.2.</span> <span class="nav-text">请求协调者</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E7%BB%8F%E9%AA%8C%E6%95%99%E8%AE%AD"><span class="nav-number">6.</span> <span class="nav-text">经验教训</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E8%B4%9F%E8%BD%BD%E5%9D%87%E8%A1%A1%E6%80%A7%E8%83%BD%E5%92%8C%E6%8C%81%E4%B9%85%E5%8C%96%E6%80%A7%E8%83%BD"><span class="nav-number">6.1.</span> <span class="nav-text">负载均衡性能和持久化性能</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E4%BF%9D%E8%AF%81%E7%B3%BB%E7%BB%9F%E8%B4%9F%E8%BD%BD%E4%B8%80%E8%87%B4%E6%80%A7%E5%88%86%E5%B8%83"><span class="nav-number">6.2.</span> <span class="nav-text">保证系统负载一致性分布</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%A4%9A%E7%89%88%E6%9C%AC"><span class="nav-number">6.3.</span> <span class="nav-text">多版本</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%AE%A2%E6%88%B7%E7%AB%AF%E9%A9%B1%E5%8A%A8%E6%88%96%E8%80%85%E6%9C%8D%E5%8A%A1%E7%AB%AF%E9%A9%B1%E5%8A%A8%E5%AE%9A%E4%BD%8D"><span class="nav-number">6.4.</span> <span class="nav-text">客户端驱动或者服务端驱动定位</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%89%8D%E5%8F%B0%E5%92%8C%E5%90%8E%E5%8F%B0%E4%BB%BB%E5%8A%A1%E5%9D%87%E8%A1%A1"><span class="nav-number">6.5.</span> <span class="nav-text">前台和后台任务均衡</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E8%AE%A8%E8%AE%BA"><span class="nav-number">6.6.</span> <span class="nav-text">讨论</span></a></li></ol></li></ol></div>
+        </div>
+        <!--/noindex-->
+
+        <div class="site-overview-wrap sidebar-panel">
+          <div class="site-author site-overview-item animated" itemprop="author" itemscope itemtype="http://schema.org/Person">
+  <p class="site-author-name" itemprop="name">Jason Chao</p>
+  <div class="site-description" itemprop="description"></div>
+</div>
+<div class="site-state-wrap site-overview-item animated">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">9</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+          
+        <span class="site-state-item-count">2</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+          
+        <span class="site-state-item-count">6</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+
+
+
+        </div>
+      </div>
+    </div>
+  </aside>
+  <div class="sidebar-dimmer"></div>
+
+
+    </header>
+
+    
+  <div class="back-to-top" role="button">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+<noscript>
+  <div class="noscript-warning">Theme NexT works best with JavaScript enabled</div>
+</noscript>
+
+
+    <div class="main-inner post posts-expand">
+
+
+  
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="http://example.com/2021/01/29/Dynamo-Amazon-s-Highly-Available-Key-value-Store/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="Jason Chao">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="我住8楼">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          Dynamo Amazon's Highly Available Key-value Store
+        </h1>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">发表于</span>
+      
+
+      <time title="创建时间：2021-01-29 15:00:59 / 修改时间：15:13:15" itemprop="dateCreated datePublished" datetime="2021-01-29T15:00:59+08:00">2021-01-29</time>
+    </span>
+
+  
+</div>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+        <blockquote>
+<p>Abstract<br>介绍Dynamo，一个分布式的kv存储系统，具有非常高的可用性和可靠性</p>
+</blockquote>
+<h1 id="Introduction"><a href="#Introduction" class="headerlink" title="Introduction"></a>Introduction</h1><h2 id="主要目标："><a href="#主要目标：" class="headerlink" title="主要目标："></a>主要目标：</h2><ol>
+<li>Reliability</li>
+<li>Scalability</li>
+<li>提供key-value接口（最受欢迎清单，购物车，用户偏好等）</li>
+</ol>
+<h2 id="实现技术"><a href="#实现技术" class="headerlink" title="实现技术"></a>实现技术</h2><ol>
+<li>使用一致性哈希进行数据分区和备份</li>
+<li>使用对象版本信息来处理单个数据备份一致性问题</li>
+<li>多副本之间的一致性可以通过类似quorum的协议处理（NWR），以及一个去中心化的副本同步协议</li>
+<li>使用gossip分布式算法来实现错误发现和成员关系变更协议</li>
+</ol>
+<h1 id="BackGround"><a href="#BackGround" class="headerlink" title="BackGround"></a>BackGround</h1><ol>
+<li>RDBMS太重，不需要那么多复杂查询和管理函数；扩展性差，负载均衡效果差。</li>
+</ol>
+<h2 id="系统假设和要求"><a href="#系统假设和要求" class="headerlink" title="系统假设和要求"></a>系统假设和要求</h2><ul>
+<li>Query Model: 只需要key-value的操作，不需要关系模式（表格），没有跨多个数据（多列）的操作。</li>
+<li>ACID：只需要弱一致性，不用提供事务隔离机制。</li>
+<li>Efficiency：需要满足严格的SLA</li>
+<li>其他的假设：不需要认证，规模只用到几百</li>
+</ul>
+<h2 id="SLA"><a href="#SLA" class="headerlink" title="SLA"></a>SLA</h2><p>平均，中位数等指标不能很好的反映所有的用户获得很好的服务质量，它们只能反映大部分用户的服务质量，对于长尾延迟不能反映出来。<br>99.9% 延迟则可以反映所有的用户都有一个很好的服务质量。</p>
+<h2 id="设计考虑"><a href="#设计考虑" class="headerlink" title="设计考虑"></a>设计考虑</h2><ol>
+<li>支持强一致性的系统的可用性不高，为了提高可用性，一般使用弱一致性。弱一致性会导致副本冲突，而解决副本冲突需要两方面的考虑：<ol>
+<li>什么时候解决冲突</li>
+<li>谁来解决冲突</li>
+</ol>
+</li>
+<li>dynamo采用最终一致性模型。对于冲突解决，它有以下考虑：<ol>
+<li>许多模型采用写的时候解决冲突的方式，这样可以让读的逻辑保持比较简单，但是写容易失败。而dynamo相反，为了保证写可用性，让读来解决冲突</li>
+<li>dynamo采用用户来解决冲突的方式，而不是后端存储系统自己解决冲突。因为用户知道数据模式，它可以决定最适合的方式解决冲突。而后端存储系统可以采用的策略就比较有限，比如最后更新的是最终的结果这种方式。</li>
+</ol>
+</li>
+<li>增量扩展性：可以无缝扩展集群</li>
+<li>对称性：dynamo的所有node都是对等的</li>
+<li>去中心化：dynamo不是中心化结构而是端对端结构</li>
+<li>异构性：对于不同性能的机器，可以根据性能来分配任务</li>
+</ol>
+<h1 id="Related-Work"><a href="#Related-Work" class="headerlink" title="Related Work"></a>Related Work</h1><ol>
+<li>p2p系统</li>
+<li>分布式文件系统和数据库</li>
+<li>讨论<ol>
+<li>dynamo 的目标是总是可写</li>
+<li>dynamo 的机器都是可信的（不存在恶意机器）</li>
+<li>dynamo 不需要层次化的名字空间或者关系模式，只用扁平的模式</li>
+<li>dynamo 的性能指标是99.9%的延迟</li>
+</ol>
+</li>
+</ol>
+<h1 id="System-Architecture"><a href="#System-Architecture" class="headerlink" title="System Architecture"></a>System Architecture</h1><p>对于生产系统中一个存储系统需要考虑以下方面：</p>
+<ol>
+<li>负载均衡</li>
+<li>成员变动</li>
+<li>失败发现</li>
+<li>失败恢复</li>
+<li>副本同步</li>
+<li>超负荷处理</li>
+<li>状态转移</li>
+<li>并发和任务调度</li>
+<li>请求包装（序列化和反序列化）</li>
+<li>请求路由</li>
+<li>系统监控和报警</li>
+<li>配置管理</li>
+<li>持久化</li>
+<li>数据分区</li>
+<li>扩展性</li>
+</ol>
+<h2 id="dynamo接口"><a href="#dynamo接口" class="headerlink" title="dynamo接口"></a>dynamo接口</h2><ol>
+<li>get</li>
+<li>put</li>
+</ol>
+<h2 id="数据分区算法"><a href="#数据分区算法" class="headerlink" title="数据分区算法"></a>数据分区算法</h2><p>一致性哈希算法，如图所示：<br><a target="_blank" rel="noopener" href="https://mychaow.github.io/2018/02/03/dynamo-md/"><img src="https://mychaow.github.io/2018/02/03/dynamo-md/" alt="img"></a><br>基本的一致性哈希算法有以下问题：</p>
+<ol>
+<li>数据和负载分布不均衡</li>
+<li>对于不同机器体现不出异构性</li>
+</ol>
+<p>采用virtual nodes来解决这个问题，具体的就是每个节点映射多个虚拟节点，虚拟节点组成一个哈希环，有以下好处：</p>
+<ol>
+<li>一个节点失败了，它的负载会被剩下的所有节点平分</li>
+<li>当一个节点加入时，以前的所有节点会将一小部分负载分给它，非常快</li>
+<li>虚拟节点数可以反映一个机器的性能，当机器性能高时，可以多映射一点虚拟节点，这样就可以处理更多的负载</li>
+</ol>
+<h2 id="数据副本"><a href="#数据副本" class="headerlink" title="数据副本"></a>数据副本</h2><ol>
+<li>使用N备份，就是一个key落在哈希环上映射的第一个节点，顺时针的往下找N-1个节点作为备份节点。这N个节点称为preference list。</li>
+<li>这N个节点要保证是物理节点，防止都是同一个节点的虚拟节点，没有达到备份的效果</li>
+</ol>
+<h2 id="数据版本"><a href="#数据版本" class="headerlink" title="数据版本"></a>数据版本</h2><p>使用向量时钟来作为数据版本号，最终表示为一系列（node，counter）。</p>
+<ol>
+<li>当一个版本的对象的所有（node，counter）对都小于或等于另外一个版本的对象，则该对象是另外对象的祖先</li>
+<li>dynamo中当一个用户想要更新一个对象时，需要提供上一次读的操作的版本号，用来指定是对某个版本的对象实现更新操作</li>
+</ol>
+<p>向量时钟表示版本，有一点需要考虑的是：当多个节点并发更新后，（node, counter）对就会变得很多，合并起来占用空间，因此可以设置一个阈值，超过该阈值，从最旧的开始截断。现实中其实很少发现这种需要截断的情况。</p>
+<h2 id="get和put操作的执行"><a href="#get和put操作的执行" class="headerlink" title="get和put操作的执行"></a>get和put操作的执行</h2><ol>
+<li>用户感知存储节点<ol>
+<li>通过一个通用的负载均衡节点来路由选，好处是用户与存储节点解耦</li>
+<li>使用自带分区感知能力的client lib库来访问，好处是用户的延迟更低</li>
+</ol>
+</li>
+<li>数据副本一致性<ol>
+<li>R + W &gt; N</li>
+<li>前N个node作为preference node，选择其中一个作为coordinator来处理读写请求。</li>
+</ol>
+</li>
+</ol>
+<h2 id="处理失败"><a href="#处理失败" class="headerlink" title="处理失败"></a>处理失败</h2><p>考虑到严格的R+W&gt;N在网络分区，或临时坏的情况下还是影响可用性，因此可以除了N个preference节点外，对于每个机器设置备份节点<br>Hinted replica，当某个节点不可用时，就把数据发送给它的hinted replica。<br>Dynamo的节点是跨地域的，所以可以提供跨地域可用性。</p>
+<h2 id="处理持久化失败"><a href="#处理持久化失败" class="headerlink" title="处理持久化失败"></a>处理持久化失败</h2><p>当Hinted replica的节点也不可用时，数据的持久化就会有危险。为了达到数据写入的安全性，需要副本之间同步新的数据并互为备份。为了发现<br>不同的副本之间的不一致性。使用Merkle trees算法。这个算法就是将不同的key区间进行哈希，父节点是子节点的哈希值的哈希，这样每个<br>节点构造自己的Merkle trees，然后相互比较就能很快的知道哪里不一致了。</p>
+<h2 id="成员管理和失败发现"><a href="#成员管理和失败发现" class="headerlink" title="成员管理和失败发现"></a>成员管理和失败发现</h2><ol>
+<li>哈希环成员</li>
+</ol>
+<p>使用基于Gossip算法的协议来传播成员变更信息。</p>
+<ol>
+<li>外部发现</li>
+</ol>
+<p>为了防止逻辑分区，设置一些seed节点，让所有的节点与它们通信来获得最终的集群成员信息。</p>
+<ol>
+<li>错误发现</li>
+</ol>
+<p>每个节点使用基于Gossip算法来感知其他节点可不可达的信息。</p>
+<h2 id="添加和移除节点"><a href="#添加和移除节点" class="headerlink" title="添加和移除节点"></a>添加和移除节点</h2><p>每个节点加入哈希环时，相关节点向它发送key value。当移除时，该节点向映射的其他节点发送key value对。</p>
+<h1 id="实现"><a href="#实现" class="headerlink" title="实现"></a>实现</h1><ol>
+<li>请求协调者</li>
+<li>成员管理和失败发现</li>
+<li>本地持久化引擎</li>
+</ol>
+<h2 id="本地持久化引擎"><a href="#本地持久化引擎" class="headerlink" title="本地持久化引擎"></a>本地持久化引擎</h2><p>支持多种引擎，比如mysql，Berkeley DB</p>
+<h2 id="请求协调者"><a href="#请求协调者" class="headerlink" title="请求协调者"></a>请求协调者</h2><ol>
+<li>使用事件驱动的方式编写，即状态机。每个状态机处理一个用户请求。根据不同的阶段做对应的处理。</li>
+<li>put的时候，preference list top N个节点任意一个都可以处理。为了获得更好的一致性，一般写会挑上一次读的时候最快返回结果的节点，这样下次读还是有很大概率读到最新的值。</li>
+</ol>
+<h1 id="经验教训"><a href="#经验教训" class="headerlink" title="经验教训"></a>经验教训</h1><p>冲突解决方案：</p>
+<ol>
+<li>业务制定更新冲突解决方法</li>
+<li>基于时间序的冲突解决方法</li>
+<li>W=N, R=1解决高性能读要求</li>
+</ol>
+<h2 id="负载均衡性能和持久化性能"><a href="#负载均衡性能和持久化性能" class="headerlink" title="负载均衡性能和持久化性能"></a>负载均衡性能和持久化性能</h2><ol>
+<li>使用缓存写来提供系统的写性能</li>
+<li>写入的时候指定其中一个副本直接写入到磁盘中，其他的缓存写，这样提高系统数据安全性(持久化)</li>
+</ol>
+<h2 id="保证系统负载一致性分布"><a href="#保证系统负载一致性分布" class="headerlink" title="保证系统负载一致性分布"></a>保证系统负载一致性分布</h2><p>数据分区和节点映射策略</p>
+<ol>
+<li><p>每个节点T个随机token，数据分区也是按照token来划分</p>
+<p>缺点：</p>
+<ol>
+<li>新节点加入时，在线节点需要扫描自己的数据集来找到需要传输给新加入节点的数据，影响线上服务。<br>当不想影响线上服务时，降低扫描优先级，会导致新加入节点启动比较慢</li>
+<li>节点加入或离开时，许多节点的数据分区和Merkle tree需要重新计算，影响服务</li>
+<li>因为数据分区是不固定的，所以没法做snapshot来加快传输数据<br>这个策略不好的根本原因是数据分区和数据放置策略耦合太多</li>
+</ol>
+</li>
+<li><p>每个节点T个随机token，数据是大小固定的划分的</p>
+<ol>
+<li>哈希空间划分为固定Q个分区，每个节点还是随机分配T个token，其中Q&gt;&gt;N &amp; Q &gt;&gt; S*T S是节点数，N是副本数</li>
+<li>每个数据分区以末尾为key顺时针找到下一个token对应的Node<br>优点：</li>
+<li>数据放置和数据分区解耦</li>
+<li>可以在运行过程中改变数据放置</li>
+</ol>
+</li>
+<li><p>每个节点Q/S个token,数据是大小固定的划分的</p>
+<ol>
+<li>跟2策略一样，但是T=Q/S，当某个节点离开时，它的token被随机分给其他的节点，<br>当节点加入时，它从别的节点随机拉取token<br>优点：</li>
+<li>快速启动和恢复</li>
+<li>打包数据（快照）<br>缺点：</li>
+<li>改变node 成员关系需要许多节点协作来维持策略3的要求</li>
+</ol>
+</li>
+</ol>
+<h2 id="多版本"><a href="#多版本" class="headerlink" title="多版本"></a>多版本</h2><p>原因：</p>
+<ol>
+<li><p>系统出现节点失败和网络分区时</p>
+</li>
+<li><p>系统处理大量的并发写<br>数量：</p>
+</li>
+<li><p>数量非常少</p>
+<h2 id="客户端驱动或者服务端驱动定位"><a href="#客户端驱动或者服务端驱动定位" class="headerlink" title="客户端驱动或者服务端驱动定位"></a>客户端驱动或者服务端驱动定位</h2></li>
+<li><p>服务端驱动</p>
+<ol>
+<li>coordinator来执行读和写的协调操作</li>
+<li>需要负载均衡器来做请求转发和均衡</li>
+</ol>
+</li>
+<li><p>客户端驱动</p>
+<ol>
+<li>client定期随机向集群某个节点拉取整个集群的在线node 视图</li>
+<li>将读写请求发往指定的coordinator</li>
+<li>因为数据分区几乎公平的将数据分散到各个节点，所以不用做负载均衡操作</li>
+</ol>
+</li>
+</ol>
+<h2 id="前台和后台任务均衡"><a href="#前台和后台任务均衡" class="headerlink" title="前台和后台任务均衡"></a>前台和后台任务均衡</h2><p>后台任务都是低优先级的任务，为了不影响前台任务，需要控制其资源使用量。<br>dynamo使用一个反馈机制来做这种资源使用控制。</p>
+<h2 id="讨论"><a href="#讨论" class="headerlink" title="讨论"></a>讨论</h2><p>dynamo使用gossip来做全局在线node视图传播，只能达到几百台的规模。更大的规模需要做层次化扩展。</p>
+<p><em>总结</em></p>
+<p>dynamo这篇论文写的非常详细，比较重要的几点：</p>
+<ol>
+<li>采用99.9% 来衡量SLA</li>
+<li>采用一致性哈希模型的数据分区策略</li>
+<li>采用向量时钟来作为数据版本信息，并由业务逻辑来处理版本冲突</li>
+<li>采用基于gossip算法来处理集群视图的传播</li>
+<li>采用NWR算法来保证数据安全性</li>
+<li>采用Merkle trees来加快发现版本之间不一致性，从而快速备份数据</li>
+</ol>
+<table>
+<thead>
+<tr>
+<th align="left">Problem</th>
+<th align="left">Technique</th>
+<th align="left">Advantage</th>
+</tr>
+</thead>
+<tbody><tr>
+<td align="left">Partitioning</td>
+<td align="left">Consistent Hashing</td>
+<td align="left">Incremental Scalability</td>
+</tr>
+<tr>
+<td align="left">High Availablility for Writes</td>
+<td align="left">Vector clocks with reconsiliation during reads</td>
+<td align="left">version size decoupled from update rates</td>
+</tr>
+<tr>
+<td align="left">Handing temporary failures</td>
+<td align="left">Sloppy Quorum and hinted handoff</td>
+<td align="left">Provides high Availablility and durability guarantee when some fo the replicas are not available</td>
+</tr>
+<tr>
+<td align="left">Recovering from permanent failures</td>
+<td align="left">Anti-entropy using Merkle trees</td>
+<td align="left">Synchronizes divergent replicas in the BackGround</td>
+</tr>
+<tr>
+<td align="left">membership and failure detection</td>
+<td align="left">gossip-based membership protocol and failures detection</td>
+<td align="left">preserves symmetry and avoids having a centralized registry for Storing membership and node liveness information</td>
+</tr>
+</tbody></table>
+
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/paper/" rel="tag"># paper</a>
+          </div>
+
+        
+
+          <div class="post-nav">
+            <div class="post-nav-item">
+            </div>
+            <div class="post-nav-item">
+                <a href="/2021/01/29/%E6%8A%95%E8%B5%84%E5%AD%A6%E8%AE%B0%E5%BD%95/" rel="next" title="投资学记录">
+                  投资学记录 <i class="fa fa-chevron-right"></i>
+                </a>
+            </div>
+          </div>
+    </footer>
+  </article>
+</div>
+
+
+
+
+
+
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      const activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      const commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+</div>
+  </main>
+
+  <footer class="footer">
+    <div class="footer-inner">
+
+
+<div class="copyright">
+  &copy; 
+  <span itemprop="copyrightYear">2021</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Jason Chao</span>
+</div>
+  <div class="powered-by">由 <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://theme-next.js.org/" class="theme-link" rel="noopener" target="_blank">NexT.Gemini</a> 强力驱动
+  </div>
+
+    </div>
+  </footer>
+
+  
+  <script src="//cdn.jsdelivr.net/npm/animejs@3.2.1/lib/anime.min.js"></script>
+<script src="/js/utils.js"></script><script src="/js/motion.js"></script><script src="/js/next-boot.js"></script>
+
+  
+
+
+
+
+
+
+  
+
+
+
+
+
+</body>
+</html>
