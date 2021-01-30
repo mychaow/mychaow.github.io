@@ -167,7 +167,7 @@
       <div class="site-state-item site-state-posts">
           <a href="/archives/">
         
-          <span class="site-state-item-count">10</span>
+          <span class="site-state-item-count">11</span>
           <span class="site-state-item-name">日志</span>
         </a>
       </div>
@@ -232,6 +232,156 @@
       <header class="post-header">
         <h2 class="post-title" itemprop="name headline">
           <a href="/2021/01/30/%E5%AD%A6%E4%B9%A0RRD%E6%95%B0%E6%8D%AE%E5%BA%93-1/" class="post-title-link" itemprop="url">学习RRD数据库-1</a>
+        </h2>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">发表于</span>
+      
+
+      <time title="创建时间：2021-01-30 22:51:57 / 修改时间：23:02:05" itemprop="dateCreated datePublished" datetime="2021-01-30T22:51:57+08:00">2021-01-30</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-folder"></i>
+      </span>
+      <span class="post-meta-item-text">分类于</span>
+        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+          <a href="/categories/RRD/" itemprop="url" rel="index"><span itemprop="name">RRD</span></a>
+        </span>
+    </span>
+
+  
+</div>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+          <h1 id="简介"><a href="#简介" class="headerlink" title="简介"></a>简介</h1><p>RRD （Round Robin Database）数据库是一个环形的数据库，你可以把它想象成圆盘，中心处有一个指针，随着时间的变化，指针也在变，当指针指到 12 点处，也就是这个记录要被擦除覆盖的时刻。因为它是圆形的，无始无终，可以一直往里写数据，只是历史数据会被覆盖掉，所以，有时它又被叫做时序结构数据库。</p>
+<p>RRD诞生于1999年，前身是MRTG，MRTG主要用来自动采集系统的一些统计指标并进行绘图，实现对系统的监控。RRD主要是为了解决MRTG的一些问题而诞生的，主要面向的也是监控场景数据。</p>
+<p>虽然通用关系数据库可以存储时序数据，但是由于缺乏针对时间的特殊优化，比如按时间间隔存储和检索数据等等，因此在处理这些数据时效率相对不高。</p>
+<p>RRD属于第一代时序数据库，数据也典型来源于监控领域，直接基于平板文件的简单存储工具成为这类数据的首先存储方式。</p>
+<p><img src="D:\coderepo\mychaow.github.io\source_posts\学习RRD数据库-1\rrd环形结构.jpg" alt="rrd环形结构"></p>
+<h1 id="RRDTool"><a href="#RRDTool" class="headerlink" title="RRDTool"></a>RRDTool</h1><p>RRDTool是RRD数据库配套的一个工具，它可以安装在Unix或者Windows系统上，RRDTool提供了一系列的命令集来对RRD进行不同的操作。</p>
+<p>RRDTool既是后端工具，又是前端工具；之所以这么说，是因为作为数据库，首先RRDTool可以存储数据，此外，RRDTool也提供了一个根据数据库数据进行绘图的功能，这让它具备了前端的特性。</p>
+<h2 id="基本使用语法"><a href="#基本使用语法" class="headerlink" title="基本使用语法"></a>基本使用语法</h2><h3 id="创建数据库"><a href="#创建数据库" class="headerlink" title="创建数据库"></a>创建数据库</h3><figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line">rrdtool create filename  </span><br><span class="line"><span class="meta">#</span><span class="bash"> 建一个名为 filename 的数据库文件，通常 RRD 数据库文件的后缀为 .rrd ，但是你随便使用文件名也不会有影响</span></span><br><span class="line">[--start|-b start time]</span><br><span class="line"><span class="meta">#</span><span class="bash"> 这个选项表示 RRD 数据库的起始 (start/begin) 时间点为 start-time，这是一个从 1970-01-01 00:00:00 开始计时，以秒为间隔的一个整数值。</span></span><br><span class="line">[--step|-s step]</span><br><span class="line"><span class="meta">#</span><span class="bash"> 这个选项表示监测的时间间隔，即多久时间去获取一次被监测对象的数值，默认值为5分钟(300秒)。</span></span><br><span class="line">[--template|-t template-file]</span><br><span class="line">[--source|-r source-file] </span><br><span class="line">[--no-overwrite|-O] </span><br><span class="line">[--daemon|-d address] </span><br><span class="line">[DS:ds-name[=mapped-ds-name[[source-index]]]:DST:dst arguments] </span><br><span class="line"><span class="meta">#</span><span class="bash"> 这个选项用来定义数据源(Data Source)属性，包括数据源名称 ds-name，比如我们可以给监测内存使用率的数据源命名为 memory-rate。</span></span><br><span class="line"><span class="meta">#</span><span class="bash"> DST(Data Source Type)数据源类型</span></span><br><span class="line">[RRA:CF:cf arguments]</span><br><span class="line"><span class="meta">#</span><span class="bash"> RRA (Round Robin Archive) 是用来定义 RRD 数据库归档模型，RRDTool 绘图展示监测情况的时候就从 RRA 中获取数据。CF (Consolidation Function)是用来处理原始数据的函数</span></span><br></pre></td></tr></table></figure>
+
+
+<h4 id="概念"><a href="#概念" class="headerlink" title="概念"></a>概念</h4><h5 id="DST"><a href="#DST" class="headerlink" title="DST"></a>DST</h5><p>DST七种类型：</p>
+<ol>
+<li>GAUGE<ol>
+<li>实测值</li>
+</ol>
+</li>
+<li>COUNTER<ol>
+<li>计数器，只增不减，RRD收到值后，会计算变化率，而不是存储原始值</li>
+</ol>
+</li>
+<li>DCOUNTER<ol>
+<li>也是计数器，但是是double类型的，并且可以递减或递增</li>
+</ol>
+</li>
+<li>DERIVE<ol>
+<li>存储的也是变化率，和 COUNTER 类型不同的是，监测值可以增长也可以下降</li>
+</ol>
+</li>
+<li>DDERIVE<ol>
+<li>也是计数器，但是是double类型的，并且可以递减或递增</li>
+</ol>
+</li>
+<li>ABSOLUTE<ol>
+<li>类似counter，存储的也是变化率，但是每次读取时会重置counter为0</li>
+</ol>
+</li>
+<li>COMPUTE<ol>
+<li>对测量值进行计算后的值</li>
+</ol>
+</li>
+</ol>
+<h5 id="CF"><a href="#CF" class="headerlink" title="CF"></a>CF</h5><p>也有几种函数；</p>
+<ol>
+<li>AVERAGE</li>
+<li>MIN</li>
+<li>MAX</li>
+<li>LAST</li>
+</ol>
+<h5 id="数据点类型"><a href="#数据点类型" class="headerlink" title="数据点类型"></a>数据点类型</h5><p>RAR（round robin archives）数据存储格式，包含很多CDP。我们可以把一个RRA 看成一个表，各保存不同 interval 的统计结果。RRA的作用就是定义更新的数据是如何记录的。</p>
+<p>PDP (Primary Data Point) 原始数据点</p>
+<p>CDP (Consolidation Data Point) 归档数据点</p>
+<p>一个 CDP 由多个 PDP 经过归档函数计算得到。</p>
+<p>如下图所示：</p>
+<p> <img src="D:\coderepo\mychaow.github.io\source_posts\学习RRD数据库-1\rrd-cdp-pdp.jpg" alt="rrd-cdp-pdp"></p>
+<h3 id="更新"><a href="#更新" class="headerlink" title="更新"></a>更新</h3><p>实际上是插入数据</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">rrdtool &#123;update | updatev&#125; filename</span><br><span class="line">[--template|-t ds-name[:ds-name]...] </span><br><span class="line">[--skip-past-updates|-s] </span><br><span class="line">[--daemon|-d address]</span><br><span class="line">[--] N:value[:value]... timestamp:value[:value]... at-timestamp@value[:value]...</span><br></pre></td></tr></table></figure>
+<h3 id="查询"><a href="#查询" class="headerlink" title="查询"></a>查询</h3><p>查询数据</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">rrdtool fetch filename CF </span><br><span class="line">[--resolution|-r resolution] </span><br><span class="line">[--start|-s start] </span><br><span class="line">[--end|-e end] </span><br><span class="line">[--align-start|-a] </span><br><span class="line">[--daemon|-d address]</span><br></pre></td></tr></table></figure>
+<p>CF只支持四种：</p>
+<ol>
+<li>AVERAGE</li>
+<li>MIN</li>
+<li>MAX</li>
+<li>LAST</li>
+</ol>
+<h3 id="画图"><a href="#画图" class="headerlink" title="画图"></a>画图</h3><p>根据RRD数据库中的数据绘制图形，生成图片。</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">rrdtool graph|graphv filename </span><br><span class="line">[option ...] </span><br><span class="line">[data definition ...] </span><br><span class="line">[data calculation ...] </span><br><span class="line">[variable definition ...]</span><br><span class="line">[graph element ...]</span><br><span class="line">[print element ...]</span><br></pre></td></tr></table></figure>
+
+
+
+
+<h1 id="参考"><a href="#参考" class="headerlink" title="参考"></a>参考</h1><ol>
+<li><a target="_blank" rel="noopener" href="https://developer.aliyun.com/article/54400">RRDTool原理简介</a></li>
+<li><a target="_blank" rel="noopener" href="http://bbs.chinaunix.net/thread-864861-1-1.html">RRDtool简体中文教程 v1.01</a></li>
+<li><a target="_blank" rel="noopener" href="https://developer.aliyun.com/article/711500">浅谈时序数据库那些事</a></li>
+<li><a target="_blank" rel="noopener" href="https://oss.oetiker.ch/rrdtool/doc/index.en.html">RRDtool Documentation</a></li>
+</ol>
+
+      
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+        <div class="post-eof"></div>
+      
+    </footer>
+  </article>
+</div>
+
+
+
+
+    
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="http://example.com/2021/01/30/%E5%AD%A6%E4%B9%A0RRD%E6%95%B0%E6%8D%AE%E5%BA%93-1-bak/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="Jason Chao">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="我住8楼">
+    </span>
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">
+          <a href="/2021/01/30/%E5%AD%A6%E4%B9%A0RRD%E6%95%B0%E6%8D%AE%E5%BA%93-1-bak/" class="post-title-link" itemprop="url">学习RRD数据库-1</a>
         </h2>
 
         <div class="post-meta-container">
@@ -2181,306 +2331,9 @@
 
 
 
-    
-
-
-<div class="post-block">
-  
-  
-
-  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="zh-CN">
-    <link itemprop="mainEntityOfPage" href="http://example.com/2021/01/29/Dynamo-Amazon-s-Highly-Available-Key-value-Store/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="image" content="/images/avatar.gif">
-      <meta itemprop="name" content="Jason Chao">
-      <meta itemprop="description" content="">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="我住8楼">
-    </span>
-      <header class="post-header">
-        <h2 class="post-title" itemprop="name headline">
-          <a href="/2021/01/29/Dynamo-Amazon-s-Highly-Available-Key-value-Store/" class="post-title-link" itemprop="url">Dynamo Amazon's Highly Available Key-value Store</a>
-        </h2>
-
-        <div class="post-meta-container">
-          <div class="post-meta">
-    <span class="post-meta-item">
-      <span class="post-meta-item-icon">
-        <i class="far fa-calendar"></i>
-      </span>
-      <span class="post-meta-item-text">发表于</span>
-      
-
-      <time title="创建时间：2021-01-29 15:00:59 / 修改时间：15:13:15" itemprop="dateCreated datePublished" datetime="2021-01-29T15:00:59+08:00">2021-01-29</time>
-    </span>
-
-  
-</div>
-
-        </div>
-      </header>
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-          <blockquote>
-<p>Abstract<br>介绍Dynamo，一个分布式的kv存储系统，具有非常高的可用性和可靠性</p>
-</blockquote>
-<h1 id="Introduction"><a href="#Introduction" class="headerlink" title="Introduction"></a>Introduction</h1><h2 id="主要目标："><a href="#主要目标：" class="headerlink" title="主要目标："></a>主要目标：</h2><ol>
-<li>Reliability</li>
-<li>Scalability</li>
-<li>提供key-value接口（最受欢迎清单，购物车，用户偏好等）</li>
-</ol>
-<h2 id="实现技术"><a href="#实现技术" class="headerlink" title="实现技术"></a>实现技术</h2><ol>
-<li>使用一致性哈希进行数据分区和备份</li>
-<li>使用对象版本信息来处理单个数据备份一致性问题</li>
-<li>多副本之间的一致性可以通过类似quorum的协议处理（NWR），以及一个去中心化的副本同步协议</li>
-<li>使用gossip分布式算法来实现错误发现和成员关系变更协议</li>
-</ol>
-<h1 id="BackGround"><a href="#BackGround" class="headerlink" title="BackGround"></a>BackGround</h1><ol>
-<li>RDBMS太重，不需要那么多复杂查询和管理函数；扩展性差，负载均衡效果差。</li>
-</ol>
-<h2 id="系统假设和要求"><a href="#系统假设和要求" class="headerlink" title="系统假设和要求"></a>系统假设和要求</h2><ul>
-<li>Query Model: 只需要key-value的操作，不需要关系模式（表格），没有跨多个数据（多列）的操作。</li>
-<li>ACID：只需要弱一致性，不用提供事务隔离机制。</li>
-<li>Efficiency：需要满足严格的SLA</li>
-<li>其他的假设：不需要认证，规模只用到几百</li>
-</ul>
-<h2 id="SLA"><a href="#SLA" class="headerlink" title="SLA"></a>SLA</h2><p>平均，中位数等指标不能很好的反映所有的用户获得很好的服务质量，它们只能反映大部分用户的服务质量，对于长尾延迟不能反映出来。<br>99.9% 延迟则可以反映所有的用户都有一个很好的服务质量。</p>
-<h2 id="设计考虑"><a href="#设计考虑" class="headerlink" title="设计考虑"></a>设计考虑</h2><ol>
-<li>支持强一致性的系统的可用性不高，为了提高可用性，一般使用弱一致性。弱一致性会导致副本冲突，而解决副本冲突需要两方面的考虑：<ol>
-<li>什么时候解决冲突</li>
-<li>谁来解决冲突</li>
-</ol>
-</li>
-<li>dynamo采用最终一致性模型。对于冲突解决，它有以下考虑：<ol>
-<li>许多模型采用写的时候解决冲突的方式，这样可以让读的逻辑保持比较简单，但是写容易失败。而dynamo相反，为了保证写可用性，让读来解决冲突</li>
-<li>dynamo采用用户来解决冲突的方式，而不是后端存储系统自己解决冲突。因为用户知道数据模式，它可以决定最适合的方式解决冲突。而后端存储系统可以采用的策略就比较有限，比如最后更新的是最终的结果这种方式。</li>
-</ol>
-</li>
-<li>增量扩展性：可以无缝扩展集群</li>
-<li>对称性：dynamo的所有node都是对等的</li>
-<li>去中心化：dynamo不是中心化结构而是端对端结构</li>
-<li>异构性：对于不同性能的机器，可以根据性能来分配任务</li>
-</ol>
-<h1 id="Related-Work"><a href="#Related-Work" class="headerlink" title="Related Work"></a>Related Work</h1><ol>
-<li>p2p系统</li>
-<li>分布式文件系统和数据库</li>
-<li>讨论<ol>
-<li>dynamo 的目标是总是可写</li>
-<li>dynamo 的机器都是可信的（不存在恶意机器）</li>
-<li>dynamo 不需要层次化的名字空间或者关系模式，只用扁平的模式</li>
-<li>dynamo 的性能指标是99.9%的延迟</li>
-</ol>
-</li>
-</ol>
-<h1 id="System-Architecture"><a href="#System-Architecture" class="headerlink" title="System Architecture"></a>System Architecture</h1><p>对于生产系统中一个存储系统需要考虑以下方面：</p>
-<ol>
-<li>负载均衡</li>
-<li>成员变动</li>
-<li>失败发现</li>
-<li>失败恢复</li>
-<li>副本同步</li>
-<li>超负荷处理</li>
-<li>状态转移</li>
-<li>并发和任务调度</li>
-<li>请求包装（序列化和反序列化）</li>
-<li>请求路由</li>
-<li>系统监控和报警</li>
-<li>配置管理</li>
-<li>持久化</li>
-<li>数据分区</li>
-<li>扩展性</li>
-</ol>
-<h2 id="dynamo接口"><a href="#dynamo接口" class="headerlink" title="dynamo接口"></a>dynamo接口</h2><ol>
-<li>get</li>
-<li>put</li>
-</ol>
-<h2 id="数据分区算法"><a href="#数据分区算法" class="headerlink" title="数据分区算法"></a>数据分区算法</h2><p>一致性哈希算法，如图所示：<br><a target="_blank" rel="noopener" href="https://mychaow.github.io/2018/02/03/dynamo-md/"><img src="https://mychaow.github.io/2018/02/03/dynamo-md/" alt="img"></a><br>基本的一致性哈希算法有以下问题：</p>
-<ol>
-<li>数据和负载分布不均衡</li>
-<li>对于不同机器体现不出异构性</li>
-</ol>
-<p>采用virtual nodes来解决这个问题，具体的就是每个节点映射多个虚拟节点，虚拟节点组成一个哈希环，有以下好处：</p>
-<ol>
-<li>一个节点失败了，它的负载会被剩下的所有节点平分</li>
-<li>当一个节点加入时，以前的所有节点会将一小部分负载分给它，非常快</li>
-<li>虚拟节点数可以反映一个机器的性能，当机器性能高时，可以多映射一点虚拟节点，这样就可以处理更多的负载</li>
-</ol>
-<h2 id="数据副本"><a href="#数据副本" class="headerlink" title="数据副本"></a>数据副本</h2><ol>
-<li>使用N备份，就是一个key落在哈希环上映射的第一个节点，顺时针的往下找N-1个节点作为备份节点。这N个节点称为preference list。</li>
-<li>这N个节点要保证是物理节点，防止都是同一个节点的虚拟节点，没有达到备份的效果</li>
-</ol>
-<h2 id="数据版本"><a href="#数据版本" class="headerlink" title="数据版本"></a>数据版本</h2><p>使用向量时钟来作为数据版本号，最终表示为一系列（node，counter）。</p>
-<ol>
-<li>当一个版本的对象的所有（node，counter）对都小于或等于另外一个版本的对象，则该对象是另外对象的祖先</li>
-<li>dynamo中当一个用户想要更新一个对象时，需要提供上一次读的操作的版本号，用来指定是对某个版本的对象实现更新操作</li>
-</ol>
-<p>向量时钟表示版本，有一点需要考虑的是：当多个节点并发更新后，（node, counter）对就会变得很多，合并起来占用空间，因此可以设置一个阈值，超过该阈值，从最旧的开始截断。现实中其实很少发现这种需要截断的情况。</p>
-<h2 id="get和put操作的执行"><a href="#get和put操作的执行" class="headerlink" title="get和put操作的执行"></a>get和put操作的执行</h2><ol>
-<li>用户感知存储节点<ol>
-<li>通过一个通用的负载均衡节点来路由选，好处是用户与存储节点解耦</li>
-<li>使用自带分区感知能力的client lib库来访问，好处是用户的延迟更低</li>
-</ol>
-</li>
-<li>数据副本一致性<ol>
-<li>R + W &gt; N</li>
-<li>前N个node作为preference node，选择其中一个作为coordinator来处理读写请求。</li>
-</ol>
-</li>
-</ol>
-<h2 id="处理失败"><a href="#处理失败" class="headerlink" title="处理失败"></a>处理失败</h2><p>考虑到严格的R+W&gt;N在网络分区，或临时坏的情况下还是影响可用性，因此可以除了N个preference节点外，对于每个机器设置备份节点<br>Hinted replica，当某个节点不可用时，就把数据发送给它的hinted replica。<br>Dynamo的节点是跨地域的，所以可以提供跨地域可用性。</p>
-<h2 id="处理持久化失败"><a href="#处理持久化失败" class="headerlink" title="处理持久化失败"></a>处理持久化失败</h2><p>当Hinted replica的节点也不可用时，数据的持久化就会有危险。为了达到数据写入的安全性，需要副本之间同步新的数据并互为备份。为了发现<br>不同的副本之间的不一致性。使用Merkle trees算法。这个算法就是将不同的key区间进行哈希，父节点是子节点的哈希值的哈希，这样每个<br>节点构造自己的Merkle trees，然后相互比较就能很快的知道哪里不一致了。</p>
-<h2 id="成员管理和失败发现"><a href="#成员管理和失败发现" class="headerlink" title="成员管理和失败发现"></a>成员管理和失败发现</h2><ol>
-<li>哈希环成员</li>
-</ol>
-<p>使用基于Gossip算法的协议来传播成员变更信息。</p>
-<ol>
-<li>外部发现</li>
-</ol>
-<p>为了防止逻辑分区，设置一些seed节点，让所有的节点与它们通信来获得最终的集群成员信息。</p>
-<ol>
-<li>错误发现</li>
-</ol>
-<p>每个节点使用基于Gossip算法来感知其他节点可不可达的信息。</p>
-<h2 id="添加和移除节点"><a href="#添加和移除节点" class="headerlink" title="添加和移除节点"></a>添加和移除节点</h2><p>每个节点加入哈希环时，相关节点向它发送key value。当移除时，该节点向映射的其他节点发送key value对。</p>
-<h1 id="实现"><a href="#实现" class="headerlink" title="实现"></a>实现</h1><ol>
-<li>请求协调者</li>
-<li>成员管理和失败发现</li>
-<li>本地持久化引擎</li>
-</ol>
-<h2 id="本地持久化引擎"><a href="#本地持久化引擎" class="headerlink" title="本地持久化引擎"></a>本地持久化引擎</h2><p>支持多种引擎，比如mysql，Berkeley DB</p>
-<h2 id="请求协调者"><a href="#请求协调者" class="headerlink" title="请求协调者"></a>请求协调者</h2><ol>
-<li>使用事件驱动的方式编写，即状态机。每个状态机处理一个用户请求。根据不同的阶段做对应的处理。</li>
-<li>put的时候，preference list top N个节点任意一个都可以处理。为了获得更好的一致性，一般写会挑上一次读的时候最快返回结果的节点，这样下次读还是有很大概率读到最新的值。</li>
-</ol>
-<h1 id="经验教训"><a href="#经验教训" class="headerlink" title="经验教训"></a>经验教训</h1><p>冲突解决方案：</p>
-<ol>
-<li>业务制定更新冲突解决方法</li>
-<li>基于时间序的冲突解决方法</li>
-<li>W=N, R=1解决高性能读要求</li>
-</ol>
-<h2 id="负载均衡性能和持久化性能"><a href="#负载均衡性能和持久化性能" class="headerlink" title="负载均衡性能和持久化性能"></a>负载均衡性能和持久化性能</h2><ol>
-<li>使用缓存写来提供系统的写性能</li>
-<li>写入的时候指定其中一个副本直接写入到磁盘中，其他的缓存写，这样提高系统数据安全性(持久化)</li>
-</ol>
-<h2 id="保证系统负载一致性分布"><a href="#保证系统负载一致性分布" class="headerlink" title="保证系统负载一致性分布"></a>保证系统负载一致性分布</h2><p>数据分区和节点映射策略</p>
-<ol>
-<li><p>每个节点T个随机token，数据分区也是按照token来划分</p>
-<p>缺点：</p>
-<ol>
-<li>新节点加入时，在线节点需要扫描自己的数据集来找到需要传输给新加入节点的数据，影响线上服务。<br>当不想影响线上服务时，降低扫描优先级，会导致新加入节点启动比较慢</li>
-<li>节点加入或离开时，许多节点的数据分区和Merkle tree需要重新计算，影响服务</li>
-<li>因为数据分区是不固定的，所以没法做snapshot来加快传输数据<br>这个策略不好的根本原因是数据分区和数据放置策略耦合太多</li>
-</ol>
-</li>
-<li><p>每个节点T个随机token，数据是大小固定的划分的</p>
-<ol>
-<li>哈希空间划分为固定Q个分区，每个节点还是随机分配T个token，其中Q&gt;&gt;N &amp; Q &gt;&gt; S*T S是节点数，N是副本数</li>
-<li>每个数据分区以末尾为key顺时针找到下一个token对应的Node<br>优点：</li>
-<li>数据放置和数据分区解耦</li>
-<li>可以在运行过程中改变数据放置</li>
-</ol>
-</li>
-<li><p>每个节点Q/S个token,数据是大小固定的划分的</p>
-<ol>
-<li>跟2策略一样，但是T=Q/S，当某个节点离开时，它的token被随机分给其他的节点，<br>当节点加入时，它从别的节点随机拉取token<br>优点：</li>
-<li>快速启动和恢复</li>
-<li>打包数据（快照）<br>缺点：</li>
-<li>改变node 成员关系需要许多节点协作来维持策略3的要求</li>
-</ol>
-</li>
-</ol>
-<h2 id="多版本"><a href="#多版本" class="headerlink" title="多版本"></a>多版本</h2><p>原因：</p>
-<ol>
-<li><p>系统出现节点失败和网络分区时</p>
-</li>
-<li><p>系统处理大量的并发写<br>数量：</p>
-</li>
-<li><p>数量非常少</p>
-<h2 id="客户端驱动或者服务端驱动定位"><a href="#客户端驱动或者服务端驱动定位" class="headerlink" title="客户端驱动或者服务端驱动定位"></a>客户端驱动或者服务端驱动定位</h2></li>
-<li><p>服务端驱动</p>
-<ol>
-<li>coordinator来执行读和写的协调操作</li>
-<li>需要负载均衡器来做请求转发和均衡</li>
-</ol>
-</li>
-<li><p>客户端驱动</p>
-<ol>
-<li>client定期随机向集群某个节点拉取整个集群的在线node 视图</li>
-<li>将读写请求发往指定的coordinator</li>
-<li>因为数据分区几乎公平的将数据分散到各个节点，所以不用做负载均衡操作</li>
-</ol>
-</li>
-</ol>
-<h2 id="前台和后台任务均衡"><a href="#前台和后台任务均衡" class="headerlink" title="前台和后台任务均衡"></a>前台和后台任务均衡</h2><p>后台任务都是低优先级的任务，为了不影响前台任务，需要控制其资源使用量。<br>dynamo使用一个反馈机制来做这种资源使用控制。</p>
-<h2 id="讨论"><a href="#讨论" class="headerlink" title="讨论"></a>讨论</h2><p>dynamo使用gossip来做全局在线node视图传播，只能达到几百台的规模。更大的规模需要做层次化扩展。</p>
-<p><em>总结</em></p>
-<p>dynamo这篇论文写的非常详细，比较重要的几点：</p>
-<ol>
-<li>采用99.9% 来衡量SLA</li>
-<li>采用一致性哈希模型的数据分区策略</li>
-<li>采用向量时钟来作为数据版本信息，并由业务逻辑来处理版本冲突</li>
-<li>采用基于gossip算法来处理集群视图的传播</li>
-<li>采用NWR算法来保证数据安全性</li>
-<li>采用Merkle trees来加快发现版本之间不一致性，从而快速备份数据</li>
-</ol>
-<table>
-<thead>
-<tr>
-<th align="left">Problem</th>
-<th align="left">Technique</th>
-<th align="left">Advantage</th>
-</tr>
-</thead>
-<tbody><tr>
-<td align="left">Partitioning</td>
-<td align="left">Consistent Hashing</td>
-<td align="left">Incremental Scalability</td>
-</tr>
-<tr>
-<td align="left">High Availablility for Writes</td>
-<td align="left">Vector clocks with reconsiliation during reads</td>
-<td align="left">version size decoupled from update rates</td>
-</tr>
-<tr>
-<td align="left">Handing temporary failures</td>
-<td align="left">Sloppy Quorum and hinted handoff</td>
-<td align="left">Provides high Availablility and durability guarantee when some fo the replicas are not available</td>
-</tr>
-<tr>
-<td align="left">Recovering from permanent failures</td>
-<td align="left">Anti-entropy using Merkle trees</td>
-<td align="left">Synchronizes divergent replicas in the BackGround</td>
-</tr>
-<tr>
-<td align="left">membership and failure detection</td>
-<td align="left">gossip-based membership protocol and failures detection</td>
-<td align="left">preserves symmetry and avoids having a centralized registry for Storing membership and node liveness information</td>
-</tr>
-</tbody></table>
-
-      
-    </div>
-
-    
-    
-    
-
-    <footer class="post-footer">
-        <div class="post-eof"></div>
-      
-    </footer>
-  </article>
-</div>
-
-
-
-
+  <nav class="pagination">
+    <span class="page-number current">1</span><a class="page-number" href="/page/2/">2</a><a class="extend next" rel="next" href="/page/2/"><i class="fa fa-angle-right" aria-label="下一页"></i></a>
+  </nav>
 
 
 <script>

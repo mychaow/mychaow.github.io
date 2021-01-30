@@ -23,35 +23,28 @@
     var NexT = window.NexT || {};
     var CONFIG = {"hostname":"example.com","root":"/","images":"/images","scheme":"Gemini","version":"8.2.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12},"copycode":false,"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"fadeInDown","post_body":"fadeInDown","coll_header":"fadeInLeft","sidebar":"fadeInUp"}},"prism":false,"i18n":{"placeholder":"搜索...","empty":"没有找到任何搜索结果：${query}","hits_time":"找到 ${hits} 个搜索结果（用时 ${time} 毫秒）","hits":"找到 ${hits} 个搜索结果"}};
   </script>
-<meta name="description" content="Abstract介绍Dynamo，一个分布式的kv存储系统，具有非常高的可用性和可靠性  Introduction主要目标： Reliability Scalability 提供key-value接口（最受欢迎清单，购物车，用户偏好等）  实现技术 使用一致性哈希进行数据分区和备份 使用对象版本信息来处理单个数据备份一致性问题 多副本之间的一致性可以通过类似quorum的协议处理（NWR），以及">
-<meta property="og:type" content="article">
-<meta property="og:title" content="Dynamo Amazon&#39;s Highly Available Key-value Store">
-<meta property="og:url" content="http://example.com/2021/01/29/Dynamo-Amazon-s-Highly-Available-Key-value-Store/index.html">
+<meta property="og:type" content="website">
+<meta property="og:title" content="我住8楼">
+<meta property="og:url" content="http://example.com/page/2/index.html">
 <meta property="og:site_name" content="我住8楼">
-<meta property="og:description" content="Abstract介绍Dynamo，一个分布式的kv存储系统，具有非常高的可用性和可靠性  Introduction主要目标： Reliability Scalability 提供key-value接口（最受欢迎清单，购物车，用户偏好等）  实现技术 使用一致性哈希进行数据分区和备份 使用对象版本信息来处理单个数据备份一致性问题 多副本之间的一致性可以通过类似quorum的协议处理（NWR），以及">
 <meta property="og:locale" content="zh_CN">
-<meta property="og:image" content="https://mychaow.github.io/2018/02/03/dynamo-md/">
-<meta property="article:published_time" content="2021-01-29T07:00:59.000Z">
-<meta property="article:modified_time" content="2021-01-29T07:13:15.852Z">
 <meta property="article:author" content="Jason Chao">
-<meta property="article:tag" content="paper">
 <meta name="twitter:card" content="summary">
-<meta name="twitter:image" content="https://mychaow.github.io/2018/02/03/dynamo-md/">
 
 
-<link rel="canonical" href="http://example.com/2021/01/29/Dynamo-Amazon-s-Highly-Available-Key-value-Store/">
+<link rel="canonical" href="http://example.com/page/2/">
 
 
 <script class="page-configurations">
   // https://hexo.io/docs/variables.html
   CONFIG.page = {
     sidebar: "",
-    isHome : false,
-    isPost : true,
+    isHome : true,
+    isPost : false,
     lang   : 'zh-CN'
   };
 </script>
-<title>Dynamo Amazon's Highly Available Key-value Store | 我住8楼</title>
+<title>我住8楼</title>
   
 
 
@@ -148,7 +141,7 @@
 
   <aside class="sidebar">
 
-    <div class="sidebar-inner sidebar-nav-active sidebar-toc-active">
+    <div class="sidebar-inner sidebar-overview-active">
       <ul class="sidebar-nav">
         <li class="sidebar-nav-toc">
           文章目录
@@ -161,7 +154,6 @@
       <div class="sidebar-panel-container">
         <!--noindex-->
         <div class="post-toc-wrap sidebar-panel">
-            <div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#Introduction"><span class="nav-number">1.</span> <span class="nav-text">Introduction</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E4%B8%BB%E8%A6%81%E7%9B%AE%E6%A0%87%EF%BC%9A"><span class="nav-number">1.1.</span> <span class="nav-text">主要目标：</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%AE%9E%E7%8E%B0%E6%8A%80%E6%9C%AF"><span class="nav-number">1.2.</span> <span class="nav-text">实现技术</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#BackGround"><span class="nav-number">2.</span> <span class="nav-text">BackGround</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E7%B3%BB%E7%BB%9F%E5%81%87%E8%AE%BE%E5%92%8C%E8%A6%81%E6%B1%82"><span class="nav-number">2.1.</span> <span class="nav-text">系统假设和要求</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#SLA"><span class="nav-number">2.2.</span> <span class="nav-text">SLA</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E8%AE%BE%E8%AE%A1%E8%80%83%E8%99%91"><span class="nav-number">2.3.</span> <span class="nav-text">设计考虑</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#Related-Work"><span class="nav-number">3.</span> <span class="nav-text">Related Work</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#System-Architecture"><span class="nav-number">4.</span> <span class="nav-text">System Architecture</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#dynamo%E6%8E%A5%E5%8F%A3"><span class="nav-number">4.1.</span> <span class="nav-text">dynamo接口</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%95%B0%E6%8D%AE%E5%88%86%E5%8C%BA%E7%AE%97%E6%B3%95"><span class="nav-number">4.2.</span> <span class="nav-text">数据分区算法</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%95%B0%E6%8D%AE%E5%89%AF%E6%9C%AC"><span class="nav-number">4.3.</span> <span class="nav-text">数据副本</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%95%B0%E6%8D%AE%E7%89%88%E6%9C%AC"><span class="nav-number">4.4.</span> <span class="nav-text">数据版本</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#get%E5%92%8Cput%E6%93%8D%E4%BD%9C%E7%9A%84%E6%89%A7%E8%A1%8C"><span class="nav-number">4.5.</span> <span class="nav-text">get和put操作的执行</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%A4%84%E7%90%86%E5%A4%B1%E8%B4%A5"><span class="nav-number">4.6.</span> <span class="nav-text">处理失败</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%A4%84%E7%90%86%E6%8C%81%E4%B9%85%E5%8C%96%E5%A4%B1%E8%B4%A5"><span class="nav-number">4.7.</span> <span class="nav-text">处理持久化失败</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%88%90%E5%91%98%E7%AE%A1%E7%90%86%E5%92%8C%E5%A4%B1%E8%B4%A5%E5%8F%91%E7%8E%B0"><span class="nav-number">4.8.</span> <span class="nav-text">成员管理和失败发现</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%B7%BB%E5%8A%A0%E5%92%8C%E7%A7%BB%E9%99%A4%E8%8A%82%E7%82%B9"><span class="nav-number">4.9.</span> <span class="nav-text">添加和移除节点</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E5%AE%9E%E7%8E%B0"><span class="nav-number">5.</span> <span class="nav-text">实现</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%9C%AC%E5%9C%B0%E6%8C%81%E4%B9%85%E5%8C%96%E5%BC%95%E6%93%8E"><span class="nav-number">5.1.</span> <span class="nav-text">本地持久化引擎</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E8%AF%B7%E6%B1%82%E5%8D%8F%E8%B0%83%E8%80%85"><span class="nav-number">5.2.</span> <span class="nav-text">请求协调者</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E7%BB%8F%E9%AA%8C%E6%95%99%E8%AE%AD"><span class="nav-number">6.</span> <span class="nav-text">经验教训</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E8%B4%9F%E8%BD%BD%E5%9D%87%E8%A1%A1%E6%80%A7%E8%83%BD%E5%92%8C%E6%8C%81%E4%B9%85%E5%8C%96%E6%80%A7%E8%83%BD"><span class="nav-number">6.1.</span> <span class="nav-text">负载均衡性能和持久化性能</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E4%BF%9D%E8%AF%81%E7%B3%BB%E7%BB%9F%E8%B4%9F%E8%BD%BD%E4%B8%80%E8%87%B4%E6%80%A7%E5%88%86%E5%B8%83"><span class="nav-number">6.2.</span> <span class="nav-text">保证系统负载一致性分布</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%A4%9A%E7%89%88%E6%9C%AC"><span class="nav-number">6.3.</span> <span class="nav-text">多版本</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%AE%A2%E6%88%B7%E7%AB%AF%E9%A9%B1%E5%8A%A8%E6%88%96%E8%80%85%E6%9C%8D%E5%8A%A1%E7%AB%AF%E9%A9%B1%E5%8A%A8%E5%AE%9A%E4%BD%8D"><span class="nav-number">6.4.</span> <span class="nav-text">客户端驱动或者服务端驱动定位</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%89%8D%E5%8F%B0%E5%92%8C%E5%90%8E%E5%8F%B0%E4%BB%BB%E5%8A%A1%E5%9D%87%E8%A1%A1"><span class="nav-number">6.5.</span> <span class="nav-text">前台和后台任务均衡</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E8%AE%A8%E8%AE%BA"><span class="nav-number">6.6.</span> <span class="nav-text">讨论</span></a></li></ol></li></ol></div>
         </div>
         <!--/noindex-->
 
@@ -216,10 +208,9 @@
 </noscript>
 
 
-    <div class="main-inner post posts-expand">
+    <div class="main-inner index posts-expand">
 
-
-  
+    
 
 
 <div class="post-block">
@@ -239,9 +230,9 @@
       <meta itemprop="name" content="我住8楼">
     </span>
       <header class="post-header">
-        <h1 class="post-title" itemprop="name headline">
-          Dynamo Amazon's Highly Available Key-value Store
-        </h1>
+        <h2 class="post-title" itemprop="name headline">
+          <a href="/2021/01/29/Dynamo-Amazon-s-Highly-Available-Key-value-Store/" class="post-title-link" itemprop="url">Dynamo Amazon's Highly Available Key-value Store</a>
+        </h2>
 
         <div class="post-meta-container">
           <div class="post-meta">
@@ -265,7 +256,7 @@
     
     
     <div class="post-body" itemprop="articleBody">
-        <blockquote>
+          <blockquote>
 <p>Abstract<br>介绍Dynamo，一个分布式的kv存储系统，具有非常高的可用性和可靠性</p>
 </blockquote>
 <h1 id="Introduction"><a href="#Introduction" class="headerlink" title="Introduction"></a>Introduction</h1><h2 id="主要目标："><a href="#主要目标：" class="headerlink" title="主要目标："></a>主要目标：</h2><ol>
@@ -502,6 +493,7 @@
 </tr>
 </tbody></table>
 
+      
     </div>
 
     
@@ -509,21 +501,8 @@
     
 
     <footer class="post-footer">
-          <div class="post-tags">
-              <a href="/tags/paper/" rel="tag"># paper</a>
-          </div>
-
-        
-
-          <div class="post-nav">
-            <div class="post-nav-item">
-            </div>
-            <div class="post-nav-item">
-                <a href="/2021/01/29/%E6%8A%95%E8%B5%84%E5%AD%A6%E8%AE%B0%E5%BD%95/" rel="next" title="投资学记录">
-                  投资学记录 <i class="fa fa-chevron-right"></i>
-                </a>
-            </div>
-          </div>
+        <div class="post-eof"></div>
+      
     </footer>
   </article>
 </div>
@@ -531,7 +510,9 @@
 
 
 
-
+  <nav class="pagination">
+    <a class="extend prev" rel="prev" href="/"><i class="fa fa-angle-left" aria-label="上一页"></i></a><a class="page-number" href="/">1</a><span class="page-number current">2</span>
+  </nav>
 
 
 <script>
