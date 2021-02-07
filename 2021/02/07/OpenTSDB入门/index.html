@@ -23,12 +23,12 @@
     var NexT = window.NexT || {};
     var CONFIG = {"hostname":"example.com","root":"/","images":"/images","scheme":"Gemini","version":"8.2.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12},"copycode":false,"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"fadeInDown","post_body":"fadeInDown","coll_header":"fadeInLeft","sidebar":"fadeInUp"}},"prism":false,"i18n":{"placeholder":"搜索...","empty":"没有找到任何搜索结果：${query}","hits_time":"找到 ${hits} 个搜索结果（用时 ${time} 毫秒）","hits":"找到 ${hits} 个搜索结果"}};
   </script>
-<meta name="description" content="介绍以下是官网介绍。  OpenTSDB是一个基于HBase的分布式的、可伸缩的时间序列数据库（TSDB）。OpenTSDB是为了监控而生，例如对从大规模集群（包括网络设备、操作系统、应用程序等）采集到的监控数据进行存储，并使这些数据易于访问并且容易图形化的。 由于HBase的可伸缩性，OpenTSDB允许收集来自上万台主机和应用程序的成千上万的高频率数据 （每隔几秒钟）。OpenTSDB永远不会">
+<meta name="description" content="介绍以下是官网介绍。  OpenTSDB是一个基于HBase的分布式的、可伸缩的时间序列数据库（TSDB）。OpenTSDB是为了监控而生，例如对从大规模集群（包括网络设备、操作系统、应用程序等）采集到的监控数据进行存储，并使这些数据易于访问并且容易图形化的。 由于HBase的可伸缩性，OpenTSDB允许收集来自上万台主机和应用程序的成千上万的高频率数据（每隔几秒钟）。OpenTSDB永远不会删">
 <meta property="og:type" content="article">
 <meta property="og:title" content="OpenTSDB入门">
 <meta property="og:url" content="http://example.com/2021/02/07/OpenTSDB%E5%85%A5%E9%97%A8/index.html">
 <meta property="og:site_name" content="我住8楼">
-<meta property="og:description" content="介绍以下是官网介绍。  OpenTSDB是一个基于HBase的分布式的、可伸缩的时间序列数据库（TSDB）。OpenTSDB是为了监控而生，例如对从大规模集群（包括网络设备、操作系统、应用程序等）采集到的监控数据进行存储，并使这些数据易于访问并且容易图形化的。 由于HBase的可伸缩性，OpenTSDB允许收集来自上万台主机和应用程序的成千上万的高频率数据 （每隔几秒钟）。OpenTSDB永远不会">
+<meta property="og:description" content="介绍以下是官网介绍。  OpenTSDB是一个基于HBase的分布式的、可伸缩的时间序列数据库（TSDB）。OpenTSDB是为了监控而生，例如对从大规模集群（包括网络设备、操作系统、应用程序等）采集到的监控数据进行存储，并使这些数据易于访问并且容易图形化的。 由于HBase的可伸缩性，OpenTSDB允许收集来自上万台主机和应用程序的成千上万的高频率数据（每隔几秒钟）。OpenTSDB永远不会删">
 <meta property="og:locale" content="zh_CN">
 <meta property="og:image" content="http://example.com/2021/02/07/OpenTSDB%E5%85%A5%E9%97%A8/tsdb-architecture.png">
 <meta property="og:image" content="http://example.com/2021/02/07/OpenTSDB%E5%85%A5%E9%97%A8/05224f4c4a40c93dcddc983a7a717ff7a047de50.png">
@@ -38,7 +38,7 @@
 <meta property="og:image" content="http://example.com/2021/02/07/OpenTSDB%E5%85%A5%E9%97%A8/e85374ccb1823e8829afc5407d32ea14ae2a9078.png">
 <meta property="og:image" content="http://example.com/2021/02/07/OpenTSDB%E5%85%A5%E9%97%A8/7fab2b13b9c2e05508de947ca887962f211fc351.png">
 <meta property="article:published_time" content="2021-02-07T07:17:11.000Z">
-<meta property="article:modified_time" content="2021-02-07T09:31:47.680Z">
+<meta property="article:modified_time" content="2021-02-07T09:33:17.100Z">
 <meta property="article:author" content="Jason Chao">
 <meta property="article:tag" content="tsdb">
 <meta name="twitter:card" content="summary">
@@ -258,7 +258,7 @@
       <span class="post-meta-item-text">发表于</span>
       
 
-      <time title="创建时间：2021-02-07 15:17:11 / 修改时间：17:31:47" itemprop="dateCreated datePublished" datetime="2021-02-07T15:17:11+08:00">2021-02-07</time>
+      <time title="创建时间：2021-02-07 15:17:11 / 修改时间：17:33:17" itemprop="dateCreated datePublished" datetime="2021-02-07T15:17:11+08:00">2021-02-07</time>
     </span>
 
   
@@ -274,8 +274,7 @@
         <h1 id="介绍"><a href="#介绍" class="headerlink" title="介绍"></a>介绍</h1><p>以下是官网介绍。</p>
 <blockquote>
 <p>OpenTSDB是一个基于HBase的分布式的、可伸缩的时间序列数据库（TSDB）。OpenTSDB是为了监控而生，例如对从大规模集群（包括网络设备、操作系统、应用程序等）采集到的监控数据进行存储，并使这些数据易于访问并且容易图形化的。</p>
-<p>由于HBase的可伸缩性，OpenTSDB允许收集来自上万台主机和应用程序的成千上万的高频率数据</p>
-<p>（每隔几秒钟）。OpenTSDB永远不会删除或减少采样数据，并且可以轻松存储数千亿个数据点。</p>
+<p>由于HBase的可伸缩性，OpenTSDB允许收集来自上万台主机和应用程序的成千上万的高频率数据（每隔几秒钟）。OpenTSDB永远不会删除或减少采样数据，并且可以轻松存储数千亿个数据点。</p>
 </blockquote>
 <h1 id="术语"><a href="#术语" class="headerlink" title="术语"></a>术语</h1><p><strong>TSD</strong></p>
 <p>时间序列守护进程，负责和HBase交互进行数据存储和查询。</p>
