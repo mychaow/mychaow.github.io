@@ -1,0 +1,548 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 5.3.0">
+
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+
+<link rel="stylesheet" href="//cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@5.15.1/css/all.min.css">
+  <link rel="stylesheet" href="//cdn.jsdelivr.net/npm/animate.css@3.1.1/animate.min.css">
+
+<script class="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"example.com","root":"/","images":"/images","scheme":"Gemini","version":"8.2.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12},"copycode":false,"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"fadeInDown","post_body":"fadeInDown","coll_header":"fadeInLeft","sidebar":"fadeInUp"}},"prism":false,"i18n":{"placeholder":"搜索...","empty":"没有找到任何搜索结果：${query}","hits_time":"找到 ${hits} 个搜索结果（用时 ${time} 毫秒）","hits":"找到 ${hits} 个搜索结果"}};
+  </script>
+<meta name="description" content="介绍以下是官网介绍。  OpenTSDB是一个基于HBase的分布式的、可伸缩的时间序列数据库（TSDB）。OpenTSDB是为了监控而生，例如对从大规模集群（包括网络设备、操作系统、应用程序等）采集到的监控数据进行存储，并使这些数据易于访问并且容易图形化的。 由于HBase的可伸缩性，OpenTSDB允许收集来自上万台主机和应用程序的成千上万的高频率数据 （每隔几秒钟）。OpenTSDB永远不会">
+<meta property="og:type" content="article">
+<meta property="og:title" content="OpenTSDB入门">
+<meta property="og:url" content="http://example.com/2021/02/07/OpenTSDB%E5%85%A5%E9%97%A8/index.html">
+<meta property="og:site_name" content="我住8楼">
+<meta property="og:description" content="介绍以下是官网介绍。  OpenTSDB是一个基于HBase的分布式的、可伸缩的时间序列数据库（TSDB）。OpenTSDB是为了监控而生，例如对从大规模集群（包括网络设备、操作系统、应用程序等）采集到的监控数据进行存储，并使这些数据易于访问并且容易图形化的。 由于HBase的可伸缩性，OpenTSDB允许收集来自上万台主机和应用程序的成千上万的高频率数据 （每隔几秒钟）。OpenTSDB永远不会">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="http://example.com/2021/02/07/OpenTSDB%E5%85%A5%E9%97%A8/tsdb-architecture.png">
+<meta property="og:image" content="http://example.com/2021/02/07/OpenTSDB%E5%85%A5%E9%97%A8/05224f4c4a40c93dcddc983a7a717ff7a047de50.png">
+<meta property="og:image" content="http://example.com/2021/02/07/OpenTSDB%E5%85%A5%E9%97%A8/f77d814e298bca40cdefcea04892fe702ba232c7.png">
+<meta property="og:image" content="http://example.com/2021/02/07/OpenTSDB%E5%85%A5%E9%97%A8/e1e766e7defcf059535c9c184a0659b499221c38.png">
+<meta property="og:image" content="http://example.com/2021/02/07/OpenTSDB%E5%85%A5%E9%97%A8/6106c668b7104312859391a26994029372a8f9de.png">
+<meta property="og:image" content="http://example.com/2021/02/07/OpenTSDB%E5%85%A5%E9%97%A8/e85374ccb1823e8829afc5407d32ea14ae2a9078.png">
+<meta property="og:image" content="http://example.com/2021/02/07/OpenTSDB%E5%85%A5%E9%97%A8/7fab2b13b9c2e05508de947ca887962f211fc351.png">
+<meta property="article:published_time" content="2021-02-07T07:17:11.000Z">
+<meta property="article:modified_time" content="2021-02-07T09:31:47.680Z">
+<meta property="article:author" content="Jason Chao">
+<meta property="article:tag" content="tsdb">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http://example.com/2021/02/07/OpenTSDB%E5%85%A5%E9%97%A8/tsdb-architecture.png">
+
+
+<link rel="canonical" href="http://example.com/2021/02/07/OpenTSDB%E5%85%A5%E9%97%A8/">
+
+
+<script class="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'zh-CN'
+  };
+</script>
+<title>OpenTSDB入门 | 我住8楼</title>
+  
+
+
+
+
+  <noscript>
+  <style>
+  body { margin-top: 2rem; }
+
+  .use-motion .menu-item,
+  .use-motion .sidebar,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header {
+    visibility: visible;
+  }
+
+  .use-motion .header,
+  .use-motion .site-brand-container .toggle,
+  .use-motion .footer { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle,
+  .use-motion .custom-logo-image {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line {
+    transform: scaleX(1);
+  }
+
+  .search-pop-overlay, .sidebar-nav { display: none; }
+  .sidebar-panel { display: block; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" class="use-motion">
+  <div class="headband"></div>
+
+  <main class="main">
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏" role="button">
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <i class="logo-line"></i>
+      <h1 class="site-title">我住8楼</h1>
+      <i class="logo-line"></i>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+    </div>
+  </div>
+</div>
+
+
+
+<nav class="site-nav">
+  <ul class="main-menu menu">
+        <li class="menu-item menu-item-home"><a href="/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a></li>
+        <li class="menu-item menu-item-tags"><a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>标签</a></li>
+        <li class="menu-item menu-item-categories"><a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>分类</a></li>
+        <li class="menu-item menu-item-archives"><a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档</a></li>
+  </ul>
+</nav>
+
+
+
+
+</div>
+        
+  
+  <div class="toggle sidebar-toggle" role="button">
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+  </div>
+
+  <aside class="sidebar">
+
+    <div class="sidebar-inner sidebar-nav-active sidebar-toc-active">
+      <ul class="sidebar-nav">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <div class="sidebar-panel-container">
+        <!--noindex-->
+        <div class="post-toc-wrap sidebar-panel">
+            <div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#%E4%BB%8B%E7%BB%8D"><span class="nav-number">1.</span> <span class="nav-text">介绍</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E6%9C%AF%E8%AF%AD"><span class="nav-number">2.</span> <span class="nav-text">术语</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E6%9E%B6%E6%9E%84"><span class="nav-number">3.</span> <span class="nav-text">架构</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E5%AD%98%E5%82%A8%E7%BB%93%E6%9E%84"><span class="nav-number">4.</span> <span class="nav-text">存储结构</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E8%A1%A8%E5%88%86%E5%8C%BA"><span class="nav-number">4.1.</span> <span class="nav-text">表分区</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%AD%98%E5%82%A8%E7%BB%93%E6%9E%84-1"><span class="nav-number">4.2.</span> <span class="nav-text">存储结构</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#OpenTSDB%E7%9A%84%E5%9F%BA%E6%9C%AC%E6%A6%82%E5%BF%B5"><span class="nav-number">4.3.</span> <span class="nav-text">OpenTSDB的基本概念</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#OpenTSDB%E7%9A%84%E5%AD%98%E5%82%A8%E4%BC%98%E5%8C%96"><span class="nav-number">4.4.</span> <span class="nav-text">OpenTSDB的存储优化</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E4%BC%98%E5%8C%96%E4%B8%80%EF%BC%9A%E7%BC%A9%E7%9F%ADrow-key"><span class="nav-number">4.4.1.</span> <span class="nav-text">优化一：缩短row key</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E4%BC%98%E5%8C%96%E4%BA%8C%EF%BC%9A%E5%87%8F%E5%B0%91Key-Value%E6%95%B0"><span class="nav-number">4.4.2.</span> <span class="nav-text">优化二：减少Key-Value数</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#%E5%A4%9A%E8%A1%8C%E5%8D%95%E5%88%97%E5%90%88%E5%B9%B6%E4%B8%BA%E5%8D%95%E8%A1%8C%E5%8D%95%E5%88%97"><span class="nav-number">4.4.2.1.</span> <span class="nav-text">多行单列合并为单行单列</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E5%8D%95%E8%A1%8C%E5%A4%9A%E5%88%97%E5%90%88%E5%B9%B6%E4%B8%BA%E5%8D%95%E8%A1%8C%E5%8D%95%E5%88%97"><span class="nav-number">4.4.2.2.</span> <span class="nav-text">单行多列合并为单行单列</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E4%BC%98%E5%8C%96%E4%B8%89%EF%BC%9A%E5%B9%B6%E5%8F%91%E5%86%99%E4%BC%98%E5%8C%96"><span class="nav-number">4.4.3.</span> <span class="nav-text">优化三：并发写优化</span></a></li></ol></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E6%80%BB%E7%BB%93"><span class="nav-number">5.</span> <span class="nav-text">总结</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E5%8F%82%E8%80%83"><span class="nav-number">6.</span> <span class="nav-text">参考</span></a></li></ol></div>
+        </div>
+        <!--/noindex-->
+
+        <div class="site-overview-wrap sidebar-panel">
+          <div class="site-author site-overview-item animated" itemprop="author" itemscope itemtype="http://schema.org/Person">
+  <p class="site-author-name" itemprop="name">Jason Chao</p>
+  <div class="site-description" itemprop="description"></div>
+</div>
+<div class="site-state-wrap site-overview-item animated">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">11</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+          
+        <span class="site-state-item-count">2</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+          
+        <span class="site-state-item-count">7</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+
+
+
+        </div>
+      </div>
+    </div>
+  </aside>
+  <div class="sidebar-dimmer"></div>
+
+
+    </header>
+
+    
+  <div class="back-to-top" role="button">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+<noscript>
+  <div class="noscript-warning">Theme NexT works best with JavaScript enabled</div>
+</noscript>
+
+
+    <div class="main-inner post posts-expand">
+
+
+  
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="http://example.com/2021/02/07/OpenTSDB%E5%85%A5%E9%97%A8/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="Jason Chao">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="我住8楼">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          OpenTSDB入门
+        </h1>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">发表于</span>
+      
+
+      <time title="创建时间：2021-02-07 15:17:11 / 修改时间：17:31:47" itemprop="dateCreated datePublished" datetime="2021-02-07T15:17:11+08:00">2021-02-07</time>
+    </span>
+
+  
+</div>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+        <h1 id="介绍"><a href="#介绍" class="headerlink" title="介绍"></a>介绍</h1><p>以下是官网介绍。</p>
+<blockquote>
+<p>OpenTSDB是一个基于HBase的分布式的、可伸缩的时间序列数据库（TSDB）。OpenTSDB是为了监控而生，例如对从大规模集群（包括网络设备、操作系统、应用程序等）采集到的监控数据进行存储，并使这些数据易于访问并且容易图形化的。</p>
+<p>由于HBase的可伸缩性，OpenTSDB允许收集来自上万台主机和应用程序的成千上万的高频率数据</p>
+<p>（每隔几秒钟）。OpenTSDB永远不会删除或减少采样数据，并且可以轻松存储数千亿个数据点。</p>
+</blockquote>
+<h1 id="术语"><a href="#术语" class="headerlink" title="术语"></a>术语</h1><p><strong>TSD</strong></p>
+<p>时间序列守护进程，负责和HBase交互进行数据存储和查询。</p>
+<p><strong>Epoch</strong></p>
+<p>时间戳的数值表示，有两种格式：</p>
+<ol>
+<li>10位数字表示的，从1970年1月1日起经过的秒数</li>
+<li>13位数字表示的，从1970年1月1日起经过的毫秒数</li>
+</ol>
+<p><strong>Metric</strong></p>
+<p>指标，或者说监控项，例如监控一个人的心跳速率，那么心跳速率就是metric；而监控一个公司的股票，股票价格就是metric。</p>
+<p><strong>Tags</strong></p>
+<p>tag可以理解为时序数据点的注释。一个tag描述的是一个metric的某个属性。Tags是key-value对，每个数据点可以有多个tag。例如监控一个病人的心率，患者的姓名成为tag，区分每个患者的数据。这里，“心率”是metic，“姓名”是tag，“托马斯”是患者的姓名，是标签的值。其他标签可以是“年龄”、“性别”。标签值用于在查询时过滤/聚合数据。</p>
+<p><strong>降采样DownSampling</strong></p>
+<p>降采样是降低数据采样率或分辨率的过程。如果查询的数据持续时间较长，则接收到的点数将很高，这将导致查询吞吐量较慢。例如，如果数据每秒存储一次而我们查询一周的数据，我们将得到604800个数据点。如果我们对数据进行下采样成每隔一分钟存储一次，就得到10080个数据。这减少了查询时间、网络延迟和系统的总体负载。</p>
+<p><strong>集合Aggregation</strong></p>
+<p>聚合是多个数据的集合。OpenTSDB被设计成在查询执行期间有效地组合多个不同的时间序列。例如，如果我们希望看到所有男性患者的平均心率，那么我们使用平均值函数作为聚合函数来聚合男性患者的所有时间序列数据。这将给我们一组点，显示所有男性患者的平均心率。</p>
+<p><strong>插值Interpolation</strong></p>
+<p>为了使聚合工作，我们需要为查询的时间范围提供数据。如果我们以分钟级别聚合数据，则每分钟需要60个数据点。但在现实世界中，数据很有可能存在丢失。OpenTSDB使用插值来填补这些空白。例如，对于“zimsum”类型的聚合，OpenTSDB通过为所有缺失值填充0进行插值，然后通过对数据求和进行聚合。</p>
+<p><strong>Cardinality</strong></p>
+<p>基数，在数学中定义为一个集合中的一些元素，在数据库中定义为一个索引的一些唯一元素，在OpenTSDB定义为：</p>
+<ul>
+<li>一个给定指标的一些唯一时间序列</li>
+<li>和一个标签名称相关联的一些唯一标签值</li>
+</ul>
+<p><strong>Compaction</strong></p>
+<p>在OpenTSDB中，会将多列合并到一列之中以减少磁盘占用空间，这和hbase中的Compaction不一样。这个过程会在TSD写数据或者查询过程中不定期的发生。</p>
+<p><strong>Data Point</strong></p>
+<p>每一个指标可以被记录为某一个时间点的一个数值。Data Point包括以下部分：</p>
+<ul>
+<li>一个指标：metric</li>
+<li>一个数值</li>
+<li>这个数值被记录的时间戳</li>
+<li>多个标签</li>
+</ul>
+<p><strong>Time Series</strong></p>
+<p>一个metric的带有多个tag的data point集合。</p>
+<p><strong>UID</strong></p>
+<p>在OpenTSDB中，每一个metric、tagk或者tagv在创建的时候被分配一个唯一标识叫做UID，他们组合在一起可以创建一个序列的UID或者<code>TSUID</code>。在OpenTSDB的存储中，对于每一个metric、tagk或者tagv都存在从0开始的计数器，每来一个新的metric、tagk或者tagv，对应的计数器就会加1。当data point写到TSD时，UID是自动分配的。你也可以手动分配UID，前提是<code>auto metric</code>被设置为true。默认地，UID被编码为3Bytes，每一种UID类型最多可以有16,777,215个UID。你也可以修改源代码改为4Bytes。UID的展示有几种方式，最常见的方式是通过http api访问时，3 bytes的UID被编码为16进制的字符串。例如，UID为1的写为二进制的形式为<code>000000000000000000000001</code>，如果表示为一个无符号的byte数组，其可以表示为<code>[0,0,1]</code>，编码为16进制字符串为<code>000001</code>,其中每一位左边都被补上0,如果其不足两位。故，UID为255的会显示为<code>[0,0,255]</code>和<code>0000FF</code>。</p>
+<p><strong>TSUID</strong></p>
+<p>当一个data point被写到OpenTSDB时，其row key格式为：<code>&lt;metric_UID&gt;&lt;timestamp&gt;&lt;tagk1_UID&gt;&lt;tagv1_UID&gt;[...&lt;tagkN_UID&gt;&lt;tagvN_UID&gt;]</code>，不考虑时间戳的话，将其余部分都转换为UID，然后拼在一起，就可以组成为TSUID。</p>
+<p><strong>Metadata</strong></p>
+<p>主要用于记录data point的一些附加的信息，方便搜索和跟踪，分为UIDMeta和TSMeta。</p>
+<p>每一个UID都有一个metadata记录保存在<code>tsdb-uid</code>表中，每一个UID包括一些不可变的字段，如<code>uid</code>、<code>type</code>、<code>name</code>和<code>created</code>字段表示什么时候被创建，还可以有一些额外字段，如<code>description</code>、<code>notes</code>、<code>displayName</code>和一些<code>custom</code> key/value对，详细信息，可以查看<a target="_blank" rel="noopener" href="http://opentsdb.net/docs/build/html/api_http/uid/uidmeta.html"> /api/uid/uidmeta</a></p>
+<p>同样，每一个TSUID可以对应一个TSMeta，记录在<code>tsdb-uid</code>中，其包括的字段有<code>tsuid</code>、<code>metric</code>、<code>tags</code>、<code>lastReceived</code>和<code>created</code>，可选的字段有<code>description</code>, <code>notes</code>，详细信息，可以查看<a target="_blank" rel="noopener" href="http://opentsdb.net/docs/build/html/api_http/uid/tsmeta.html">/api/uid/tsmeta</a></p>
+<h1 id="架构"><a href="#架构" class="headerlink" title="架构"></a>架构</h1><p>OpenTSDB的架构图如下所示：</p>
+<ol>
+<li>Servers是采集层，部署了OpenTSDB的采集agent。</li>
+<li>TSD是OpenTSDB的核心模块，OpenTSDB是由一系列TSD（Time Series Daemon）组成。每个TSD都是独立的，没有master，没有共享状态</li>
+<li>HBase是OpenTSDB的底层存储模块</li>
+</ol>
+<p>TSD对外提供三种交互接口：</p>
+<ol>
+<li>类似telnet的协议</li>
+<li>HTTP API</li>
+<li>内置的GUI</li>
+</ol>
+<img src="/2021/02/07/OpenTSDB%E5%85%A5%E9%97%A8/tsdb-architecture.png" class="" title="OpenTSDB architecture">
+
+<p>OpenTSDB在HBase里共创建了4张表：</p>
+<ol>
+<li><p>UID_TABLE</p>
+<ol>
+<li><p>用来存储UID映射，包括正向的和反向的。存在两列族，一列族叫做name用来将一个UID映射到一个字符串，另一个列族叫做id，用来将字符串映射到UID。列族的每一行都至少有以下三列中的一个：</p>
+<ul>
+<li>metrics 将metric的名称映射到UID</li>
+<li>tagk 将tag名称映射到UID</li>
+<li>tagv 将tag的值映射到UID</li>
+</ul>
+<p>如果配置了metadata，则name列族还可以包括额外的metatata列。</p>
+</li>
+</ol>
+</li>
+<li><p>TSDB_TABLE</p>
+<ol>
+<li>时间点数据就保存在此表中，只有一个列簇t</li>
+</ol>
+</li>
+<li><p>TREE_TABLE</p>
+<ol>
+<li>索引表，用于展示树状结构的，类似文件系统，以方便其他系统使用</li>
+</ol>
+</li>
+<li><p>META_TABLE</p>
+<ol>
+<li>是不同时间序列的一个索引，可以用来存储一些额外的信息，该表只有一个列族name，两个列，分别为ts_meta、ts_ctr。这个表里面的数据是可以根据配置项配置来控制是否生成与否，生成几个列。</li>
+</ol>
+</li>
+</ol>
+<h1 id="存储结构"><a href="#存储结构" class="headerlink" title="存储结构"></a>存储结构</h1><blockquote>
+<p>摘自参考4</p>
+</blockquote>
+<p>在解析OpenTSDB的表结构设计前，我们需要先对其底层的HBase的存储模型有一个理解。</p>
+<h2 id="表分区"><a href="#表分区" class="headerlink" title="表分区"></a>表分区</h2><p>HBase会按Rowkey的范围，将一张大表切成多个region，每个region会由一个region server加载并提供服务。Rowkey的切分与表格存储的分区类似，一个良好设计的表，需要保证读写压力能够均匀的分散到表的各个region，这样才能充分发挥分布式集群的能力。</p>
+<h2 id="存储结构-1"><a href="#存储结构-1" class="headerlink" title="存储结构"></a>存储结构</h2><img src="/2021/02/07/OpenTSDB%E5%85%A5%E9%97%A8/05224f4c4a40c93dcddc983a7a717ff7a047de50.png" class="" title="05224f4c4a40c93dcddc983a7a717ff7a047de50">
+
+<p>如图所示为表结构以及对应的存储结构示例，在HBase或表格存储这类底层采用LSM-tree的数据库中，表数据会按列存储。每行中的每一列在存储文件中都会以Key-value的形式存在于文件中。其中Key的结构为：行主键 + 列名，Value为列的值。该种存储结构的特点是：</p>
+<p>​    a. 每行主键会重复存储，取决于列的个数</p>
+<p>​    b. 列名会重复存储，每一列的存储都会携带列名</p>
+<p>​    c. 存储数据按row-key排序，相邻的row-key会存储在相邻的块中</p>
+<h2 id="OpenTSDB的基本概念"><a href="#OpenTSDB的基本概念" class="headerlink" title="OpenTSDB的基本概念"></a>OpenTSDB的基本概念</h2><p>OpenTSDB定义每个时间序列数据需要包含以下属性：</p>
+<ol>
+<li><p>指标名称（metric name）</p>
+</li>
+<li><p>时间戳（UNIX timestamp，毫秒或者秒精度）</p>
+</li>
+<li><p>值（64位整数或者单精度浮点数）</p>
+</li>
+<li><p>一组标签（tags，用于描述数据属性，至少包含一个或多个标签，每个标签由tagKey和tagValue组成，tagKey和tagValue均为字符串）</p>
+</li>
+</ol>
+<p>举个例子，在监控场景中，我们可以这样定义一个监控指标：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">指标名称：</span><br><span class="line">    sys.cpu.user</span><br><span class="line">标签：</span><br><span class="line">    host = <span class="number">10.101</span><span class="number">.168</span><span class="number">.111</span></span><br><span class="line">    cpu = <span class="number">0</span></span><br><span class="line">指标值：</span><br><span class="line">    <span class="number">0.5</span></span><br></pre></td></tr></table></figure>
+<p>指标名称代表这个监控指标是对用户态CPU的使用监控，引入了两个标签，分别标识该监控位于哪台机器的哪个核。</p>
+<p>OpenTSDB支持的查询场景为：指定指标名称和时间范围，给定一个或多个标签名称和标签的值作为条件，查询出所有的数据。</p>
+<p>以上面那个例子举例，我们可以查询：</p>
+<p>  a. sys.cpu.user (host=<em>,cpu=</em>)(1465920000 &lt;= timestamp &lt; 1465923600)：查询凌晨0点到1点之间，所有机器的所有CPU核上的用户态CPU消耗。</p>
+<p>  b. sys.cpu.user (host=10.101.168.111,cpu=*)(1465920000 &lt;= timestamp &lt; 1465923600)：查询凌晨0点到1点之间，某台机器的所有CPU核上的用户态CPU消耗。</p>
+<p>  c. sys.cpu.user (host=10.101.168.111,cpu=0)(1465920000 &lt;= timestamp &lt; 1465923600)：查询凌晨0点到1点之间，某台机器的第0个CPU核上的用户态CPU消耗。</p>
+<h2 id="OpenTSDB的存储优化"><a href="#OpenTSDB的存储优化" class="headerlink" title="OpenTSDB的存储优化"></a>OpenTSDB的存储优化</h2><p>了解了OpenTSDB的基本概念后，我们来尝试设计一下表结构。</p>
+<img src="/2021/02/07/OpenTSDB%E5%85%A5%E9%97%A8/f77d814e298bca40cdefcea04892fe702ba232c7.png" class="" title="f77d814e298bca40cdefcea04892fe702ba232c7">
+
+<p>如上图是一个简单的表结构设计，rowkey采用metric name + timestamp + tags的组合，因为这几个元素才能唯一确定一个指标值。</p>
+<p>这张表已经能满足我们的写入和查询的业务需求，但是OpenTSDB采用的表结构设计远没有这么简单，我们接下来一项一项看它对表结构做的一些优化。</p>
+<h3 id="优化一：缩短row-key"><a href="#优化一：缩短row-key" class="headerlink" title="优化一：缩短row key"></a>优化一：缩短row key</h3><p>观察这张表内存储的数据，在rowkey的组成部分内，其实有很大一部分的重复数据，重复的指标名称，重复的标签。以上图为例，如果每秒采集一次监控指标，cpu为2核，host规模为100台，则一天时间内sys.cpu.user这个监控指标就会产生17280000行数据，而这些行中，监控指标名称均是重复的。如果能将这部分重复数据的长度尽可能的缩短，则能带来非常大的存储空间的节省。</p>
+<p>OpenTSDB采用的策略是，为每个metric、tag key和tag value都分配一个UID，UID为固定长度三个字节。</p>
+<img src="/2021/02/07/OpenTSDB%E5%85%A5%E9%97%A8/e1e766e7defcf059535c9c184a0659b499221c38.png" class="" title="e1e766e7defcf059535c9c184a0659b499221c38">
+
+<p>上图为优化后的存储结构，可以看出，rowkey的长度大大的缩短了。rowkey的缩短，带来了很多好处：</p>
+<p>  a. 节省存储空间</p>
+<p>  b. 提高查询效率：减少key匹配查找的时间</p>
+<p>  c. 提高传输效率：不光节省了从文件系统读取的带宽，也节省了数据返回占用的带宽，提高了数据写入和读取的速度。</p>
+<p>  d. 缓解Java程序内存压力：Java程序，GC是老大难的问题，能节省内存的地方尽量节省。原先用String存储的metric name、tag key或tag value，现在均可以用3个字节的byte array替换，大大节省了内存占用。</p>
+<h3 id="优化二：减少Key-Value数"><a href="#优化二：减少Key-Value数" class="headerlink" title="优化二：减少Key-Value数"></a>优化二：减少Key-Value数</h3><p>优化一是OpenTSDB做的最核心的一个优化，很直观的可以看到存储的数据量被大大的节省了。原理也很简单，将长的变短。但是是否还可以进一步优化呢？</p>
+<p>在上面的存储模型章节中，我们了解到。HBase在底层存储结构中，每一列都会以Key-Value的形式存储，每一列都会包含一个rowkey。如果要进一步缩短存储量，那就得想办法减少Key-Value的个数。</p>
+<p>OpenTSDB分了几个步骤来减少Key-Value的个数：</p>
+<p>\1. 将多行合并为一行，多行单列变为单行多列。</p>
+<p>\2. 将多列合并为一列，单行多列变为单行单列。</p>
+<h4 id="多行单列合并为单行单列"><a href="#多行单列合并为单行单列" class="headerlink" title="多行单列合并为单行单列"></a>多行单列合并为单行单列</h4><img src="/2021/02/07/OpenTSDB%E5%85%A5%E9%97%A8/6106c668b7104312859391a26994029372a8f9de.png" class="" title="6106c668b7104312859391a26994029372a8f9de">
+
+<p>OpenTSDB将同属于一个时间周期内的具有相同TSUID（相同的metric name，以及相同的tags）的数据合并为一行存储。OpenTSDB内默认的时间周期是一个小时，也就是说同属于这一个小时的所有数据点，会合并到一行内存储，如图上所示。合并为一行后，该行的rowkey中的timestamp会指定为该小时的起始时间（所属时间周期的base时间），而每一列的列名，则记录真实数据点的时间戳与该时间周期起始时间（base）的差值。</p>
+<p>这里列名采用差值而不是真实值也是一个有特殊考虑的设计，如存储模型章节所述，列名也是会存在于每个Key-Value中，占用一定的存储空间。如果是秒精度的时间戳，需要4个字节，如果是毫秒精度的时间戳，则需要8个字节。但是如果列名只存差值且时间周期为一个小时的话，则如果是秒精度，则差值取值范围是0-3600，只需要2个字节；如果是毫秒精度，则差值取值范围是0-360000，只需要4个字节；所以相比存真实时间戳，这个设计是能节省不少空间的。</p>
+<h4 id="单行多列合并为单行单列"><a href="#单行多列合并为单行单列" class="headerlink" title="单行多列合并为单行单列"></a>单行多列合并为单行单列</h4><p>多行合并为单行后，并不能真实的减少Key-Value个数，因为总的列数并没有减少。所以要达到真实的节省存储的目的，还需要将一行的列变少，才能真正的将Key-Value数变少。</p>
+<p>OpenTSDB采取的做法是，会在后台定期的将一行的多列合并为一列，称之为『compaction』，合并完之后效果如下。</p>
+<img src="/2021/02/07/OpenTSDB%E5%85%A5%E9%97%A8/e85374ccb1823e8829afc5407d32ea14ae2a9078.png" class="" title="e85374ccb1823e8829afc5407d32ea14ae2a9078">
+
+<p>同一行中的所有列被合并为一列，如果是秒精度的数据，则一行中的3600列会合并为1列，Key-Value数从3600个降低到只有1个。</p>
+<h3 id="优化三：并发写优化"><a href="#优化三：并发写优化" class="headerlink" title="优化三：并发写优化"></a>优化三：并发写优化</h3><p>上面两个优化主要是OpenTSDB对存储的优化，存储量下降以及Key-Value个数下降后，除了直观的存储量上的缩减，对读和写的效率都是有一定提升的。</p>
+<p>时间序列数据的写入，有一个不可规避的问题是写热点问题，当某一个metric下数据点很多时，则该metric很容易造成写入热点。OpenTSDB采取了和这篇<a target="_blank" rel="noopener" href="https://yq.aliyun.com/articles/54644">文章</a>中介绍的一样的方法，允许将metric预分桶，可通过『<strong>tsd.storage.salt.buckets</strong>』配置项来配置。</p>
+<img src="/2021/02/07/OpenTSDB%E5%85%A5%E9%97%A8/7fab2b13b9c2e05508de947ca887962f211fc351.png" class="" title="7fab2b13b9c2e05508de947ca887962f211fc351">
+
+<p>如上图所示，预分桶后的变化就是在rowkey前会拼上一个桶编号（bucket index）。预分桶后，可将某个热点metric的写压力分散到多个桶中，避免了写热点的产生。</p>
+<h1 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h1><p>OpenTSDB属于第二代时序数据库了，基于通用存储系统而发展来的。获得了通用存储系统的扩展性，高可用特性，但是因为无法做一些针对时序数据的特定优化，会有一些限制。例如数据压缩针对性优化，查询针对性的优化。</p>
+<p>具有以下缺点：</p>
+<ol>
+<li><p><strong>数据类型单一</strong>：HBase中数据都是字符串，没有其他类型</p>
+</li>
+<li><p><strong>压缩效果差</strong>：数据冗余大，压缩效果一般</p>
+</li>
+<li><p><strong>自身不支持复杂条件过滤</strong>：监控场景里，存在大量过滤条件，都只能在业务逻辑里实现，构成rowkey后查询，不能直接由hbase处理好，返回给应用；因此数据都是预聚合的。</p>
+</li>
+<li><p><strong>部署和运维难度大</strong>：依赖于zookeeper，比较重，需要专业的人员进行运维。</p>
+</li>
+</ol>
+<h1 id="参考"><a href="#参考" class="headerlink" title="参考"></a>参考</h1><ol>
+<li><p><a target="_blank" rel="noopener" href="http://opentsdb.net/overview.html">OpenTSDB官网</a></p>
+</li>
+<li><p><a target="_blank" rel="noopener" href="https://medium.com/analytics-vidhya/understanding-opentsdb-a-distributed-and-scalable-time-series-database-e4efc7a3dbb7">Understanding OpenTSDB — A distributed and scalable Time Series Database</a></p>
+</li>
+<li><p><a target="_blank" rel="noopener" href="https://developer.aliyun.com/article/25847">All Things OpenTSDB</a></p>
+</li>
+<li><p><a target="_blank" rel="noopener" href="https://developer.aliyun.com/article/54785">解密OpenTSDB的表存储优化</a></p>
+</li>
+<li><p><a target="_blank" rel="noopener" href="https://www.jianshu.com/p/fea98d05ec04">NoSQL-Hbase-Hbase作为OpenTSDB的优缺点分析</a></p>
+</li>
+</ol>
+
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/tsdb/" rel="tag"># tsdb</a>
+          </div>
+
+        
+
+          <div class="post-nav">
+            <div class="post-nav-item">
+                <a href="/2021/02/07/RRD-Graphite%E6%97%B6%E5%BA%8F%E6%95%B0%E6%8D%AE%E5%BA%93%E7%AE%80%E8%BF%B0/" rel="prev" title="RRD-Graphite时序数据库简述">
+                  <i class="fa fa-chevron-left"></i> RRD-Graphite时序数据库简述
+                </a>
+            </div>
+            <div class="post-nav-item">
+            </div>
+          </div>
+    </footer>
+  </article>
+</div>
+
+
+
+
+
+
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      const activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      const commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+</div>
+  </main>
+
+  <footer class="footer">
+    <div class="footer-inner">
+
+
+<div class="copyright">
+  &copy; 
+  <span itemprop="copyrightYear">2021</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Jason Chao</span>
+</div>
+  <div class="powered-by">由 <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://theme-next.js.org/" class="theme-link" rel="noopener" target="_blank">NexT.Gemini</a> 强力驱动
+  </div>
+
+    </div>
+  </footer>
+
+  
+  <script src="//cdn.jsdelivr.net/npm/animejs@3.2.1/lib/anime.min.js"></script>
+<script src="/js/utils.js"></script><script src="/js/motion.js"></script><script src="/js/next-boot.js"></script>
+
+  
+
+
+
+
+
+
+  
+
+
+
+
+
+</body>
+</html>

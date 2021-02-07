@@ -167,7 +167,7 @@
       <div class="site-state-item site-state-posts">
           <a href="/archives/">
         
-          <span class="site-state-item-count">10</span>
+          <span class="site-state-item-count">11</span>
           <span class="site-state-item-name">日志</span>
         </a>
       </div>
@@ -218,6 +218,251 @@
   
 
   <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="http://example.com/2021/02/07/OpenTSDB%E5%85%A5%E9%97%A8/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="Jason Chao">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="我住8楼">
+    </span>
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">
+          <a href="/2021/02/07/OpenTSDB%E5%85%A5%E9%97%A8/" class="post-title-link" itemprop="url">OpenTSDB入门</a>
+        </h2>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">发表于</span>
+      
+
+      <time title="创建时间：2021-02-07 15:17:11 / 修改时间：17:31:47" itemprop="dateCreated datePublished" datetime="2021-02-07T15:17:11+08:00">2021-02-07</time>
+    </span>
+
+  
+</div>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+          <h1 id="介绍"><a href="#介绍" class="headerlink" title="介绍"></a>介绍</h1><p>以下是官网介绍。</p>
+<blockquote>
+<p>OpenTSDB是一个基于HBase的分布式的、可伸缩的时间序列数据库（TSDB）。OpenTSDB是为了监控而生，例如对从大规模集群（包括网络设备、操作系统、应用程序等）采集到的监控数据进行存储，并使这些数据易于访问并且容易图形化的。</p>
+<p>由于HBase的可伸缩性，OpenTSDB允许收集来自上万台主机和应用程序的成千上万的高频率数据</p>
+<p>（每隔几秒钟）。OpenTSDB永远不会删除或减少采样数据，并且可以轻松存储数千亿个数据点。</p>
+</blockquote>
+<h1 id="术语"><a href="#术语" class="headerlink" title="术语"></a>术语</h1><p><strong>TSD</strong></p>
+<p>时间序列守护进程，负责和HBase交互进行数据存储和查询。</p>
+<p><strong>Epoch</strong></p>
+<p>时间戳的数值表示，有两种格式：</p>
+<ol>
+<li>10位数字表示的，从1970年1月1日起经过的秒数</li>
+<li>13位数字表示的，从1970年1月1日起经过的毫秒数</li>
+</ol>
+<p><strong>Metric</strong></p>
+<p>指标，或者说监控项，例如监控一个人的心跳速率，那么心跳速率就是metric；而监控一个公司的股票，股票价格就是metric。</p>
+<p><strong>Tags</strong></p>
+<p>tag可以理解为时序数据点的注释。一个tag描述的是一个metric的某个属性。Tags是key-value对，每个数据点可以有多个tag。例如监控一个病人的心率，患者的姓名成为tag，区分每个患者的数据。这里，“心率”是metic，“姓名”是tag，“托马斯”是患者的姓名，是标签的值。其他标签可以是“年龄”、“性别”。标签值用于在查询时过滤/聚合数据。</p>
+<p><strong>降采样DownSampling</strong></p>
+<p>降采样是降低数据采样率或分辨率的过程。如果查询的数据持续时间较长，则接收到的点数将很高，这将导致查询吞吐量较慢。例如，如果数据每秒存储一次而我们查询一周的数据，我们将得到604800个数据点。如果我们对数据进行下采样成每隔一分钟存储一次，就得到10080个数据。这减少了查询时间、网络延迟和系统的总体负载。</p>
+<p><strong>集合Aggregation</strong></p>
+<p>聚合是多个数据的集合。OpenTSDB被设计成在查询执行期间有效地组合多个不同的时间序列。例如，如果我们希望看到所有男性患者的平均心率，那么我们使用平均值函数作为聚合函数来聚合男性患者的所有时间序列数据。这将给我们一组点，显示所有男性患者的平均心率。</p>
+<p><strong>插值Interpolation</strong></p>
+<p>为了使聚合工作，我们需要为查询的时间范围提供数据。如果我们以分钟级别聚合数据，则每分钟需要60个数据点。但在现实世界中，数据很有可能存在丢失。OpenTSDB使用插值来填补这些空白。例如，对于“zimsum”类型的聚合，OpenTSDB通过为所有缺失值填充0进行插值，然后通过对数据求和进行聚合。</p>
+<p><strong>Cardinality</strong></p>
+<p>基数，在数学中定义为一个集合中的一些元素，在数据库中定义为一个索引的一些唯一元素，在OpenTSDB定义为：</p>
+<ul>
+<li>一个给定指标的一些唯一时间序列</li>
+<li>和一个标签名称相关联的一些唯一标签值</li>
+</ul>
+<p><strong>Compaction</strong></p>
+<p>在OpenTSDB中，会将多列合并到一列之中以减少磁盘占用空间，这和hbase中的Compaction不一样。这个过程会在TSD写数据或者查询过程中不定期的发生。</p>
+<p><strong>Data Point</strong></p>
+<p>每一个指标可以被记录为某一个时间点的一个数值。Data Point包括以下部分：</p>
+<ul>
+<li>一个指标：metric</li>
+<li>一个数值</li>
+<li>这个数值被记录的时间戳</li>
+<li>多个标签</li>
+</ul>
+<p><strong>Time Series</strong></p>
+<p>一个metric的带有多个tag的data point集合。</p>
+<p><strong>UID</strong></p>
+<p>在OpenTSDB中，每一个metric、tagk或者tagv在创建的时候被分配一个唯一标识叫做UID，他们组合在一起可以创建一个序列的UID或者<code>TSUID</code>。在OpenTSDB的存储中，对于每一个metric、tagk或者tagv都存在从0开始的计数器，每来一个新的metric、tagk或者tagv，对应的计数器就会加1。当data point写到TSD时，UID是自动分配的。你也可以手动分配UID，前提是<code>auto metric</code>被设置为true。默认地，UID被编码为3Bytes，每一种UID类型最多可以有16,777,215个UID。你也可以修改源代码改为4Bytes。UID的展示有几种方式，最常见的方式是通过http api访问时，3 bytes的UID被编码为16进制的字符串。例如，UID为1的写为二进制的形式为<code>000000000000000000000001</code>，如果表示为一个无符号的byte数组，其可以表示为<code>[0,0,1]</code>，编码为16进制字符串为<code>000001</code>,其中每一位左边都被补上0,如果其不足两位。故，UID为255的会显示为<code>[0,0,255]</code>和<code>0000FF</code>。</p>
+<p><strong>TSUID</strong></p>
+<p>当一个data point被写到OpenTSDB时，其row key格式为：<code>&lt;metric_UID&gt;&lt;timestamp&gt;&lt;tagk1_UID&gt;&lt;tagv1_UID&gt;[...&lt;tagkN_UID&gt;&lt;tagvN_UID&gt;]</code>，不考虑时间戳的话，将其余部分都转换为UID，然后拼在一起，就可以组成为TSUID。</p>
+<p><strong>Metadata</strong></p>
+<p>主要用于记录data point的一些附加的信息，方便搜索和跟踪，分为UIDMeta和TSMeta。</p>
+<p>每一个UID都有一个metadata记录保存在<code>tsdb-uid</code>表中，每一个UID包括一些不可变的字段，如<code>uid</code>、<code>type</code>、<code>name</code>和<code>created</code>字段表示什么时候被创建，还可以有一些额外字段，如<code>description</code>、<code>notes</code>、<code>displayName</code>和一些<code>custom</code> key/value对，详细信息，可以查看<a target="_blank" rel="noopener" href="http://opentsdb.net/docs/build/html/api_http/uid/uidmeta.html"> /api/uid/uidmeta</a></p>
+<p>同样，每一个TSUID可以对应一个TSMeta，记录在<code>tsdb-uid</code>中，其包括的字段有<code>tsuid</code>、<code>metric</code>、<code>tags</code>、<code>lastReceived</code>和<code>created</code>，可选的字段有<code>description</code>, <code>notes</code>，详细信息，可以查看<a target="_blank" rel="noopener" href="http://opentsdb.net/docs/build/html/api_http/uid/tsmeta.html">/api/uid/tsmeta</a></p>
+<h1 id="架构"><a href="#架构" class="headerlink" title="架构"></a>架构</h1><p>OpenTSDB的架构图如下所示：</p>
+<ol>
+<li>Servers是采集层，部署了OpenTSDB的采集agent。</li>
+<li>TSD是OpenTSDB的核心模块，OpenTSDB是由一系列TSD（Time Series Daemon）组成。每个TSD都是独立的，没有master，没有共享状态</li>
+<li>HBase是OpenTSDB的底层存储模块</li>
+</ol>
+<p>TSD对外提供三种交互接口：</p>
+<ol>
+<li>类似telnet的协议</li>
+<li>HTTP API</li>
+<li>内置的GUI</li>
+</ol>
+<img src="/2021/02/07/OpenTSDB%E5%85%A5%E9%97%A8/tsdb-architecture.png" class="" title="OpenTSDB architecture">
+
+<p>OpenTSDB在HBase里共创建了4张表：</p>
+<ol>
+<li><p>UID_TABLE</p>
+<ol>
+<li><p>用来存储UID映射，包括正向的和反向的。存在两列族，一列族叫做name用来将一个UID映射到一个字符串，另一个列族叫做id，用来将字符串映射到UID。列族的每一行都至少有以下三列中的一个：</p>
+<ul>
+<li>metrics 将metric的名称映射到UID</li>
+<li>tagk 将tag名称映射到UID</li>
+<li>tagv 将tag的值映射到UID</li>
+</ul>
+<p>如果配置了metadata，则name列族还可以包括额外的metatata列。</p>
+</li>
+</ol>
+</li>
+<li><p>TSDB_TABLE</p>
+<ol>
+<li>时间点数据就保存在此表中，只有一个列簇t</li>
+</ol>
+</li>
+<li><p>TREE_TABLE</p>
+<ol>
+<li>索引表，用于展示树状结构的，类似文件系统，以方便其他系统使用</li>
+</ol>
+</li>
+<li><p>META_TABLE</p>
+<ol>
+<li>是不同时间序列的一个索引，可以用来存储一些额外的信息，该表只有一个列族name，两个列，分别为ts_meta、ts_ctr。这个表里面的数据是可以根据配置项配置来控制是否生成与否，生成几个列。</li>
+</ol>
+</li>
+</ol>
+<h1 id="存储结构"><a href="#存储结构" class="headerlink" title="存储结构"></a>存储结构</h1><blockquote>
+<p>摘自参考4</p>
+</blockquote>
+<p>在解析OpenTSDB的表结构设计前，我们需要先对其底层的HBase的存储模型有一个理解。</p>
+<h2 id="表分区"><a href="#表分区" class="headerlink" title="表分区"></a>表分区</h2><p>HBase会按Rowkey的范围，将一张大表切成多个region，每个region会由一个region server加载并提供服务。Rowkey的切分与表格存储的分区类似，一个良好设计的表，需要保证读写压力能够均匀的分散到表的各个region，这样才能充分发挥分布式集群的能力。</p>
+<h2 id="存储结构-1"><a href="#存储结构-1" class="headerlink" title="存储结构"></a>存储结构</h2><img src="/2021/02/07/OpenTSDB%E5%85%A5%E9%97%A8/05224f4c4a40c93dcddc983a7a717ff7a047de50.png" class="" title="05224f4c4a40c93dcddc983a7a717ff7a047de50">
+
+<p>如图所示为表结构以及对应的存储结构示例，在HBase或表格存储这类底层采用LSM-tree的数据库中，表数据会按列存储。每行中的每一列在存储文件中都会以Key-value的形式存在于文件中。其中Key的结构为：行主键 + 列名，Value为列的值。该种存储结构的特点是：</p>
+<p>​    a. 每行主键会重复存储，取决于列的个数</p>
+<p>​    b. 列名会重复存储，每一列的存储都会携带列名</p>
+<p>​    c. 存储数据按row-key排序，相邻的row-key会存储在相邻的块中</p>
+<h2 id="OpenTSDB的基本概念"><a href="#OpenTSDB的基本概念" class="headerlink" title="OpenTSDB的基本概念"></a>OpenTSDB的基本概念</h2><p>OpenTSDB定义每个时间序列数据需要包含以下属性：</p>
+<ol>
+<li><p>指标名称（metric name）</p>
+</li>
+<li><p>时间戳（UNIX timestamp，毫秒或者秒精度）</p>
+</li>
+<li><p>值（64位整数或者单精度浮点数）</p>
+</li>
+<li><p>一组标签（tags，用于描述数据属性，至少包含一个或多个标签，每个标签由tagKey和tagValue组成，tagKey和tagValue均为字符串）</p>
+</li>
+</ol>
+<p>举个例子，在监控场景中，我们可以这样定义一个监控指标：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">指标名称：</span><br><span class="line">    sys.cpu.user</span><br><span class="line">标签：</span><br><span class="line">    host = <span class="number">10.101</span><span class="number">.168</span><span class="number">.111</span></span><br><span class="line">    cpu = <span class="number">0</span></span><br><span class="line">指标值：</span><br><span class="line">    <span class="number">0.5</span></span><br></pre></td></tr></table></figure>
+<p>指标名称代表这个监控指标是对用户态CPU的使用监控，引入了两个标签，分别标识该监控位于哪台机器的哪个核。</p>
+<p>OpenTSDB支持的查询场景为：指定指标名称和时间范围，给定一个或多个标签名称和标签的值作为条件，查询出所有的数据。</p>
+<p>以上面那个例子举例，我们可以查询：</p>
+<p>  a. sys.cpu.user (host=<em>,cpu=</em>)(1465920000 &lt;= timestamp &lt; 1465923600)：查询凌晨0点到1点之间，所有机器的所有CPU核上的用户态CPU消耗。</p>
+<p>  b. sys.cpu.user (host=10.101.168.111,cpu=*)(1465920000 &lt;= timestamp &lt; 1465923600)：查询凌晨0点到1点之间，某台机器的所有CPU核上的用户态CPU消耗。</p>
+<p>  c. sys.cpu.user (host=10.101.168.111,cpu=0)(1465920000 &lt;= timestamp &lt; 1465923600)：查询凌晨0点到1点之间，某台机器的第0个CPU核上的用户态CPU消耗。</p>
+<h2 id="OpenTSDB的存储优化"><a href="#OpenTSDB的存储优化" class="headerlink" title="OpenTSDB的存储优化"></a>OpenTSDB的存储优化</h2><p>了解了OpenTSDB的基本概念后，我们来尝试设计一下表结构。</p>
+<img src="/2021/02/07/OpenTSDB%E5%85%A5%E9%97%A8/f77d814e298bca40cdefcea04892fe702ba232c7.png" class="" title="f77d814e298bca40cdefcea04892fe702ba232c7">
+
+<p>如上图是一个简单的表结构设计，rowkey采用metric name + timestamp + tags的组合，因为这几个元素才能唯一确定一个指标值。</p>
+<p>这张表已经能满足我们的写入和查询的业务需求，但是OpenTSDB采用的表结构设计远没有这么简单，我们接下来一项一项看它对表结构做的一些优化。</p>
+<h3 id="优化一：缩短row-key"><a href="#优化一：缩短row-key" class="headerlink" title="优化一：缩短row key"></a>优化一：缩短row key</h3><p>观察这张表内存储的数据，在rowkey的组成部分内，其实有很大一部分的重复数据，重复的指标名称，重复的标签。以上图为例，如果每秒采集一次监控指标，cpu为2核，host规模为100台，则一天时间内sys.cpu.user这个监控指标就会产生17280000行数据，而这些行中，监控指标名称均是重复的。如果能将这部分重复数据的长度尽可能的缩短，则能带来非常大的存储空间的节省。</p>
+<p>OpenTSDB采用的策略是，为每个metric、tag key和tag value都分配一个UID，UID为固定长度三个字节。</p>
+<img src="/2021/02/07/OpenTSDB%E5%85%A5%E9%97%A8/e1e766e7defcf059535c9c184a0659b499221c38.png" class="" title="e1e766e7defcf059535c9c184a0659b499221c38">
+
+<p>上图为优化后的存储结构，可以看出，rowkey的长度大大的缩短了。rowkey的缩短，带来了很多好处：</p>
+<p>  a. 节省存储空间</p>
+<p>  b. 提高查询效率：减少key匹配查找的时间</p>
+<p>  c. 提高传输效率：不光节省了从文件系统读取的带宽，也节省了数据返回占用的带宽，提高了数据写入和读取的速度。</p>
+<p>  d. 缓解Java程序内存压力：Java程序，GC是老大难的问题，能节省内存的地方尽量节省。原先用String存储的metric name、tag key或tag value，现在均可以用3个字节的byte array替换，大大节省了内存占用。</p>
+<h3 id="优化二：减少Key-Value数"><a href="#优化二：减少Key-Value数" class="headerlink" title="优化二：减少Key-Value数"></a>优化二：减少Key-Value数</h3><p>优化一是OpenTSDB做的最核心的一个优化，很直观的可以看到存储的数据量被大大的节省了。原理也很简单，将长的变短。但是是否还可以进一步优化呢？</p>
+<p>在上面的存储模型章节中，我们了解到。HBase在底层存储结构中，每一列都会以Key-Value的形式存储，每一列都会包含一个rowkey。如果要进一步缩短存储量，那就得想办法减少Key-Value的个数。</p>
+<p>OpenTSDB分了几个步骤来减少Key-Value的个数：</p>
+<p>\1. 将多行合并为一行，多行单列变为单行多列。</p>
+<p>\2. 将多列合并为一列，单行多列变为单行单列。</p>
+<h4 id="多行单列合并为单行单列"><a href="#多行单列合并为单行单列" class="headerlink" title="多行单列合并为单行单列"></a>多行单列合并为单行单列</h4><img src="/2021/02/07/OpenTSDB%E5%85%A5%E9%97%A8/6106c668b7104312859391a26994029372a8f9de.png" class="" title="6106c668b7104312859391a26994029372a8f9de">
+
+<p>OpenTSDB将同属于一个时间周期内的具有相同TSUID（相同的metric name，以及相同的tags）的数据合并为一行存储。OpenTSDB内默认的时间周期是一个小时，也就是说同属于这一个小时的所有数据点，会合并到一行内存储，如图上所示。合并为一行后，该行的rowkey中的timestamp会指定为该小时的起始时间（所属时间周期的base时间），而每一列的列名，则记录真实数据点的时间戳与该时间周期起始时间（base）的差值。</p>
+<p>这里列名采用差值而不是真实值也是一个有特殊考虑的设计，如存储模型章节所述，列名也是会存在于每个Key-Value中，占用一定的存储空间。如果是秒精度的时间戳，需要4个字节，如果是毫秒精度的时间戳，则需要8个字节。但是如果列名只存差值且时间周期为一个小时的话，则如果是秒精度，则差值取值范围是0-3600，只需要2个字节；如果是毫秒精度，则差值取值范围是0-360000，只需要4个字节；所以相比存真实时间戳，这个设计是能节省不少空间的。</p>
+<h4 id="单行多列合并为单行单列"><a href="#单行多列合并为单行单列" class="headerlink" title="单行多列合并为单行单列"></a>单行多列合并为单行单列</h4><p>多行合并为单行后，并不能真实的减少Key-Value个数，因为总的列数并没有减少。所以要达到真实的节省存储的目的，还需要将一行的列变少，才能真正的将Key-Value数变少。</p>
+<p>OpenTSDB采取的做法是，会在后台定期的将一行的多列合并为一列，称之为『compaction』，合并完之后效果如下。</p>
+<img src="/2021/02/07/OpenTSDB%E5%85%A5%E9%97%A8/e85374ccb1823e8829afc5407d32ea14ae2a9078.png" class="" title="e85374ccb1823e8829afc5407d32ea14ae2a9078">
+
+<p>同一行中的所有列被合并为一列，如果是秒精度的数据，则一行中的3600列会合并为1列，Key-Value数从3600个降低到只有1个。</p>
+<h3 id="优化三：并发写优化"><a href="#优化三：并发写优化" class="headerlink" title="优化三：并发写优化"></a>优化三：并发写优化</h3><p>上面两个优化主要是OpenTSDB对存储的优化，存储量下降以及Key-Value个数下降后，除了直观的存储量上的缩减，对读和写的效率都是有一定提升的。</p>
+<p>时间序列数据的写入，有一个不可规避的问题是写热点问题，当某一个metric下数据点很多时，则该metric很容易造成写入热点。OpenTSDB采取了和这篇<a target="_blank" rel="noopener" href="https://yq.aliyun.com/articles/54644">文章</a>中介绍的一样的方法，允许将metric预分桶，可通过『<strong>tsd.storage.salt.buckets</strong>』配置项来配置。</p>
+<img src="/2021/02/07/OpenTSDB%E5%85%A5%E9%97%A8/7fab2b13b9c2e05508de947ca887962f211fc351.png" class="" title="7fab2b13b9c2e05508de947ca887962f211fc351">
+
+<p>如上图所示，预分桶后的变化就是在rowkey前会拼上一个桶编号（bucket index）。预分桶后，可将某个热点metric的写压力分散到多个桶中，避免了写热点的产生。</p>
+<h1 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h1><p>OpenTSDB属于第二代时序数据库了，基于通用存储系统而发展来的。获得了通用存储系统的扩展性，高可用特性，但是因为无法做一些针对时序数据的特定优化，会有一些限制。例如数据压缩针对性优化，查询针对性的优化。</p>
+<p>具有以下缺点：</p>
+<ol>
+<li><p><strong>数据类型单一</strong>：HBase中数据都是字符串，没有其他类型</p>
+</li>
+<li><p><strong>压缩效果差</strong>：数据冗余大，压缩效果一般</p>
+</li>
+<li><p><strong>自身不支持复杂条件过滤</strong>：监控场景里，存在大量过滤条件，都只能在业务逻辑里实现，构成rowkey后查询，不能直接由hbase处理好，返回给应用；因此数据都是预聚合的。</p>
+</li>
+<li><p><strong>部署和运维难度大</strong>：依赖于zookeeper，比较重，需要专业的人员进行运维。</p>
+</li>
+</ol>
+<h1 id="参考"><a href="#参考" class="headerlink" title="参考"></a>参考</h1><ol>
+<li><p><a target="_blank" rel="noopener" href="http://opentsdb.net/overview.html">OpenTSDB官网</a></p>
+</li>
+<li><p><a target="_blank" rel="noopener" href="https://medium.com/analytics-vidhya/understanding-opentsdb-a-distributed-and-scalable-time-series-database-e4efc7a3dbb7">Understanding OpenTSDB — A distributed and scalable Time Series Database</a></p>
+</li>
+<li><p><a target="_blank" rel="noopener" href="https://developer.aliyun.com/article/25847">All Things OpenTSDB</a></p>
+</li>
+<li><p><a target="_blank" rel="noopener" href="https://developer.aliyun.com/article/54785">解密OpenTSDB的表存储优化</a></p>
+</li>
+<li><p><a target="_blank" rel="noopener" href="https://www.jianshu.com/p/fea98d05ec04">NoSQL-Hbase-Hbase作为OpenTSDB的优缺点分析</a></p>
+</li>
+</ol>
+
+      
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+        <div class="post-eof"></div>
+      
+    </footer>
+  </article>
+</div>
+
+
+
+
+    
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="zh-CN">
     <link itemprop="mainEntityOfPage" href="http://example.com/2021/02/07/RRD-Graphite%E6%97%B6%E5%BA%8F%E6%95%B0%E6%8D%AE%E5%BA%93%E7%AE%80%E8%BF%B0/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
@@ -243,7 +488,7 @@
       <span class="post-meta-item-text">发表于</span>
       
 
-      <time title="创建时间：2021-02-07 15:01:32 / 修改时间：15:05:38" itemprop="dateCreated datePublished" datetime="2021-02-07T15:01:32+08:00">2021-02-07</time>
+      <time title="创建时间：2021-02-07 15:01:32 / 修改时间：17:09:41" itemprop="dateCreated datePublished" datetime="2021-02-07T15:01:32+08:00">2021-02-07</time>
     </span>
 
   
@@ -362,6 +607,7 @@
 <h4 id="跟RRD对比"><a href="#跟RRD对比" class="headerlink" title="跟RRD对比"></a>跟RRD对比</h4><h5 id="RRD不能在最新更新之前对某个时隙进行更新"><a href="#RRD不能在最新更新之前对某个时隙进行更新" class="headerlink" title="RRD不能在最新更新之前对某个时隙进行更新"></a>RRD不能在最新更新之前对某个时隙进行更新</h5><p>这意味着没有办法在RRD序列中回填数据。Whisper没有这个限制，这使得将历史数据导入Graphite变得更加简单和容易</p>
 <h5 id="RRD的设计没有考虑到不定期的更新"><a href="#RRD的设计没有考虑到不定期的更新" class="headerlink" title="RRD的设计没有考虑到不定期的更新"></a>RRD的设计没有考虑到不定期的更新</h5><p>在许多情况下（取决于配置），如果对RRD时序进行了更新，但没有很快进行另一次更新，则原始更新将丢失。这使得它不太适合记录数据，例如操作度量（例如代码推送）</p>
 <h5 id="Whisper要求度量更新与最佳分辨率存储存档的间隔相同"><a href="#Whisper要求度量更新与最佳分辨率存储存档的间隔相同" class="headerlink" title="Whisper要求度量更新与最佳分辨率存储存档的间隔相同"></a>Whisper要求度量更新与最佳分辨率存储存档的间隔相同</h5><p>这就将聚合值的责任推给了用户，而不是数据库。这也意味着更新会立即写入到最精确的存档中，而不是像在RRD中那样先进行聚合，然后再写入（在随后的写入操作中）。</p>
+<h1 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h1><p>RRD和Graphite属于第一代时序数据库，存储结构简单，均是一个环缓存的结构，功能支持也有限，但是目前使用还是比较广泛的。了解它们的设计，也能了解下时序数据库的特点和发展历史。</p>
 <h1 id="参考"><a href="#参考" class="headerlink" title="参考"></a>参考</h1><ol>
 <li><a target="_blank" rel="noopener" href="https://developer.aliyun.com/article/54400">RRDTool原理简介</a></li>
 <li><a target="_blank" rel="noopener" href="http://bbs.chinaunix.net/thread-864861-1-1.html">RRDtool简体中文教程 v1.01</a></li>
@@ -2205,306 +2451,9 @@
 
 
 
-    
-
-
-<div class="post-block">
-  
-  
-
-  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="zh-CN">
-    <link itemprop="mainEntityOfPage" href="http://example.com/2021/01/29/Dynamo-Amazon-s-Highly-Available-Key-value-Store/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="image" content="/images/avatar.gif">
-      <meta itemprop="name" content="Jason Chao">
-      <meta itemprop="description" content="">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="我住8楼">
-    </span>
-      <header class="post-header">
-        <h2 class="post-title" itemprop="name headline">
-          <a href="/2021/01/29/Dynamo-Amazon-s-Highly-Available-Key-value-Store/" class="post-title-link" itemprop="url">Dynamo Amazon's Highly Available Key-value Store</a>
-        </h2>
-
-        <div class="post-meta-container">
-          <div class="post-meta">
-    <span class="post-meta-item">
-      <span class="post-meta-item-icon">
-        <i class="far fa-calendar"></i>
-      </span>
-      <span class="post-meta-item-text">发表于</span>
-      
-
-      <time title="创建时间：2021-01-29 15:00:59 / 修改时间：15:13:15" itemprop="dateCreated datePublished" datetime="2021-01-29T15:00:59+08:00">2021-01-29</time>
-    </span>
-
-  
-</div>
-
-        </div>
-      </header>
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-          <blockquote>
-<p>Abstract<br>介绍Dynamo，一个分布式的kv存储系统，具有非常高的可用性和可靠性</p>
-</blockquote>
-<h1 id="Introduction"><a href="#Introduction" class="headerlink" title="Introduction"></a>Introduction</h1><h2 id="主要目标："><a href="#主要目标：" class="headerlink" title="主要目标："></a>主要目标：</h2><ol>
-<li>Reliability</li>
-<li>Scalability</li>
-<li>提供key-value接口（最受欢迎清单，购物车，用户偏好等）</li>
-</ol>
-<h2 id="实现技术"><a href="#实现技术" class="headerlink" title="实现技术"></a>实现技术</h2><ol>
-<li>使用一致性哈希进行数据分区和备份</li>
-<li>使用对象版本信息来处理单个数据备份一致性问题</li>
-<li>多副本之间的一致性可以通过类似quorum的协议处理（NWR），以及一个去中心化的副本同步协议</li>
-<li>使用gossip分布式算法来实现错误发现和成员关系变更协议</li>
-</ol>
-<h1 id="BackGround"><a href="#BackGround" class="headerlink" title="BackGround"></a>BackGround</h1><ol>
-<li>RDBMS太重，不需要那么多复杂查询和管理函数；扩展性差，负载均衡效果差。</li>
-</ol>
-<h2 id="系统假设和要求"><a href="#系统假设和要求" class="headerlink" title="系统假设和要求"></a>系统假设和要求</h2><ul>
-<li>Query Model: 只需要key-value的操作，不需要关系模式（表格），没有跨多个数据（多列）的操作。</li>
-<li>ACID：只需要弱一致性，不用提供事务隔离机制。</li>
-<li>Efficiency：需要满足严格的SLA</li>
-<li>其他的假设：不需要认证，规模只用到几百</li>
-</ul>
-<h2 id="SLA"><a href="#SLA" class="headerlink" title="SLA"></a>SLA</h2><p>平均，中位数等指标不能很好的反映所有的用户获得很好的服务质量，它们只能反映大部分用户的服务质量，对于长尾延迟不能反映出来。<br>99.9% 延迟则可以反映所有的用户都有一个很好的服务质量。</p>
-<h2 id="设计考虑"><a href="#设计考虑" class="headerlink" title="设计考虑"></a>设计考虑</h2><ol>
-<li>支持强一致性的系统的可用性不高，为了提高可用性，一般使用弱一致性。弱一致性会导致副本冲突，而解决副本冲突需要两方面的考虑：<ol>
-<li>什么时候解决冲突</li>
-<li>谁来解决冲突</li>
-</ol>
-</li>
-<li>dynamo采用最终一致性模型。对于冲突解决，它有以下考虑：<ol>
-<li>许多模型采用写的时候解决冲突的方式，这样可以让读的逻辑保持比较简单，但是写容易失败。而dynamo相反，为了保证写可用性，让读来解决冲突</li>
-<li>dynamo采用用户来解决冲突的方式，而不是后端存储系统自己解决冲突。因为用户知道数据模式，它可以决定最适合的方式解决冲突。而后端存储系统可以采用的策略就比较有限，比如最后更新的是最终的结果这种方式。</li>
-</ol>
-</li>
-<li>增量扩展性：可以无缝扩展集群</li>
-<li>对称性：dynamo的所有node都是对等的</li>
-<li>去中心化：dynamo不是中心化结构而是端对端结构</li>
-<li>异构性：对于不同性能的机器，可以根据性能来分配任务</li>
-</ol>
-<h1 id="Related-Work"><a href="#Related-Work" class="headerlink" title="Related Work"></a>Related Work</h1><ol>
-<li>p2p系统</li>
-<li>分布式文件系统和数据库</li>
-<li>讨论<ol>
-<li>dynamo 的目标是总是可写</li>
-<li>dynamo 的机器都是可信的（不存在恶意机器）</li>
-<li>dynamo 不需要层次化的名字空间或者关系模式，只用扁平的模式</li>
-<li>dynamo 的性能指标是99.9%的延迟</li>
-</ol>
-</li>
-</ol>
-<h1 id="System-Architecture"><a href="#System-Architecture" class="headerlink" title="System Architecture"></a>System Architecture</h1><p>对于生产系统中一个存储系统需要考虑以下方面：</p>
-<ol>
-<li>负载均衡</li>
-<li>成员变动</li>
-<li>失败发现</li>
-<li>失败恢复</li>
-<li>副本同步</li>
-<li>超负荷处理</li>
-<li>状态转移</li>
-<li>并发和任务调度</li>
-<li>请求包装（序列化和反序列化）</li>
-<li>请求路由</li>
-<li>系统监控和报警</li>
-<li>配置管理</li>
-<li>持久化</li>
-<li>数据分区</li>
-<li>扩展性</li>
-</ol>
-<h2 id="dynamo接口"><a href="#dynamo接口" class="headerlink" title="dynamo接口"></a>dynamo接口</h2><ol>
-<li>get</li>
-<li>put</li>
-</ol>
-<h2 id="数据分区算法"><a href="#数据分区算法" class="headerlink" title="数据分区算法"></a>数据分区算法</h2><p>一致性哈希算法，如图所示：<br><a target="_blank" rel="noopener" href="https://mychaow.github.io/2018/02/03/dynamo-md/"><img src="https://mychaow.github.io/2018/02/03/dynamo-md/" alt="img"></a><br>基本的一致性哈希算法有以下问题：</p>
-<ol>
-<li>数据和负载分布不均衡</li>
-<li>对于不同机器体现不出异构性</li>
-</ol>
-<p>采用virtual nodes来解决这个问题，具体的就是每个节点映射多个虚拟节点，虚拟节点组成一个哈希环，有以下好处：</p>
-<ol>
-<li>一个节点失败了，它的负载会被剩下的所有节点平分</li>
-<li>当一个节点加入时，以前的所有节点会将一小部分负载分给它，非常快</li>
-<li>虚拟节点数可以反映一个机器的性能，当机器性能高时，可以多映射一点虚拟节点，这样就可以处理更多的负载</li>
-</ol>
-<h2 id="数据副本"><a href="#数据副本" class="headerlink" title="数据副本"></a>数据副本</h2><ol>
-<li>使用N备份，就是一个key落在哈希环上映射的第一个节点，顺时针的往下找N-1个节点作为备份节点。这N个节点称为preference list。</li>
-<li>这N个节点要保证是物理节点，防止都是同一个节点的虚拟节点，没有达到备份的效果</li>
-</ol>
-<h2 id="数据版本"><a href="#数据版本" class="headerlink" title="数据版本"></a>数据版本</h2><p>使用向量时钟来作为数据版本号，最终表示为一系列（node，counter）。</p>
-<ol>
-<li>当一个版本的对象的所有（node，counter）对都小于或等于另外一个版本的对象，则该对象是另外对象的祖先</li>
-<li>dynamo中当一个用户想要更新一个对象时，需要提供上一次读的操作的版本号，用来指定是对某个版本的对象实现更新操作</li>
-</ol>
-<p>向量时钟表示版本，有一点需要考虑的是：当多个节点并发更新后，（node, counter）对就会变得很多，合并起来占用空间，因此可以设置一个阈值，超过该阈值，从最旧的开始截断。现实中其实很少发现这种需要截断的情况。</p>
-<h2 id="get和put操作的执行"><a href="#get和put操作的执行" class="headerlink" title="get和put操作的执行"></a>get和put操作的执行</h2><ol>
-<li>用户感知存储节点<ol>
-<li>通过一个通用的负载均衡节点来路由选，好处是用户与存储节点解耦</li>
-<li>使用自带分区感知能力的client lib库来访问，好处是用户的延迟更低</li>
-</ol>
-</li>
-<li>数据副本一致性<ol>
-<li>R + W &gt; N</li>
-<li>前N个node作为preference node，选择其中一个作为coordinator来处理读写请求。</li>
-</ol>
-</li>
-</ol>
-<h2 id="处理失败"><a href="#处理失败" class="headerlink" title="处理失败"></a>处理失败</h2><p>考虑到严格的R+W&gt;N在网络分区，或临时坏的情况下还是影响可用性，因此可以除了N个preference节点外，对于每个机器设置备份节点<br>Hinted replica，当某个节点不可用时，就把数据发送给它的hinted replica。<br>Dynamo的节点是跨地域的，所以可以提供跨地域可用性。</p>
-<h2 id="处理持久化失败"><a href="#处理持久化失败" class="headerlink" title="处理持久化失败"></a>处理持久化失败</h2><p>当Hinted replica的节点也不可用时，数据的持久化就会有危险。为了达到数据写入的安全性，需要副本之间同步新的数据并互为备份。为了发现<br>不同的副本之间的不一致性。使用Merkle trees算法。这个算法就是将不同的key区间进行哈希，父节点是子节点的哈希值的哈希，这样每个<br>节点构造自己的Merkle trees，然后相互比较就能很快的知道哪里不一致了。</p>
-<h2 id="成员管理和失败发现"><a href="#成员管理和失败发现" class="headerlink" title="成员管理和失败发现"></a>成员管理和失败发现</h2><ol>
-<li>哈希环成员</li>
-</ol>
-<p>使用基于Gossip算法的协议来传播成员变更信息。</p>
-<ol>
-<li>外部发现</li>
-</ol>
-<p>为了防止逻辑分区，设置一些seed节点，让所有的节点与它们通信来获得最终的集群成员信息。</p>
-<ol>
-<li>错误发现</li>
-</ol>
-<p>每个节点使用基于Gossip算法来感知其他节点可不可达的信息。</p>
-<h2 id="添加和移除节点"><a href="#添加和移除节点" class="headerlink" title="添加和移除节点"></a>添加和移除节点</h2><p>每个节点加入哈希环时，相关节点向它发送key value。当移除时，该节点向映射的其他节点发送key value对。</p>
-<h1 id="实现"><a href="#实现" class="headerlink" title="实现"></a>实现</h1><ol>
-<li>请求协调者</li>
-<li>成员管理和失败发现</li>
-<li>本地持久化引擎</li>
-</ol>
-<h2 id="本地持久化引擎"><a href="#本地持久化引擎" class="headerlink" title="本地持久化引擎"></a>本地持久化引擎</h2><p>支持多种引擎，比如mysql，Berkeley DB</p>
-<h2 id="请求协调者"><a href="#请求协调者" class="headerlink" title="请求协调者"></a>请求协调者</h2><ol>
-<li>使用事件驱动的方式编写，即状态机。每个状态机处理一个用户请求。根据不同的阶段做对应的处理。</li>
-<li>put的时候，preference list top N个节点任意一个都可以处理。为了获得更好的一致性，一般写会挑上一次读的时候最快返回结果的节点，这样下次读还是有很大概率读到最新的值。</li>
-</ol>
-<h1 id="经验教训"><a href="#经验教训" class="headerlink" title="经验教训"></a>经验教训</h1><p>冲突解决方案：</p>
-<ol>
-<li>业务制定更新冲突解决方法</li>
-<li>基于时间序的冲突解决方法</li>
-<li>W=N, R=1解决高性能读要求</li>
-</ol>
-<h2 id="负载均衡性能和持久化性能"><a href="#负载均衡性能和持久化性能" class="headerlink" title="负载均衡性能和持久化性能"></a>负载均衡性能和持久化性能</h2><ol>
-<li>使用缓存写来提供系统的写性能</li>
-<li>写入的时候指定其中一个副本直接写入到磁盘中，其他的缓存写，这样提高系统数据安全性(持久化)</li>
-</ol>
-<h2 id="保证系统负载一致性分布"><a href="#保证系统负载一致性分布" class="headerlink" title="保证系统负载一致性分布"></a>保证系统负载一致性分布</h2><p>数据分区和节点映射策略</p>
-<ol>
-<li><p>每个节点T个随机token，数据分区也是按照token来划分</p>
-<p>缺点：</p>
-<ol>
-<li>新节点加入时，在线节点需要扫描自己的数据集来找到需要传输给新加入节点的数据，影响线上服务。<br>当不想影响线上服务时，降低扫描优先级，会导致新加入节点启动比较慢</li>
-<li>节点加入或离开时，许多节点的数据分区和Merkle tree需要重新计算，影响服务</li>
-<li>因为数据分区是不固定的，所以没法做snapshot来加快传输数据<br>这个策略不好的根本原因是数据分区和数据放置策略耦合太多</li>
-</ol>
-</li>
-<li><p>每个节点T个随机token，数据是大小固定的划分的</p>
-<ol>
-<li>哈希空间划分为固定Q个分区，每个节点还是随机分配T个token，其中Q&gt;&gt;N &amp; Q &gt;&gt; S*T S是节点数，N是副本数</li>
-<li>每个数据分区以末尾为key顺时针找到下一个token对应的Node<br>优点：</li>
-<li>数据放置和数据分区解耦</li>
-<li>可以在运行过程中改变数据放置</li>
-</ol>
-</li>
-<li><p>每个节点Q/S个token,数据是大小固定的划分的</p>
-<ol>
-<li>跟2策略一样，但是T=Q/S，当某个节点离开时，它的token被随机分给其他的节点，<br>当节点加入时，它从别的节点随机拉取token<br>优点：</li>
-<li>快速启动和恢复</li>
-<li>打包数据（快照）<br>缺点：</li>
-<li>改变node 成员关系需要许多节点协作来维持策略3的要求</li>
-</ol>
-</li>
-</ol>
-<h2 id="多版本"><a href="#多版本" class="headerlink" title="多版本"></a>多版本</h2><p>原因：</p>
-<ol>
-<li><p>系统出现节点失败和网络分区时</p>
-</li>
-<li><p>系统处理大量的并发写<br>数量：</p>
-</li>
-<li><p>数量非常少</p>
-<h2 id="客户端驱动或者服务端驱动定位"><a href="#客户端驱动或者服务端驱动定位" class="headerlink" title="客户端驱动或者服务端驱动定位"></a>客户端驱动或者服务端驱动定位</h2></li>
-<li><p>服务端驱动</p>
-<ol>
-<li>coordinator来执行读和写的协调操作</li>
-<li>需要负载均衡器来做请求转发和均衡</li>
-</ol>
-</li>
-<li><p>客户端驱动</p>
-<ol>
-<li>client定期随机向集群某个节点拉取整个集群的在线node 视图</li>
-<li>将读写请求发往指定的coordinator</li>
-<li>因为数据分区几乎公平的将数据分散到各个节点，所以不用做负载均衡操作</li>
-</ol>
-</li>
-</ol>
-<h2 id="前台和后台任务均衡"><a href="#前台和后台任务均衡" class="headerlink" title="前台和后台任务均衡"></a>前台和后台任务均衡</h2><p>后台任务都是低优先级的任务，为了不影响前台任务，需要控制其资源使用量。<br>dynamo使用一个反馈机制来做这种资源使用控制。</p>
-<h2 id="讨论"><a href="#讨论" class="headerlink" title="讨论"></a>讨论</h2><p>dynamo使用gossip来做全局在线node视图传播，只能达到几百台的规模。更大的规模需要做层次化扩展。</p>
-<p><em>总结</em></p>
-<p>dynamo这篇论文写的非常详细，比较重要的几点：</p>
-<ol>
-<li>采用99.9% 来衡量SLA</li>
-<li>采用一致性哈希模型的数据分区策略</li>
-<li>采用向量时钟来作为数据版本信息，并由业务逻辑来处理版本冲突</li>
-<li>采用基于gossip算法来处理集群视图的传播</li>
-<li>采用NWR算法来保证数据安全性</li>
-<li>采用Merkle trees来加快发现版本之间不一致性，从而快速备份数据</li>
-</ol>
-<table>
-<thead>
-<tr>
-<th align="left">Problem</th>
-<th align="left">Technique</th>
-<th align="left">Advantage</th>
-</tr>
-</thead>
-<tbody><tr>
-<td align="left">Partitioning</td>
-<td align="left">Consistent Hashing</td>
-<td align="left">Incremental Scalability</td>
-</tr>
-<tr>
-<td align="left">High Availablility for Writes</td>
-<td align="left">Vector clocks with reconsiliation during reads</td>
-<td align="left">version size decoupled from update rates</td>
-</tr>
-<tr>
-<td align="left">Handing temporary failures</td>
-<td align="left">Sloppy Quorum and hinted handoff</td>
-<td align="left">Provides high Availablility and durability guarantee when some fo the replicas are not available</td>
-</tr>
-<tr>
-<td align="left">Recovering from permanent failures</td>
-<td align="left">Anti-entropy using Merkle trees</td>
-<td align="left">Synchronizes divergent replicas in the BackGround</td>
-</tr>
-<tr>
-<td align="left">membership and failure detection</td>
-<td align="left">gossip-based membership protocol and failures detection</td>
-<td align="left">preserves symmetry and avoids having a centralized registry for Storing membership and node liveness information</td>
-</tr>
-</tbody></table>
-
-      
-    </div>
-
-    
-    
-    
-
-    <footer class="post-footer">
-        <div class="post-eof"></div>
-      
-    </footer>
-  </article>
-</div>
-
-
-
-
+  <nav class="pagination">
+    <span class="page-number current">1</span><a class="page-number" href="/page/2/">2</a><a class="extend next" rel="next" href="/page/2/"><i class="fa fa-angle-right" aria-label="下一页"></i></a>
+  </nav>
 
 
 <script>
