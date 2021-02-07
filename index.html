@@ -174,7 +174,7 @@
       <div class="site-state-item site-state-categories">
             <a href="/categories/">
           
-        <span class="site-state-item-count">3</span>
+        <span class="site-state-item-count">2</span>
         <span class="site-state-item-name">分类</span></a>
       </div>
       <div class="site-state-item site-state-tags">
@@ -218,7 +218,7 @@
   
 
   <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="zh-CN">
-    <link itemprop="mainEntityOfPage" href="http://example.com/2021/01/30/%E5%AD%A6%E4%B9%A0RRD%E6%95%B0%E6%8D%AE%E5%BA%93-1/">
+    <link itemprop="mainEntityOfPage" href="http://example.com/2021/02/07/RRD-Graphite%E7%AE%80%E8%BF%B0/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
       <meta itemprop="image" content="/images/avatar.gif">
@@ -231,7 +231,7 @@
     </span>
       <header class="post-header">
         <h2 class="post-title" itemprop="name headline">
-          <a href="/2021/01/30/%E5%AD%A6%E4%B9%A0RRD%E6%95%B0%E6%8D%AE%E5%BA%93-1/" class="post-title-link" itemprop="url">学习RRD数据库-1</a>
+          <a href="/2021/02/07/RRD-Graphite%E7%AE%80%E8%BF%B0/" class="post-title-link" itemprop="url">RRD&Graphite简述</a>
         </h2>
 
         <div class="post-meta-container">
@@ -243,16 +243,7 @@
       <span class="post-meta-item-text">发表于</span>
       
 
-      <time title="创建时间：2021-01-30 22:51:57 / 修改时间：23:29:27" itemprop="dateCreated datePublished" datetime="2021-01-30T22:51:57+08:00">2021-01-30</time>
-    </span>
-    <span class="post-meta-item">
-      <span class="post-meta-item-icon">
-        <i class="far fa-folder"></i>
-      </span>
-      <span class="post-meta-item-text">分类于</span>
-        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-          <a href="/categories/RRD/" itemprop="url" rel="index"><span itemprop="name">RRD</span></a>
-        </span>
+      <time title="创建时间：2021-02-07 14:25:08 / 修改时间：14:25:40" itemprop="dateCreated datePublished" datetime="2021-02-07T14:25:08+08:00">2021-02-07</time>
     </span>
 
   
@@ -265,13 +256,13 @@
     
     
     <div class="post-body" itemprop="articleBody">
-          <h1 id="简介"><a href="#简介" class="headerlink" title="简介"></a>简介</h1><p>RRD （Round Robin Database）数据库是一个环形的数据库，你可以把它想象成圆盘，中心处有一个指针，随着时间的变化，指针也在变，当指针指到 12 点处，也就是这个记录要被擦除覆盖的时刻。因为它是圆形的，无始无终，可以一直往里写数据，只是历史数据会被覆盖掉，所以，有时它又被叫做时序结构数据库。</p>
+          <h1 id="RDD简介"><a href="#RDD简介" class="headerlink" title="RDD简介"></a>RDD简介</h1><p>RRD （Round Robin Database）数据库是一个环形的数据库，你可以把它想象成圆盘，中心处有一个指针，随着时间的变化，指针也在变，当指针指到 12 点处，也就是这个记录要被擦除覆盖的时刻。因为它是圆形的，无始无终，可以一直往里写数据，只是历史数据会被覆盖掉，所以，有时它又被叫做时序结构数据库。</p>
 <p>RRD诞生于1999年，前身是MRTG，MRTG主要用来自动采集系统的一些统计指标并进行绘图，实现对系统的监控。RRD主要是为了解决MRTG的一些问题而诞生的，主要面向的也是监控场景数据。</p>
 <p>虽然通用关系数据库可以存储时序数据，但是由于缺乏针对时间的特殊优化，比如按时间间隔存储和检索数据等等，因此在处理这些数据时效率相对不高。</p>
 <p>RRD属于第一代时序数据库，数据也典型来源于监控领域，直接基于平板文件的简单存储工具成为这类数据的首先存储方式。</p>
-<img src="/2021/01/30/%E5%AD%A6%E4%B9%A0RRD%E6%95%B0%E6%8D%AE%E5%BA%93-1/01/30/%E5%AD%A6%E4%B9%A0RRD%E6%95%B0%E6%8D%AE%E5%BA%93-1/rrd%E7%8E%AF%E5%BD%A2%E7%BB%93%E6%9E%84.jpg" class title="rrd环形结构">
+<img src="/2021/02/07/RRD-Graphite%E7%AE%80%E8%BF%B0/02/07/RRD-Graphite%E7%AE%80%E8%BF%B0/rrd%E7%8E%AF%E5%BD%A2%E7%BB%93%E6%9E%84.jpg" class title="rrd环形结构">
 
-<h1 id="RRDTool"><a href="#RRDTool" class="headerlink" title="RRDTool"></a>RRDTool</h1><p>RRDTool是RRD数据库配套的一个工具，它可以安装在Unix或者Windows系统上，RRDTool提供了一系列的命令集来对RRD进行不同的操作。</p>
+<h2 id="RRDTool"><a href="#RRDTool" class="headerlink" title="RRDTool"></a>RRDTool</h2><p>RRDTool是RRD数据库配套的一个工具，它可以安装在Unix或者Windows系统上，RRDTool提供了一系列的命令集来对RRD进行不同的操作。</p>
 <p>RRDTool既是后端工具，又是前端工具；之所以这么说，是因为作为数据库，首先RRDTool可以存储数据，此外，RRDTool也提供了一个根据数据库数据进行绘图的功能，这让它具备了前端的特性。</p>
 <h2 id="基本使用语法"><a href="#基本使用语法" class="headerlink" title="基本使用语法"></a>基本使用语法</h2><h3 id="创建数据库"><a href="#创建数据库" class="headerlink" title="创建数据库"></a>创建数据库</h3><figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line">rrdtool create filename  </span><br><span class="line"><span class="meta">#</span><span class="bash"> 建一个名为 filename 的数据库文件，通常 RRD 数据库文件的后缀为 .rrd ，但是你随便使用文件名也不会有影响</span></span><br><span class="line">[--start|-b start time]</span><br><span class="line"><span class="meta">#</span><span class="bash"> 这个选项表示 RRD 数据库的起始 (start/begin) 时间点为 start-time，这是一个从 1970-01-01 00:00:00 开始计时，以秒为间隔的一个整数值。</span></span><br><span class="line">[--step|-s step]</span><br><span class="line"><span class="meta">#</span><span class="bash"> 这个选项表示监测的时间间隔，即多久时间去获取一次被监测对象的数值，默认值为5分钟(300秒)。</span></span><br><span class="line">[--template|-t template-file]</span><br><span class="line">[--source|-r source-file] </span><br><span class="line">[--no-overwrite|-O] </span><br><span class="line">[--daemon|-d address] </span><br><span class="line">[DS:ds-name[=mapped-ds-name[[source-index]]]:DST:dst arguments] </span><br><span class="line"><span class="meta">#</span><span class="bash"> 这个选项用来定义数据源(Data Source)属性，包括数据源名称 ds-name，比如我们可以给监测内存使用率的数据源命名为 memory-rate。</span></span><br><span class="line"><span class="meta">#</span><span class="bash"> DST(Data Source Type)数据源类型</span></span><br><span class="line">[RRA:CF:cf arguments]</span><br><span class="line"><span class="meta">#</span><span class="bash"> RRA (Round Robin Archive) 是用来定义 RRD 数据库归档模型，RRDTool 绘图展示监测情况的时候就从 RRA 中获取数据。CF (Consolidation Function)是用来处理原始数据的函数</span></span><br></pre></td></tr></table></figure>
 
@@ -319,7 +310,7 @@
 <p>CDP (Consolidation Data Point) 归档数据点</p>
 <p>一个 CDP 由多个 PDP 经过归档函数计算得到。</p>
 <p>如下图所示：</p>
- <img src="/2021/01/30/%E5%AD%A6%E4%B9%A0RRD%E6%95%B0%E6%8D%AE%E5%BA%93-1/01/30/%E5%AD%A6%E4%B9%A0RRD%E6%95%B0%E6%8D%AE%E5%BA%93-1/rrd-cdp-pdp.jpg" class title="rrd-cdp-pdp">
+ <img src="/2021/02/07/RRD-Graphite%E7%AE%80%E8%BF%B0/02/07/RRD-Graphite%E7%AE%80%E8%BF%B0/rrd-cdp-pdp.jpg" class title="rrd-cdp-pdp">
 
 <h3 id="更新"><a href="#更新" class="headerlink" title="更新"></a>更新</h3><p>实际上是插入数据</p>
 <figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">rrdtool &#123;update | updatev&#125; filename</span><br><span class="line">[--template|-t ds-name[:ds-name]...] </span><br><span class="line">[--skip-past-updates|-s] </span><br><span class="line">[--daemon|-d address]</span><br><span class="line">[--] N:value[:value]... timestamp:value[:value]... at-timestamp@value[:value]...</span><br></pre></td></tr></table></figure>
@@ -336,13 +327,48 @@
 <figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">rrdtool graph|graphv filename </span><br><span class="line">[option ...] </span><br><span class="line">[data definition ...] </span><br><span class="line">[data calculation ...] </span><br><span class="line">[variable definition ...]</span><br><span class="line">[graph element ...]</span><br><span class="line">[print element ...]</span><br></pre></td></tr></table></figure>
 
 
+<h1 id="Graphite简介"><a href="#Graphite简介" class="headerlink" title="Graphite简介"></a>Graphite简介</h1><p>Graphite是一种企业级监控工具，在廉价的硬件或云基础设施上同样运行良好。团队使用Graphite来跟踪他们的网站、应用程序、业务服务和网络服务器的性能。它标志着新一代监控工具的开始，使得存储、检索、共享和可视化时间序列数据比以往任何时候都更容易。</p>
+<p>Graphite是一个开源实时的、显示时间序列度量数据的图形系统。Graphite并不收集度量数据本身，而是像一个数据库，通过其后端接收度量数据，然后以实时方式查询、转换、组合这些度量数据。Graphite支持内建的Web界面，它允许用户浏览度量数据和图。</p>
+<p>Graphite有三个主要组件组成：</p>
+<ul>
+<li>1）Graphite-Web<br>这是一个基于Django的Web应用，可以呈现图形和仪表板，图形库基于Cairo</li>
+<li>2）Carbon<br>这是基于Twisted的守护进程，用于接收时序数据</li>
+<li>3）Whisper<br>这是一个时序数据库，类似RRD</li>
+</ul>
+<img src="/2021/02/07/RRD-Graphite%E7%AE%80%E8%BF%B0/02/07/RRD-Graphite%E7%AE%80%E8%BF%B0/architecture_diagram.png" class title="img">
 
-
+<h2 id="模块介绍"><a href="#模块介绍" class="headerlink" title="模块介绍"></a>模块介绍</h2><h3 id="Carbon"><a href="#Carbon" class="headerlink" title="Carbon"></a>Carbon</h3><p>数据接收模块。</p>
+<h4 id="carbon-relay"><a href="#carbon-relay" class="headerlink" title="carbon-relay"></a>carbon-relay</h4><p>有两种不同的用途：</p>
+<ol>
+<li>将指标复制</li>
+<li>对指标分区</li>
+</ol>
+<p>当配置为复制时，relay可以把指标发给多个carbon-cache实例进行复制；当配置为分区时，relay会使用一个分区策略把指标发给多个carbon-cache实例。</p>
+<h4 id="carbon-aggregator"><a href="#carbon-aggregator" class="headerlink" title="carbon-aggregator"></a>carbon-aggregator</h4><p>可以放到carbon-cache前面，在将度量报告到whisper之前，将度量缓冲一段时间。这在不需要细粒度报告时非常有用，而且由于保留数据少，因此有助于减少I/O负载和文件大小。目前只支持avg和sum两种函数对数据进行聚合计算。</p>
+<h4 id="carbon-cache"><a href="#carbon-cache" class="headerlink" title="carbon-cache"></a>carbon-cache</h4><p>接受通过各种协议传输来的指标项数据并以尽可能高的效率将它们写入磁盘；在接收到指标项时，将指标项值缓存在 RAM 中，并用底层的 Whisper 库按照指定的时间间隔将这些值写入磁盘。</p>
+<h3 id="Whisper"><a href="#Whisper" class="headerlink" title="Whisper"></a>Whisper</h3><p>Whisper是一个固定大小的数据库，在设计和用途上与RRD（循环数据库）相似。随着时间的推移，它提供了快速、可靠的数字数据存储。Whisper允许最近数据的更高分辨率（每点秒数）降级为较低分辨率，以便长期保留历史数据。</p>
+<h4 id="归档：保留周期和精度"><a href="#归档：保留周期和精度" class="headerlink" title="归档：保留周期和精度"></a>归档：保留周期和精度</h4><p>Whisper数据库包含一个或多个存档（存储区），每个存档都具有特定的数据精度和保留周期（以点数或最大时间戳期限定义）。归档文件的顺序是从最高分辨率和最短保留期归档文件到最低分辨率和最长保留期归档文件。</p>
+<p>为了支持从高分辨率存档到低分辨率存档的精确聚合，较长保留期存档的精度必须可以除以下一个较低保留期存档的精度。例如，每60秒有一个数据点的归档文件后面可以有一个分辨率较低的归档文件，其分辨率为每300秒有一个数据点，因为300能被60整除。相比之下，180秒的精度（3分钟）不能跟在600秒的精度（10分钟）之后，因为从第一个存档传播到下一个存档的点的比率是10/3，而Whisper不会进行部分点插值。</p>
+<p>数据库的总保留时间由保留时间最高的存档决定，因为每个存档所覆盖的时间段是重叠的（请参见多存档存储和检索行为）。也就是说，一对保留期为1个月和1年的档案将无法提供13个月的数据存储时间。相反，它将提供1年的存储时间，相当于它最长的存档时间。</p>
+<h4 id="聚合函数"><a href="#聚合函数" class="headerlink" title="聚合函数"></a>聚合函数</h4><ul>
+<li>average</li>
+<li>sum</li>
+<li>last</li>
+<li>max</li>
+<li>min</li>
+</ul>
+<h4 id="多存档存储和检索行为"><a href="#多存档存储和检索行为" class="headerlink" title="多存档存储和检索行为"></a>多存档存储和检索行为</h4><p>当Whisper写入包含多个存档的数据库时，传入的数据点会同时写入所有存档。数据点将按原样写入最高分辨率的归档文件，并通过配置的聚合方法进行聚合，然后放入每个较高保留期的归档文件中。如果您需要最高分辨率点的聚合，请考虑使用carbon-aggregator。</p>
+<p>在检索数据时（按时间范围），将使用第一个可以满足整个时间段的存档。如果时间段与存档边界重叠，将使用低分辨率存档。这允许在检索数据时执行更简单的行为，因为数据的分辨率在整个返回序列中是一致的。</p>
+<h4 id="跟RRD对比"><a href="#跟RRD对比" class="headerlink" title="跟RRD对比"></a>跟RRD对比</h4><h5 id="RRD不能在最新更新之前对某个时隙进行更新"><a href="#RRD不能在最新更新之前对某个时隙进行更新" class="headerlink" title="RRD不能在最新更新之前对某个时隙进行更新"></a>RRD不能在最新更新之前对某个时隙进行更新</h5><p>这意味着没有办法在RRD序列中回填数据。Whisper没有这个限制，这使得将历史数据导入Graphite变得更加简单和容易</p>
+<h5 id="RRD的设计没有考虑到不定期的更新"><a href="#RRD的设计没有考虑到不定期的更新" class="headerlink" title="RRD的设计没有考虑到不定期的更新"></a>RRD的设计没有考虑到不定期的更新</h5><p>在许多情况下（取决于配置），如果对RRD时序进行了更新，但没有很快进行另一次更新，则原始更新将丢失。这使得它不太适合记录数据，例如操作度量（例如代码推送）</p>
+<h5 id="Whisper要求度量更新与最佳分辨率存储存档的间隔相同"><a href="#Whisper要求度量更新与最佳分辨率存储存档的间隔相同" class="headerlink" title="Whisper要求度量更新与最佳分辨率存储存档的间隔相同"></a>Whisper要求度量更新与最佳分辨率存储存档的间隔相同</h5><p>这就将聚合值的责任推给了用户，而不是数据库。这也意味着更新会立即写入到最精确的存档中，而不是像在RRD中那样先进行聚合，然后再写入（在随后的写入操作中）。</p>
 <h1 id="参考"><a href="#参考" class="headerlink" title="参考"></a>参考</h1><ol>
 <li><a target="_blank" rel="noopener" href="https://developer.aliyun.com/article/54400">RRDTool原理简介</a></li>
 <li><a target="_blank" rel="noopener" href="http://bbs.chinaunix.net/thread-864861-1-1.html">RRDtool简体中文教程 v1.01</a></li>
 <li><a target="_blank" rel="noopener" href="https://developer.aliyun.com/article/711500">浅谈时序数据库那些事</a></li>
 <li><a target="_blank" rel="noopener" href="https://oss.oetiker.ch/rrdtool/doc/index.en.html">RRDtool Documentation</a></li>
+<li><a target="_blank" rel="noopener" href="http://graphiteapp.org/">graphite官网</a></li>
+<li><a target="_blank" rel="noopener" href="https://www.infoq.cn/article/graphite-intro/">DevOps 实战：Graphite 监控上手指南</a></li>
 </ol>
 
       
