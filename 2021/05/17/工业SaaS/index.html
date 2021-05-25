@@ -1,0 +1,445 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 5.3.0">
+
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+
+<link rel="stylesheet" href="//cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@5.15.1/css/all.min.css">
+  <link rel="stylesheet" href="//cdn.jsdelivr.net/npm/animate.css@3.1.1/animate.min.css">
+
+<script class="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"example.com","root":"/","images":"/images","scheme":"Gemini","version":"8.2.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12},"copycode":false,"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"fadeInDown","post_body":"fadeInDown","coll_header":"fadeInLeft","sidebar":"fadeInUp"}},"prism":false,"i18n":{"placeholder":"搜索...","empty":"没有找到任何搜索结果：${query}","hits_time":"找到 ${hits} 个搜索结果（用时 ${time} 毫秒）","hits":"找到 ${hits} 个搜索结果"}};
+  </script>
+<meta name="description" content="工厂生产概念下图是工厂生产流程图。   产品但工业中需要注意的是产品的类型，有生产用料和非生产用料的区分。  生产用料有原材料，半成品，成品；  非生产用料就是日常用品，比如办公桌，电脑等。   我们重点在于生产用料的管理：  如果是加工型工厂，一般是购进原材料，比如：一大片钢板加工成螺丝螺帽，没加工完的产品就是半成品，加工完了要出厂销售了一般是成品； 如果是组装型工厂，比如：小米电视买了一堆零部">
+<meta property="og:type" content="article">
+<meta property="og:title" content="工业SaaS">
+<meta property="og:url" content="http://example.com/2021/05/17/%E5%B7%A5%E4%B8%9ASaaS/index.html">
+<meta property="og:site_name" content="我住8楼">
+<meta property="og:description" content="工厂生产概念下图是工厂生产流程图。   产品但工业中需要注意的是产品的类型，有生产用料和非生产用料的区分。  生产用料有原材料，半成品，成品；  非生产用料就是日常用品，比如办公桌，电脑等。   我们重点在于生产用料的管理：  如果是加工型工厂，一般是购进原材料，比如：一大片钢板加工成螺丝螺帽，没加工完的产品就是半成品，加工完了要出厂销售了一般是成品； 如果是组装型工厂，比如：小米电视买了一堆零部">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="http://example.com/2021/05/17/%E5%B7%A5%E4%B8%9ASaaS/gL2CA0s39vqIOnEmYIbg.png">
+<meta property="og:image" content="http://example.com/2021/05/17/%E5%B7%A5%E4%B8%9ASaaS/lgAON3N6aSks1nGOeSZI.png">
+<meta property="og:image" content="http://example.com/2021/05/17/%E5%B7%A5%E4%B8%9ASaaS/xBR9dnKpZgXb4HKXKzuu.png">
+<meta property="og:image" content="http://example.com/2021/05/17/%E5%B7%A5%E4%B8%9ASaaS/L655tfb1f0We296I7TbJ.png">
+<meta property="og:image" content="http://example.com/2021/05/17/%E5%B7%A5%E4%B8%9ASaaS/nEusi47SjY7aKbx8EWHA.png">
+<meta property="og:image" content="http://example.com/2021/05/17/%E5%B7%A5%E4%B8%9ASaaS/YtgB8BgyGg5yBZ6uufkk.png">
+<meta property="og:image" content="http://example.com/2021/05/17/%E5%B7%A5%E4%B8%9ASaaS/zh1sPuK7Vd4jarTa4WrF.jpeg">
+<meta property="og:image" content="http://example.com/2021/05/17/%E5%B7%A5%E4%B8%9ASaaS/dZEwKgT94FOOXV5qVxO8.jpeg">
+<meta property="article:published_time" content="2021-05-17T09:56:49.000Z">
+<meta property="article:modified_time" content="2021-05-18T03:07:04.611Z">
+<meta property="article:author" content="Jason Chao">
+<meta property="article:tag" content="工业互联网">
+<meta property="article:tag" content="转载">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http://example.com/2021/05/17/%E5%B7%A5%E4%B8%9ASaaS/gL2CA0s39vqIOnEmYIbg.png">
+
+
+<link rel="canonical" href="http://example.com/2021/05/17/%E5%B7%A5%E4%B8%9ASaaS/">
+
+
+<script class="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'zh-CN'
+  };
+</script>
+<title>工业SaaS | 我住8楼</title>
+  
+
+
+
+
+  <noscript>
+  <style>
+  body { margin-top: 2rem; }
+
+  .use-motion .menu-item,
+  .use-motion .sidebar,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header {
+    visibility: visible;
+  }
+
+  .use-motion .header,
+  .use-motion .site-brand-container .toggle,
+  .use-motion .footer { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle,
+  .use-motion .custom-logo-image {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line {
+    transform: scaleX(1);
+  }
+
+  .search-pop-overlay, .sidebar-nav { display: none; }
+  .sidebar-panel { display: block; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" class="use-motion">
+  <div class="headband"></div>
+
+  <main class="main">
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏" role="button">
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <i class="logo-line"></i>
+      <h1 class="site-title">我住8楼</h1>
+      <i class="logo-line"></i>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+    </div>
+  </div>
+</div>
+
+
+
+<nav class="site-nav">
+  <ul class="main-menu menu">
+        <li class="menu-item menu-item-home"><a href="/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a></li>
+        <li class="menu-item menu-item-tags"><a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>标签</a></li>
+        <li class="menu-item menu-item-categories"><a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>分类</a></li>
+        <li class="menu-item menu-item-archives"><a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档</a></li>
+  </ul>
+</nav>
+
+
+
+
+</div>
+        
+  
+  <div class="toggle sidebar-toggle" role="button">
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+  </div>
+
+  <aside class="sidebar">
+
+    <div class="sidebar-inner sidebar-nav-active sidebar-toc-active">
+      <ul class="sidebar-nav">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <div class="sidebar-panel-container">
+        <!--noindex-->
+        <div class="post-toc-wrap sidebar-panel">
+            <div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#%E5%B7%A5%E5%8E%82%E7%94%9F%E4%BA%A7%E6%A6%82%E5%BF%B5"><span class="nav-number">1.</span> <span class="nav-text">工厂生产概念</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E4%BA%A7%E5%93%81"><span class="nav-number">1.1.</span> <span class="nav-text">产品</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#BOM"><span class="nav-number">1.2.</span> <span class="nav-text">BOM</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%B7%A5%E5%BA%8F%E3%80%81%E5%B7%A5%E8%89%BA%E3%80%81%E8%B4%A8%E6%A3%80"><span class="nav-number">1.3.</span> <span class="nav-text">工序、工艺、质检</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%A0%87%E5%87%86%E4%BD%9C%E4%B8%9A%E6%8C%87%E5%AF%BC%E4%B9%A6"><span class="nav-number">1.4.</span> <span class="nav-text">标准作业指导书</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%B7%A5%E5%8E%82%E9%83%A8%E9%97%A8%E6%9E%B6%E6%9E%84"><span class="nav-number">1.5.</span> <span class="nav-text">工厂部门架构</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%85%B8%E5%9E%8B%E5%B7%A5%E4%B8%9ASaaS%E5%BA%94%E7%94%A8"><span class="nav-number">1.6.</span> <span class="nav-text">典型工业SaaS应用</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%8F%82%E8%80%83"><span class="nav-number">1.7.</span> <span class="nav-text">参考</span></a></li></ol></li></ol></div>
+        </div>
+        <!--/noindex-->
+
+        <div class="site-overview-wrap sidebar-panel">
+          <div class="site-author site-overview-item animated" itemprop="author" itemscope itemtype="http://schema.org/Person">
+  <p class="site-author-name" itemprop="name">Jason Chao</p>
+  <div class="site-description" itemprop="description"></div>
+</div>
+<div class="site-state-wrap site-overview-item animated">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">14</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+          
+        <span class="site-state-item-count">2</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+          
+        <span class="site-state-item-count">10</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+
+
+
+        </div>
+      </div>
+    </div>
+  </aside>
+  <div class="sidebar-dimmer"></div>
+
+
+    </header>
+
+    
+  <div class="back-to-top" role="button">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+<noscript>
+  <div class="noscript-warning">Theme NexT works best with JavaScript enabled</div>
+</noscript>
+
+
+    <div class="main-inner post posts-expand">
+
+
+  
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="http://example.com/2021/05/17/%E5%B7%A5%E4%B8%9ASaaS/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="Jason Chao">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="我住8楼">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          工业SaaS
+        </h1>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">发表于</span>
+
+      <time title="创建时间：2021-05-17 17:56:49" itemprop="dateCreated datePublished" datetime="2021-05-17T17:56:49+08:00">2021-05-17</time>
+    </span>
+      <span class="post-meta-item">
+        <span class="post-meta-item-icon">
+          <i class="far fa-calendar-check"></i>
+        </span>
+        <span class="post-meta-item-text">更新于</span>
+        <time title="修改时间：2021-05-18 11:07:04" itemprop="dateModified" datetime="2021-05-18T11:07:04+08:00">2021-05-18</time>
+      </span>
+
+  
+</div>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+        <h1 id="工厂生产概念"><a href="#工厂生产概念" class="headerlink" title="工厂生产概念"></a>工厂生产概念</h1><p>下图是工厂生产流程图。</p>
+<img src="/2021/05/17/%E5%B7%A5%E4%B8%9ASaaS/gL2CA0s39vqIOnEmYIbg.png" class="" title="工业 SaaS 一定要懂的基础信息">
+
+<h2 id="产品"><a href="#产品" class="headerlink" title="产品"></a><strong>产品</strong></h2><p>但工业中需要注意的是产品的类型，有生产用料和非生产用料的区分。</p>
+<ul>
+<li><p>生产用料有原材料，半成品，成品；</p>
+</li>
+<li><p>非生产用料就是日常用品，比如办公桌，电脑等。</p>
+</li>
+</ul>
+<p>我们重点在于生产用料的管理：</p>
+<ul>
+<li>如果是加工型工厂，一般是购进原材料，比如：一大片钢板加工成螺丝螺帽，没加工完的产品就是半成品，加工完了要出厂销售了一般是成品；</li>
+<li>如果是组装型工厂，比如：小米电视买了一堆零部件过来组装，那采购来的就是半成品或者成品了。</li>
+</ul>
+<p>这里的产品和电商产品区别很大的是要经过加工，那么它就不是一个单纯的产品，它必须考虑到产品制造的物料清单和加工工艺。</p>
+<img src="/2021/05/17/%E5%B7%A5%E4%B8%9ASaaS/lgAON3N6aSks1nGOeSZI.png" class="" title="工业 SaaS 一定要懂的基础信息">
+
+<h2 id="BOM"><a href="#BOM" class="headerlink" title="BOM"></a><strong>BOM</strong></h2><p>BOM（Bill of Material），即物料清单，也就是以数据格式来描述产品结构的文件。</p>
+<p>BOM树长这样：</p>
+<img src="/2021/05/17/%E5%B7%A5%E4%B8%9ASaaS/xBR9dnKpZgXb4HKXKzuu.png" class="" title="工业 SaaS 一定要懂的基础信息">
+
+<p>但不同的阶段，BOM还有区分。</p>
+<p>产品要经过工程设计、工艺制造设计、生产制造 3 个阶段，对应就是 EBOM（工程 BOM）、PBOM（计划 BOM）、DBOM（设计 BOM）。</p>
+<ol>
+<li>EBOM（工程 BOM）：通常仅限于图纸零件明细表出现的物料，说明图纸的层次和从属关系；做好技术文档管理，虽然也有指导采购和估算报价的功能，但主要是为了管理图纸。</li>
+<li>PBOM（计划BOM）：是工艺工程师根据工厂的加工水平和能力，对EBOM再进行设计得出的；它用于工艺设计和生产制造管理，使用它可以明确地了解零件与零件之间的制造关系，跟踪零件是如何制造出来的，在哪里制造、由谁制造、用什么制造等信息。</li>
+<li>设计BOM：DBOM是产品的总体信息，对应常见文本格式表现形式包括产品明细表、图样目录、材料定额明细表等等；是最终工人生产的依据，PLM中至少要包含这层。</li>
+</ol>
+<p><strong>BOM有什么用呢？</strong></p>
+<p>我们看到上图的电动工具，由螺丝刀，充电器，批头组组成，但是批头组又由PE架，批头7件套组成，批头7件套又由批头组成，再往下，就是批头的加工过程了。</p>
+<p>那工厂在生产的时候，是有加工和组装环节的，比如说有7个小组，每个小组分别生产批头1到批头7，都生产完了，组装组组成批头7件套，另一个组装部门再领出PE架，组装成批头组，再这样一步步往上。</p>
+<p><strong>BOM 的作用就在于告诉工人你要干什么。</strong></p>
+<p>对于工人来说，他们不关心最终产品是什么，他们只关心手头任务是什么，客户要电动工具，但分配到每个车间的任务是批头加工，批头组装等。</p>
+<p>可以这样理解：BOM是工单任务拆分的重要依据，但作为工业的基础数据，它的作用肯定远不止如此。</p>
+<p>客户下了销售订单，系统要根据现有在制品量、库存原材料量、加工产能等进行MRP运算，计算出还需采购多少原材料、最晚哪一天要到货、首车间什么时候投料、其他车间怎么排期；如果要外协，什么时候发出订单、什么时候要完成等等。</p>
+<p>那么 MRP 运算就是基于BOM层层展开的（MRP是逻辑很复杂，但功能看似很简单的模块，这个后面再详细讲）。</p>
+<p>最后还是回到追溯上，最后的产成品是要能根据 BOM 树，自上往下去找到每一个节点的。</p>
+<p>知道了产品的物料清单，加工环节中另一个最重要的就是工艺了。</p>
+<h2 id="工序、工艺、质检"><a href="#工序、工艺、质检" class="headerlink" title="工序、工艺、质检"></a><strong>工序</strong>、工艺、质检</h2><p>工艺流程亦称“加工流程”或“生产流程”——指通过一定的生产设备或管道，从原材料投入到成品产出，按顺序连续进行加工的全过程。</p>
+<p>我们来看下面这张工艺卡片，里面包括了加工过程的每道工序、加工部门、所用设备、检测数据等；我们在系统设计时，工序、质检的数据肯定是单独维护的，但最终要被工艺引用到。</p>
+<img src="/2021/05/17/%E5%B7%A5%E4%B8%9ASaaS/L655tfb1f0We296I7TbJ.png" class="" title="工业 SaaS 一定要懂的基础信息">
+
+<p>实际的生产过程是这样的：</p>
+<ol>
+<li>工人在生产前，先点检下设备，就是查看下设备是不是好的，如果不好，就报修请人来修理，如果是好的，就开始今天的工作。</li>
+<li>加工完成后，一般首个零件会先检查下，是否符合标准，在生产过程中，过段时间会抽检下，有质检员还会定时来巡检。</li>
+<li>这道工序加工完了，就到下道工序。</li>
+</ol>
+<p>产品质量标准像下图这样：</p>
+<img src="/2021/05/17/%E5%B7%A5%E4%B8%9ASaaS/nEusi47SjY7aKbx8EWHA.png" class="" title="工业 SaaS 一定要懂的基础信息">
+
+<h2 id="标准作业指导书"><a href="#标准作业指导书" class="headerlink" title="标准作业指导书"></a>标准作业指导书</h2><p>将 BOM 和工艺结合起来，就是工厂编制的作业指导书。</p>
+<p>看下图里面包含了所需物料和数量、作业流程、工序说明、技术要求、设备工具、检查要求等。</p>
+<img src="/2021/05/17/%E5%B7%A5%E4%B8%9ASaaS/YtgB8BgyGg5yBZ6uufkk.png" class="" title="工业 SaaS 一定要懂的基础信息">
+
+<p>我们回头想想，最开始工厂生产，可能就是这样的一份操作指导书，但是我们做到系统里时，把这个指导书进行了拆分，分成了 BOM、工序、工艺、设备、质检、人员等模块，独立的模块对于后续的数字化管理是更加方便的。</p>
+<h2 id="工厂部门架构"><a href="#工厂部门架构" class="headerlink" title="工厂部门架构"></a>工厂部门架构</h2><p>一座典型工厂的部门架构、职能以及背后对应的价值链。</p>
+<img src="/2021/05/17/%E5%B7%A5%E4%B8%9ASaaS/zh1sPuK7Vd4jarTa4WrF.jpeg" class="" title="img">
+
+<h2 id="典型工业SaaS应用"><a href="#典型工业SaaS应用" class="headerlink" title="典型工业SaaS应用"></a>典型工业SaaS应用</h2><img src="/2021/05/17/%E5%B7%A5%E4%B8%9ASaaS/dZEwKgT94FOOXV5qVxO8.jpeg" class="" title="img">
+
+<h2 id="参考"><a href="#参考" class="headerlink" title="参考"></a>参考</h2><ol>
+<li><a target="_blank" rel="noopener" href="http://www.woshipm.com/pd/4096466.html">工业 SaaS 一定要懂的基础信息 | 人人都是产品经理 (woshipm.com)</a></li>
+<li><a target="_blank" rel="noopener" href="http://www.woshipm.com/it/3941692.html">当工业互联网遇上SaaS，说了10000次的新基建背后 | 人人都是产品经理 (woshipm.com)</a></li>
+</ol>
+
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/%E5%B7%A5%E4%B8%9A%E4%BA%92%E8%81%94%E7%BD%91/" rel="tag"># 工业互联网</a>
+              <a href="/tags/%E8%BD%AC%E8%BD%BD/" rel="tag"># 转载</a>
+          </div>
+
+        
+
+          <div class="post-nav">
+            <div class="post-nav-item">
+                <a href="/2021/05/14/%E5%B7%A5%E4%B8%9A%E5%A4%A7%E6%95%B0%E6%8D%AE/" rel="prev" title="工业大数据">
+                  <i class="fa fa-chevron-left"></i> 工业大数据
+                </a>
+            </div>
+            <div class="post-nav-item">
+                <a href="/2021/05/18/%E5%B7%A5%E4%B8%9A%E5%B9%B3%E5%8F%B0%E5%95%86%E4%B8%9A%E5%8C%96%E6%80%9D%E8%B7%AF/" rel="next" title="工业平台商业化思路">
+                  工业平台商业化思路 <i class="fa fa-chevron-right"></i>
+                </a>
+            </div>
+          </div>
+    </footer>
+  </article>
+</div>
+
+
+
+
+
+
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      const activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      const commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+</div>
+  </main>
+
+  <footer class="footer">
+    <div class="footer-inner">
+
+
+<div class="copyright">
+  &copy; 
+  <span itemprop="copyrightYear">2021</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Jason Chao</span>
+</div>
+  <div class="powered-by">由 <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://theme-next.js.org/" class="theme-link" rel="noopener" target="_blank">NexT.Gemini</a> 强力驱动
+  </div>
+
+    </div>
+  </footer>
+
+  
+  <script src="//cdn.jsdelivr.net/npm/animejs@3.2.1/lib/anime.min.js"></script>
+<script src="/js/utils.js"></script><script src="/js/motion.js"></script><script src="/js/next-boot.js"></script>
+
+  
+
+
+
+
+
+
+  
+
+
+
+
+
+</body>
+</html>

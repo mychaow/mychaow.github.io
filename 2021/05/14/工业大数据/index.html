@@ -1,0 +1,760 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 5.3.0">
+
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+
+<link rel="stylesheet" href="//cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@5.15.1/css/all.min.css">
+  <link rel="stylesheet" href="//cdn.jsdelivr.net/npm/animate.css@3.1.1/animate.min.css">
+
+<script class="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"example.com","root":"/","images":"/images","scheme":"Gemini","version":"8.2.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12},"copycode":false,"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"fadeInDown","post_body":"fadeInDown","coll_header":"fadeInLeft","sidebar":"fadeInUp"}},"prism":false,"i18n":{"placeholder":"搜索...","empty":"没有找到任何搜索结果：${query}","hits_time":"找到 ${hits} 个搜索结果（用时 ${time} 毫秒）","hits":"找到 ${hits} 个搜索结果"}};
+  </script>
+<meta name="description" content="1. 工业革命4.01.1 时间线划分1.1.1 全球时间线 2013年4月,全球国际工业博览会在德国汽车、机械、电子制造业中心汉诺威召开。会上,德国“工业4.0工作组”公布了研究成果报告《保障德国制造业的未来:关于实施“工业4.0”战略的建议》1,其目的是借助发挥德国制造业的传统优势,掀起新一轮制造技术的革命性创新与突破。报告的推出立即引起全球的广泛关注,产生了巨大的国际影响。 2014年，美国">
+<meta property="og:type" content="article">
+<meta property="og:title" content="工业大数据">
+<meta property="og:url" content="http://example.com/2021/05/14/%E5%B7%A5%E4%B8%9A%E5%A4%A7%E6%95%B0%E6%8D%AE/index.html">
+<meta property="og:site_name" content="我住8楼">
+<meta property="og:description" content="1. 工业革命4.01.1 时间线划分1.1.1 全球时间线 2013年4月,全球国际工业博览会在德国汽车、机械、电子制造业中心汉诺威召开。会上,德国“工业4.0工作组”公布了研究成果报告《保障德国制造业的未来:关于实施“工业4.0”战略的建议》1,其目的是借助发挥德国制造业的传统优势,掀起新一轮制造技术的革命性创新与突破。报告的推出立即引起全球的广泛关注,产生了巨大的国际影响。 2014年，美国">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="http://example.com/2021/05/14/%E5%B7%A5%E4%B8%9A%E5%A4%A7%E6%95%B0%E6%8D%AE/%E4%BC%81%E4%B8%9A%E5%BE%AE%E4%BF%A1%E6%88%AA%E5%9B%BE_1620982571701-1620983043861-1620983046185.png">
+<meta property="og:image" content="http://example.com/2021/05/14/%E5%B7%A5%E4%B8%9A%E5%A4%A7%E6%95%B0%E6%8D%AE/%E4%BC%81%E4%B8%9A%E5%BE%AE%E4%BF%A1%E6%88%AA%E5%9B%BE_16209837694242.png">
+<meta property="og:image" content="http://example.com/2021/05/14/%E5%B7%A5%E4%B8%9A%E5%A4%A7%E6%95%B0%E6%8D%AE/%E4%BC%81%E4%B8%9A%E5%BE%AE%E4%BF%A1%E6%88%AA%E5%9B%BE_16209838435228.png">
+<meta property="og:image" content="http://example.com/2021/05/14/%E5%B7%A5%E4%B8%9A%E5%A4%A7%E6%95%B0%E6%8D%AE/%E5%B7%A5%E4%B8%9A%E4%BA%92%E8%81%94%E7%BD%91%E5%B9%B3%E5%8F%B0%E6%8A%80%E6%9C%AF%E6%9E%B6%E6%9E%84.png">
+<meta property="og:image" content="http://example.com/2021/05/14/%E5%B7%A5%E4%B8%9A%E5%A4%A7%E6%95%B0%E6%8D%AE/%E4%BC%81%E4%B8%9A%E5%BE%AE%E4%BF%A1%E6%88%AA%E5%9B%BE_16211553432886.png">
+<meta property="og:image" content="http://example.com/2021/05/14/%E5%B7%A5%E4%B8%9A%E5%A4%A7%E6%95%B0%E6%8D%AE/%E4%BC%81%E4%B8%9A%E5%BE%AE%E4%BF%A1%E6%88%AA%E5%9B%BE_1621155029325.png">
+<meta property="article:published_time" content="2021-05-14T03:11:13.000Z">
+<meta property="article:modified_time" content="2021-05-18T03:07:12.266Z">
+<meta property="article:author" content="Jason Chao">
+<meta property="article:tag" content="工业互联网">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http://example.com/2021/05/14/%E5%B7%A5%E4%B8%9A%E5%A4%A7%E6%95%B0%E6%8D%AE/%E4%BC%81%E4%B8%9A%E5%BE%AE%E4%BF%A1%E6%88%AA%E5%9B%BE_1620982571701-1620983043861-1620983046185.png">
+
+
+<link rel="canonical" href="http://example.com/2021/05/14/%E5%B7%A5%E4%B8%9A%E5%A4%A7%E6%95%B0%E6%8D%AE/">
+
+
+<script class="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'zh-CN'
+  };
+</script>
+<title>工业大数据 | 我住8楼</title>
+  
+
+
+
+
+  <noscript>
+  <style>
+  body { margin-top: 2rem; }
+
+  .use-motion .menu-item,
+  .use-motion .sidebar,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header {
+    visibility: visible;
+  }
+
+  .use-motion .header,
+  .use-motion .site-brand-container .toggle,
+  .use-motion .footer { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle,
+  .use-motion .custom-logo-image {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line {
+    transform: scaleX(1);
+  }
+
+  .search-pop-overlay, .sidebar-nav { display: none; }
+  .sidebar-panel { display: block; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" class="use-motion">
+  <div class="headband"></div>
+
+  <main class="main">
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏" role="button">
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <i class="logo-line"></i>
+      <h1 class="site-title">我住8楼</h1>
+      <i class="logo-line"></i>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+    </div>
+  </div>
+</div>
+
+
+
+<nav class="site-nav">
+  <ul class="main-menu menu">
+        <li class="menu-item menu-item-home"><a href="/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a></li>
+        <li class="menu-item menu-item-tags"><a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>标签</a></li>
+        <li class="menu-item menu-item-categories"><a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>分类</a></li>
+        <li class="menu-item menu-item-archives"><a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档</a></li>
+  </ul>
+</nav>
+
+
+
+
+</div>
+        
+  
+  <div class="toggle sidebar-toggle" role="button">
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+  </div>
+
+  <aside class="sidebar">
+
+    <div class="sidebar-inner sidebar-nav-active sidebar-toc-active">
+      <ul class="sidebar-nav">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <div class="sidebar-panel-container">
+        <!--noindex-->
+        <div class="post-toc-wrap sidebar-panel">
+            <div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#1-%E5%B7%A5%E4%B8%9A%E9%9D%A9%E5%91%BD4-0"><span class="nav-number">1.</span> <span class="nav-text">1. 工业革命4.0</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#1-1-%E6%97%B6%E9%97%B4%E7%BA%BF%E5%88%92%E5%88%86"><span class="nav-number">1.1.</span> <span class="nav-text">1.1 时间线划分</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#1-1-1-%E5%85%A8%E7%90%83%E6%97%B6%E9%97%B4%E7%BA%BF"><span class="nav-number">1.1.1.</span> <span class="nav-text">1.1.1 全球时间线</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#1-1-2-%E5%85%AC%E8%AE%A4%E5%B7%A5%E4%B8%9A%E9%9D%A9%E5%91%BD%E9%98%B6%E6%AE%B5"><span class="nav-number">1.1.2.</span> <span class="nav-text">1.1.2 公认工业革命阶段</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#1-1-3-%E5%BE%B7%E5%9B%BD%E5%B7%A5%E4%B8%9A4-0%E5%B0%8F%E7%BB%84%E7%9A%84%E5%B7%A5%E4%B8%9A%E6%97%B6%E4%BB%A3%E5%88%92%E5%88%86"><span class="nav-number">1.1.3.</span> <span class="nav-text">1.1.3 德国工业4.0小组的工业时代划分</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#1-2-%E5%BE%B7%E5%9B%BD%E5%B7%A5%E4%B8%9A4-0%E4%B8%BB%E8%A6%81%E5%86%85%E5%AE%B9"><span class="nav-number">1.2.</span> <span class="nav-text">1.2 德国工业4.0主要内容</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#1-2-1-%E4%B8%80%E4%B8%AA%E6%A0%B8%E5%BF%83"><span class="nav-number">1.2.1.</span> <span class="nav-text">1.2.1 一个核心</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#1-2-2-%E4%B8%A4%E9%87%8D%E6%88%98%E7%95%A5"><span class="nav-number">1.2.2.</span> <span class="nav-text">1.2.2 两重战略</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#1-2-3-%E4%B8%89%E5%A4%A7%E9%9B%86%E6%88%90"><span class="nav-number">1.2.3.</span> <span class="nav-text">1.2.3 三大集成</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#1-2-4-%E5%85%AB%E9%A1%B9%E8%A1%8C%E5%8A%A8%E4%B8%BE%E6%8E%AA"><span class="nav-number">1.2.4.</span> <span class="nav-text">1.2.4 八项行动举措</span></a></li></ol></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#2-%E6%9C%AF%E8%AF%AD%E6%A6%82%E5%BF%B5"><span class="nav-number">2.</span> <span class="nav-text">2. 术语概念</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#2-1-%E7%B3%BB%E7%BB%9F"><span class="nav-number">2.1.</span> <span class="nav-text">2.1 系统</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#ERP"><span class="nav-number">2.1.1.</span> <span class="nav-text">ERP</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#MES"><span class="nav-number">2.1.2.</span> <span class="nav-text">MES</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#PLM"><span class="nav-number">2.1.3.</span> <span class="nav-text">PLM</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#HCM-HRM"><span class="nav-number">2.1.4.</span> <span class="nav-text">HCM&#x2F;HRM</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#CRM"><span class="nav-number">2.1.5.</span> <span class="nav-text">CRM</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#SCM"><span class="nav-number">2.1.6.</span> <span class="nav-text">SCM</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#EAM"><span class="nav-number">2.1.7.</span> <span class="nav-text">EAM</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#WMS"><span class="nav-number">2.1.8.</span> <span class="nav-text">WMS</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#TMS"><span class="nav-number">2.1.9.</span> <span class="nav-text">TMS</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#EMS"><span class="nav-number">2.1.10.</span> <span class="nav-text">EMS</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#OA"><span class="nav-number">2.1.11.</span> <span class="nav-text">OA</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#PHM"><span class="nav-number">2.1.12.</span> <span class="nav-text">PHM</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#APS"><span class="nav-number">2.1.13.</span> <span class="nav-text">APS</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#SPC"><span class="nav-number">2.1.14.</span> <span class="nav-text">SPC</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#TPM"><span class="nav-number">2.1.15.</span> <span class="nav-text">TPM</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#2-2-%E5%90%8D%E8%AF%8D%E8%A7%A3%E9%87%8A"><span class="nav-number">2.2.</span> <span class="nav-text">2.2 名词解释</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E7%A6%BB%E6%95%A3%E5%9E%8B%E5%88%B6%E9%80%A0%E4%B8%9A"><span class="nav-number">2.2.1.</span> <span class="nav-text">离散型制造业</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#%E6%B5%81%E7%A8%8B%E5%9E%8B%E5%88%B6%E9%80%A0%E4%B8%9A"><span class="nav-number">2.2.1.1.</span> <span class="nav-text">流程型制造业</span></a></li></ol></li></ol></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#3-%E5%B7%A5%E4%B8%9A%E5%A4%A7%E6%95%B0%E6%8D%AE"><span class="nav-number">3.</span> <span class="nav-text">3. 工业大数据</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#3-1-%E6%84%BF%E6%99%AF"><span class="nav-number">3.1.</span> <span class="nav-text">3.1 愿景</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#3-2-%E4%BA%A7%E4%B8%9A%E9%93%BE"><span class="nav-number">3.2.</span> <span class="nav-text">3.2 产业链</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#3-2-1-%E4%BA%A7%E4%B8%9A%E9%93%BE%E5%88%86%E6%9E%90"><span class="nav-number">3.2.1.</span> <span class="nav-text">3.2.1 产业链分析</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#3-2-2-%E5%B8%82%E5%9C%BA%E8%A7%84%E6%A8%A1"><span class="nav-number">3.2.2.</span> <span class="nav-text">3.2.2 市场规模</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#3-2-3-%E4%BA%A7%E5%93%81%E7%BB%93%E6%9E%84"><span class="nav-number">3.2.3.</span> <span class="nav-text">3.2.3 产品结构</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#3-3-%E6%8A%80%E6%9C%AF%E5%88%86%E6%9E%90"><span class="nav-number">3.3.</span> <span class="nav-text">3.3 技术分析</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#3-3-1-%E6%95%B0%E6%8D%AE%E5%88%86%E7%B1%BB%E5%92%8C%E7%89%B9%E5%BE%81"><span class="nav-number">3.3.1.</span> <span class="nav-text">3.3.1 数据分类和特征</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#%E5%88%86%E7%B1%BB"><span class="nav-number">3.3.1.1.</span> <span class="nav-text">分类</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E7%89%B9%E5%BE%81"><span class="nav-number">3.3.1.2.</span> <span class="nav-text">特征</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#3-3-2-%E6%8A%80%E6%9C%AF%E6%9E%B6%E6%9E%84"><span class="nav-number">3.3.2.</span> <span class="nav-text">3.3.2 技术架构</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#3-3-3-%E6%95%B0%E6%8D%AE%E9%87%87%E9%9B%86"><span class="nav-number">3.3.3.</span> <span class="nav-text">3.3.3 数据采集</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#%E6%8C%89%E6%95%B0%E6%8D%AE%E7%B1%BB%E5%9E%8B%E5%88%86%E7%B1%BB"><span class="nav-number">3.3.3.1.</span> <span class="nav-text">按数据类型分类</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E9%9A%BE%E7%82%B9"><span class="nav-number">3.3.3.2.</span> <span class="nav-text">难点</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#3-3-4-%E6%95%B0%E6%8D%AE%E5%AD%98%E5%82%A8%E7%AE%A1%E7%90%86%E5%92%8C%E8%AE%A1%E7%AE%97%E8%83%BD%E5%8A%9B"><span class="nav-number">3.3.4.</span> <span class="nav-text">3.3.4 数据存储管理和计算能力</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#%E5%AD%98%E5%82%A8%E7%AE%A1%E7%90%86"><span class="nav-number">3.3.4.1.</span> <span class="nav-text">存储管理</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E8%AE%A1%E7%AE%97%E8%83%BD%E5%8A%9B"><span class="nav-number">3.3.4.2.</span> <span class="nav-text">计算能力</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#3-3-5-%E6%95%B0%E6%8D%AE%E5%BA%94%E7%94%A8%E5%88%86%E6%9E%90"><span class="nav-number">3.3.5.</span> <span class="nav-text">3.3.5 数据应用分析</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#%E6%97%B6%E5%BA%8F%E6%A8%A1%E5%BC%8F%E5%88%86%E6%9E%90%E6%8A%80%E6%9C%AF"><span class="nav-number">3.3.5.1.</span> <span class="nav-text">时序模式分析技术</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E5%B7%A5%E4%B8%9A%E7%9F%A5%E8%AF%86%E5%9B%BE%E8%B0%B1%E6%8A%80%E6%9C%AF"><span class="nav-number">3.3.5.2.</span> <span class="nav-text">工业知识图谱技术</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E5%A4%9A%E6%BA%90%E6%95%B0%E6%8D%AE%E8%9E%8D%E5%90%88%E5%88%86%E6%9E%90%E6%8A%80%E6%9C%AF"><span class="nav-number">3.3.5.3.</span> <span class="nav-text">多源数据融合分析技术</span></a></li></ol></li></ol></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#4-%E6%80%BB%E7%BB%93"><span class="nav-number">4.</span> <span class="nav-text">4. 总结</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#5-%E5%8F%82%E8%80%83"><span class="nav-number">5.</span> <span class="nav-text">5. 参考</span></a></li></ol></div>
+        </div>
+        <!--/noindex-->
+
+        <div class="site-overview-wrap sidebar-panel">
+          <div class="site-author site-overview-item animated" itemprop="author" itemscope itemtype="http://schema.org/Person">
+  <p class="site-author-name" itemprop="name">Jason Chao</p>
+  <div class="site-description" itemprop="description"></div>
+</div>
+<div class="site-state-wrap site-overview-item animated">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">14</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+          
+        <span class="site-state-item-count">2</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+          
+        <span class="site-state-item-count">10</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+
+
+
+        </div>
+      </div>
+    </div>
+  </aside>
+  <div class="sidebar-dimmer"></div>
+
+
+    </header>
+
+    
+  <div class="back-to-top" role="button">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+<noscript>
+  <div class="noscript-warning">Theme NexT works best with JavaScript enabled</div>
+</noscript>
+
+
+    <div class="main-inner post posts-expand">
+
+
+  
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="http://example.com/2021/05/14/%E5%B7%A5%E4%B8%9A%E5%A4%A7%E6%95%B0%E6%8D%AE/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="Jason Chao">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="我住8楼">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          工业大数据
+        </h1>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">发表于</span>
+
+      <time title="创建时间：2021-05-14 11:11:13" itemprop="dateCreated datePublished" datetime="2021-05-14T11:11:13+08:00">2021-05-14</time>
+    </span>
+      <span class="post-meta-item">
+        <span class="post-meta-item-icon">
+          <i class="far fa-calendar-check"></i>
+        </span>
+        <span class="post-meta-item-text">更新于</span>
+        <time title="修改时间：2021-05-18 11:07:12" itemprop="dateModified" datetime="2021-05-18T11:07:12+08:00">2021-05-18</time>
+      </span>
+
+  
+</div>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+        <h1 id="1-工业革命4-0"><a href="#1-工业革命4-0" class="headerlink" title="1. 工业革命4.0"></a>1. 工业革命4.0</h1><h2 id="1-1-时间线划分"><a href="#1-1-时间线划分" class="headerlink" title="1.1 时间线划分"></a>1.1 时间线划分</h2><h3 id="1-1-1-全球时间线"><a href="#1-1-1-全球时间线" class="headerlink" title="1.1.1 全球时间线"></a>1.1.1 全球时间线</h3><ol>
+<li>2013年4月,全球国际工业博览会在德国汽车、机械、电子制造业中心汉诺威召开。会上,德国“工业4.0工作组”公布了研究成果报告《保障德国制造业的未来:关于实施“工业4.0”战略的建议》<a href="%E7%AE%80%E7%A7%B0%E5%BE%B7%E5%9B%BD%22%E5%B7%A5%E4%B8%9A4.0%22,%E5%90%8E%E6%96%87%E7%AE%80%E7%A7%B0%22%E5%B7%A5%E4%B8%9A4.0%22">1</a>,其目的是借助发挥德国制造业的传统优势,掀起新一轮制造技术的革命性创新与突破。报告的推出立即引起全球的广泛关注,产生了巨大的国际影响。</li>
+<li>2014年，美国通用电气、IBM等科技巨头成立工业互联网联盟，开发和制定全新的工业技术和标准，重新定义互联网生态下的制造业，并响应和推动美国的“回归制造业”战略。</li>
+<li>2015年5月,中国政府发布了《中国制造2025》(后文简称“制造2025”),提出要通过特殊政策和制度优势,突出创新驱动,依靠和发展高端装备制造业,打造中国品牌,形成中国创造,推出中国质量,完成中国由制造大国向制造强国的转变。</li>
+</ol>
+<h3 id="1-1-2-公认工业革命阶段"><a href="#1-1-2-公认工业革命阶段" class="headerlink" title="1.1.2 公认工业革命阶段"></a>1.1.2 公认工业革命阶段</h3><ol>
+<li>18世纪60年代，人类社会发生了以蒸汽机为代表的第一代工业革命，大机器生产取代了手工劳动</li>
+<li>19世纪70年代，自然科学开始同技术生产紧密结合起来，电力得到广泛应用，人类进入电气时代</li>
+<li>20世纪50年代，原子能技术、航天技术、电子计算机应用、人工合成材料、分子生物等取得重大突破，科学技术有力推动了人类生产力的进度，形成了所谓的第三次工业革命</li>
+</ol>
+<h3 id="1-1-3-德国工业4-0小组的工业时代划分"><a href="#1-1-3-德国工业4-0小组的工业时代划分" class="headerlink" title="1.1.3 德国工业4.0小组的工业时代划分"></a>1.1.3 德国工业4.0小组的工业时代划分</h3><ol>
+<li>1784年，以蒸汽机为动力的机械生产设备 导致了第一次工业革命</li>
+<li>1870年，基于劳动分工的以电为动力的大规模生产带来了第二次工业革命</li>
+<li>1969年，使用电子和信息技术让自动化程度更高</li>
+<li>现在，基于信息物理融合系统的第四次工业革命开始</li>
+</ol>
+<h2 id="1-2-德国工业4-0主要内容"><a href="#1-2-德国工业4-0主要内容" class="headerlink" title="1.2 德国工业4.0主要内容"></a>1.2 德国工业4.0主要内容</h2><h3 id="1-2-1-一个核心"><a href="#1-2-1-一个核心" class="headerlink" title="1.2.1 一个核心"></a>1.2.1 一个核心</h3><p>“工业4.0”的核心是“智能+网络化”，即通过虚拟实体系统（CPS），构建智能工厂，实现智能制造的目的。通过大量部署各类传感元件实现信息的大量采集；将IT控件小型化与自主化，然后将其嵌入各类制造设备中，从而实现设备的智能化；依托通信技术达到数据的高速与无差错传输；对控制设备、制造设备的数据云存储和分析系统，从而达到生产过程的智能化以及方便人工实时控制的目的。</p>
+<h3 id="1-2-2-两重战略"><a href="#1-2-2-两重战略" class="headerlink" title="1.2.2 两重战略"></a>1.2.2 两重战略</h3><p>一是“领先的供应商战略”，关注生产领域，要求德国的装备制造商必须遵循“工业4.0”的理念，产出具备“智能”与乐于“交流”的生产设备。该战略注重吸引中小企业的参与，希望它们不仅成为“智能生产”的使用者，也能化身为“智能生产”设备的供应者。这个关注的是智能工厂。</p>
+<p>二是“领先的市场战略”，强调整个德国国内制造业市场的有效整合，构建遍布德国的高速互联网络是实现这一战略的关键。通过这一网络，德国的各类企业就能实现快速的信息共享、最终达成有效的分工合作。在此基础上，生产工艺可以重新定义与进一步细化，从而实现更为专业化的生产，提高德国制造业的生产效率。除了生产以外，商业企业也能与生产单位无缝衔接，进一步拉近德国制造企业与国内市场以及世界市场之间的距离。这个关注的是智能生产，能全产业链联合起来提供智能生产。</p>
+<h3 id="1-2-3-三大集成"><a href="#1-2-3-三大集成" class="headerlink" title="1.2.3 三大集成"></a>1.2.3 三大集成</h3><p>一是关注产品的生产过程，力求在智能工厂内通过联网建成生产的纵向集成；</p>
+<p>二是关注产品整个生命周期的不同阶段，包括设计与开发、安排生产计划、管控生产过程以及产品的售后维护等，实现各个不同阶段之间的信息共享，从而达成工程数字化集成；</p>
+<p>三是关注全社会价值网络的实现，从产品的研究、开发与应用拓展至建立标准化策略、提高社会分工合作的有效性、探索新的商业模式以及考虑社会的可持续发展等，从而达成德国制造业的横向集成。</p>
+<p>信息通信技术（ICT）是３大集成实现的保证，相关技术包括：机器对机器（M2M）技术，用于终端设备之间的数据交换；物联网（IoT）技术，将整个社会的人与物连接成一个巨大的网络；各类实现企业系统化管理的应用软件，如企业资源计划系统（ERP）、产品生命周期管理（PLM）、供应链管理（SCM）、系统生命周期管理（SysLM）等，这些系统进一步发挥协同的作用，成为企业进行智能化生产和管理的利器。</p>
+<h3 id="1-2-4-八项行动举措"><a href="#1-2-4-八项行动举措" class="headerlink" title="1.2.4 八项行动举措"></a>1.2.4 八项行动举措</h3><p>一是实现技术标准化和开放标准的参考体系，制定参考架构的标准，促进企业之间网络的形成</p>
+<p>二是建立模型来管理复杂的系统。</p>
+<p>三是提供一套综合的工业宽带基础设施。</p>
+<p>四是建立安全保障机制。</p>
+<p>五是创新工作的组织和设计方式。</p>
+<p>六是注重培训和持续的职业发展。</p>
+<p>七是健全规章制度。</p>
+<p>八是提升资源效率。</p>
+<blockquote>
+<p>“工业4.0”所说的资源，不仅包括原材料与能源，也涉及人力资源和财务资源。</p>
+</blockquote>
+<h1 id="2-术语概念"><a href="#2-术语概念" class="headerlink" title="2. 术语概念"></a>2. 术语概念</h1><h2 id="2-1-系统"><a href="#2-1-系统" class="headerlink" title="2.1 系统"></a>2.1 系统</h2><h3 id="ERP"><a href="#ERP" class="headerlink" title="ERP"></a>ERP</h3><p>（企业资源管理计划）——Enterprise Resources Plannig，是在先进的企业管理思想的基础上，应用信息技术实现对整个企业资源的一体化管理。ERP是一种可以提供跨地区、跨部门、甚至跨公司整合实时信息的企业管理信息系统。它在企业资源最优化配置的前提下，整合企业内部主要或所有的经营活动，包括财务会计、管理会计、生产计划及管理、物料管理、销售与分销等主要功能模块，以达到效率化经营的目标。</p>
+<h3 id="MES"><a href="#MES" class="headerlink" title="MES"></a>MES</h3><p><a href="https://link.zhihu.com/?target=http://www.bjattn.com">MES制造执行系统</a>是一套面向制造企业车间执行层的生产信息化管理系统，主要针对于生产制造过程中流程、资源的管理系统，目标是实现生产制造过程“黑匣子”的可视、可控，为智能生产提供支撑。</p>
+<h3 id="PLM"><a href="#PLM" class="headerlink" title="PLM"></a>PLM</h3><p>(product lifecycle management)系统，即产品全生命周期管理系统的简称。该系统以产品相关数据管理为核心，将企业资源、业务流程和产品数据集成起来，以产品的生命周期为主线，通过计算机软件对企业对产品相关的业务流程及数据进行统一管理和支配，从而帮助人们管理产品研发流程及所有资料，提升研发能力。</p>
+<h3 id="HCM-HRM"><a href="#HCM-HRM" class="headerlink" title="HCM/HRM"></a>HCM/HRM</h3><p>人力资源管理</p>
+<h3 id="CRM"><a href="#CRM" class="headerlink" title="CRM"></a>CRM</h3><p>（CustomerRelationshipManagement）就是客户关系管理。<br>从字义上看，是指企业用CRM来管理与客户之间的关系。 CRM是选择和管理有价值客户及其关系的一种商业策略，CRM要求以客户为中心的商业哲学和企业文化来支持有效的市场营销、销售与服务流程。如果企业拥有正确的领导、策略和企业文化，CRM应用将为企业实现有效的客户关系管理。</p>
+<h3 id="SCM"><a href="#SCM" class="headerlink" title="SCM"></a>SCM</h3><p>(Supply Chain Management)就是对企业供应链的管理，是对供应、需求、原材料采购、市场、生产、库存、定单、分销发货等的管理，包括了从生产到发货、从供应商的供应商到顾客的顾客的每一个环节。</p>
+<h3 id="EAM"><a href="#EAM" class="headerlink" title="EAM"></a>EAM</h3><p>(Enterprise Asset Management)是面向资产密集型企业的企业信息化解决方案的总称。它以提高资产可利用率、降低企业运行维护成本为目标，以优化企业维修资源为核心，通过信息化手段，合理安排维修计划及相关资源与活动。通过提高设备可利用率得以增加收益，通过优化安排维修资源得以降低成本，从而提高企业的经济效益和企业的市场竞争力。</p>
+<h3 id="WMS"><a href="#WMS" class="headerlink" title="WMS"></a>WMS</h3><p>WMS是仓库管理系统(Warehouse Management System) 的缩写，是对物料存放空间进行管理的软件，区别于库存管理。其功能主要有两方面，一为通过在系统中设定一定的仓库仓位结构对物料具体空间位置的定位，二为通过在系统中设定一些策略对物料入库\出库\库内等作业流程进行指导。</p>
+<p>仓库管理系统是通过入库业务、出库业务、仓库调拨、库存调拨和虚仓管理等功能，对批次管理、物料对应、库存盘点、质检管理、虚仓管理和即时库存管理等功能综合运用的管理系统，有效控制并跟踪仓库业务的物流和成本管理全过程，实现或完善的企业仓储信息管理。该系统可以独立执行库存操作，也可与其他系统的单据和凭证等结合使用，可为企业提供更为完整企业物流管理流程和财务管理信息。</p>
+<h3 id="TMS"><a href="#TMS" class="headerlink" title="TMS"></a>TMS</h3><p>TMS是TransportationManagementSystem的英文缩写，意为运输管理系统。在管理软件中，以英文缩写命名的系统名称并不鲜见，TMS大部分只作为一个管理系统中的其中一个子系统来运用，主要在物流管理系统中，其主要功能是对物流环节中的运输环节的具体管理，包括车辆管理，在运途中货物的管理等。</p>
+<h3 id="EMS"><a href="#EMS" class="headerlink" title="EMS"></a>EMS</h3><p>能源管理系统是以帮助工业生产企业在扩大生产的同时，合理计划和利用能源，降低单位产品能源消耗，提高经济效益，EMS能源管理系统主要对企业内部水、电、气等公共资源进行管理。</p>
+<h3 id="OA"><a href="#OA" class="headerlink" title="OA"></a>OA</h3><p> 是Office Automation的缩写，指办公室自动化或自动化办公。</p>
+<h3 id="PHM"><a href="#PHM" class="headerlink" title="PHM"></a>PHM</h3><p>故障预测与健康管理（PHM，Prognostics and Health Management）：利用工业系统中产生的各类数据，经过信号处理和数据分析等运算手段，实现对复杂工业系统的健康状态进行检测、预测和管理的系统性工程。PHM技术将设备的健康管理从传统的故障管理转变为衰退管理，通过预测性维护实现设备的零宕机和持续可靠的运行。</p>
+<h3 id="APS"><a href="#APS" class="headerlink" title="APS"></a>APS</h3><p>APS高级计划系统（AdvancedPlanning System）或高级计划与排程(AdvancedPlanning and Scheduling)，分供应链级的APS和工厂级的APS。供应链级的APS侧重于SCP（Supply Chain Planning）供应链计划的优化，包括网络配置计划、需求计划、库存计划、多工厂计划、供应计划等的优化。工厂级的APS侧重于交期承诺、计划与排产、加工顺序调度、物料准时配送等的优化。</p>
+<h3 id="SPC"><a href="#SPC" class="headerlink" title="SPC"></a>SPC</h3><p><a target="_blank" rel="noopener" href="https://baike.baidu.com/item/%E7%BB%9F%E8%AE%A1%E8%BF%87%E7%A8%8B%E6%8E%A7%E5%88%B6">统计过程控制</a>（简称SPC）是一种借助数理统计方法的过程控制工具。它对生产过程进行分析评价，根据反馈信息及时发现系统性因素出现的征兆，并采取措施消除其影响，使过程维持在仅受随机性因素影响的受控状态，以达到控制质量的目的。</p>
+<h3 id="TPM"><a href="#TPM" class="headerlink" title="TPM"></a>TPM</h3><p>TPM管理，即“全员生产维修”，70年代起源于日本，是一种全员参与的生产维修方式，其主要点就在“生产维修”及“全员参与”上。通过建立一个全系统员工参与的生产维修活动，使设备性能达到最优。</p>
+<h2 id="2-2-名词解释"><a href="#2-2-名词解释" class="headerlink" title="2.2 名词解释"></a>2.2 名词解释</h2><h3 id="离散型制造业"><a href="#离散型制造业" class="headerlink" title="离散型制造业"></a>离散型制造业</h3><p>产品由多个零件经过一系列并不连续的工序加工而成，加工离散制造产品的行业称为离散型制造业（如机械制造业、汽车制造业、家电制造业）。典型特征是产品只是经过一些形状改变或组装而成。</p>
+<h4 id="流程型制造业"><a href="#流程型制造业" class="headerlink" title="流程型制造业"></a>流程型制造业</h4><p>产品被不间断地通过生产设备及加工装置，进行化学或者物理变化，制造流程型制造产品的行业称为流程型制造业（如化工业、造纸业、钢铁业）。典型特征是产品会发生化学或物理变化。</p>
+<h1 id="3-工业大数据"><a href="#3-工业大数据" class="headerlink" title="3. 工业大数据"></a>3. 工业大数据</h1><h2 id="3-1-愿景"><a href="#3-1-愿景" class="headerlink" title="3.1 愿景"></a>3.1 愿景</h2><ol>
+<li>精度更高。能利用大数据分析错误，防止错误发生，提高制造成功率。</li>
+<li>产量更高。利用大数据改进运营方式，同样的原材料下生成更多产品。</li>
+<li>更好的预测。利用大数据有助于制造商更好地掌握这种淡旺季变化导致的供需关系的变化，因此可以在最有价值的生产条件下进行生产。</li>
+<li>预测和跟踪供应商的产品优劣。利用大数据跟踪供应商的优劣，判断是否需要选择新的供应商具有成本效益。</li>
+<li>更高的可追溯性。大数据可帮制造商跟踪生产和交付的所有这些阶段，并提供对可能效率低的领域的洞察和分析。</li>
+</ol>
+<h2 id="3-2-产业链"><a href="#3-2-产业链" class="headerlink" title="3.2 产业链"></a>3.2 产业链</h2><h3 id="3-2-1-产业链分析"><a href="#3-2-1-产业链分析" class="headerlink" title="3.2.1 产业链分析"></a>3.2.1 产业链分析</h3><p>下图是工业数据行业市场产业链分析，覆盖上中下游。</p>
+<ol>
+<li>上游，是软硬件服务商，提供传感器来采集数据，主要是国外厂商。云计算服务提供商，国内已经达到一流水平。</li>
+<li>中游，大数据服务商，国内也诞生了一批大数据服务提供商。</li>
+<li>下游，不同行业制造商<img src="/2021/05/14/%E5%B7%A5%E4%B8%9A%E5%A4%A7%E6%95%B0%E6%8D%AE/%E4%BC%81%E4%B8%9A%E5%BE%AE%E4%BF%A1%E6%88%AA%E5%9B%BE_1620982571701-1620983043861-1620983046185.png" class="" title="img"></li>
+</ol>
+<h3 id="3-2-2-市场规模"><a href="#3-2-2-市场规模" class="headerlink" title="3.2.2 市场规模"></a>3.2.2 市场规模</h3>  <img src="/2021/05/14/%E5%B7%A5%E4%B8%9A%E5%A4%A7%E6%95%B0%E6%8D%AE/%E4%BC%81%E4%B8%9A%E5%BE%AE%E4%BF%A1%E6%88%AA%E5%9B%BE_16209837694242.png" class="" title="img">
+
+<h3 id="3-2-3-产品结构"><a href="#3-2-3-产品结构" class="headerlink" title="3.2.3 产品结构"></a>3.2.3 产品结构</h3><img src="/2021/05/14/%E5%B7%A5%E4%B8%9A%E5%A4%A7%E6%95%B0%E6%8D%AE/%E4%BC%81%E4%B8%9A%E5%BE%AE%E4%BF%A1%E6%88%AA%E5%9B%BE_16209838435228.png" class="" title="img">
+
+<h2 id="3-3-技术分析"><a href="#3-3-技术分析" class="headerlink" title="3.3 技术分析"></a>3.3 技术分析</h2><h3 id="3-3-1-数据分类和特征"><a href="#3-3-1-数据分类和特征" class="headerlink" title="3.3.1 数据分类和特征"></a>3.3.1 数据分类和特征</h3><h4 id="分类"><a href="#分类" class="headerlink" title="分类"></a>分类</h4><p>根据数据来源分类</p>
+<ol>
+<li>第一类是企业运营管理相关的业务数据。这类数据来自企业信息化范畴，包 括企业资源计划(ERP)、产品生命周期管理(PLM)、供应链管理(SCM)、客户关系 管理(CRM)和能耗管理系统（EMS)等，此类数据是工业企业传统意义上的数据资4 产。</li>
+<li> 第二类是制造过程数据。主要是指工业生产过程中，装备、物料及产品加工 过程的工况状态参数、环境参数等生产情况数据，通过 MES 系统实时传递，目 前在智能装备大量应用的情况下，此类数据量增长最快。 </li>
+<li>第三类是企业外部数据。包括工业企业产品售出之后的使用、运营情况的数 据，同时还包括大量客户名单、供应商名单、外部的互联网等数据。</li>
+</ol>
+<p>下表是一些常见的数据源及特征。</p>
+<table>
+<thead>
+<tr>
+<th>分类</th>
+<th>系统类型</th>
+<th>典型系统</th>
+<th>数据结构</th>
+<th>数据特点</th>
+<th>实时性</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>管理系统</td>
+<td>设计资料</td>
+<td>产品模型、图纸文档</td>
+<td>半结构化/ 非结构化</td>
+<td>类型各异、更新不 频繁、是企业核心 数据</td>
+<td>批量导入</td>
+</tr>
+<tr>
+<td></td>
+<td>价值链管 理</td>
+<td>供应链 SCM、客户关 系 CRM</td>
+<td>结构化/半 结构化</td>
+<td>没有严格的时效性 要求，需要定期同 步</td>
+<td>批量导入</td>
+</tr>
+<tr>
+<td></td>
+<td>资源管理</td>
+<td>ERP/OA、MES、 PLM、环境管理系 统、仓库管理系统、 能源管理系统</td>
+<td>结构化</td>
+<td>没有严格的时效性 要求，需要定期同 步</td>
+<td>批量导入</td>
+</tr>
+<tr>
+<td>生产系统</td>
+<td>工业控制 系统</td>
+<td>DCS、PLC</td>
+<td>结构化</td>
+<td>需要实时监控，实时反馈控制</td>
+<td>实时采集</td>
+</tr>
+<tr>
+<td></td>
+<td>生产监控 数据</td>
+<td>SCADA</td>
+<td>结构化</td>
+<td>包含实时数据和历 史数据</td>
+<td>实时采集/批量 导入</td>
+</tr>
+<tr>
+<td></td>
+<td>各类传感 器</td>
+<td>外挂式传感器、条 码、射频识别</td>
+<td>结构化</td>
+<td>单条数据量小，并 发度大，结合 IoT 网关</td>
+<td>实时采集</td>
+</tr>
+<tr>
+<td></td>
+<td>其他外部 装置</td>
+<td>视频摄像头</td>
+<td>非结构化</td>
+<td>数据量大、低时 延，要求网络带宽 和时延</td>
+<td>实时采集</td>
+</tr>
+<tr>
+<td>外部 数据</td>
+<td>外部数据</td>
+<td>相关行业、法规、市 场、竞品、环境数据</td>
+<td>非结构化</td>
+<td>数据相对静止，变 化较小，定期更新</td>
+<td>批量导入</td>
+</tr>
+</tbody></table>
+<h4 id="特征"><a href="#特征" class="headerlink" title="特征"></a>特征</h4><ol>
+<li> 数据容量大（volume）：数据的大小 决定所考虑的数据的价值和潜在的信息。工业数据体量比较大，大量机器设备的高频数 据和互联网数据持续涌入，大型工业企业的数据集将达到PB级甚至EB级别。 </li>
+<li> 多样（variety）：指数据类型的多样 性和来源广泛。工业数据分布广泛，分布于机器设备、工业产品、管理系统、互联网等各个环节，并且结构复杂，既有结构化和半结构化的传感数据，也有非结构化数据。 </li>
+<li>快速（velocity）：指获得和处理数据的速度。工业数据处理速度需求多样， 生产现场级要求分析时限达到毫秒级，管理与决策应用需要支持交互式或批量数据分析。 </li>
+<li>价值密度低（value）：工业大数据更强调用户价值驱动和数据本身的可用性， 包括：提升创新能力和生产经营效率及促 进个性化定制、服务化转型等智能制造新 模式变革。 </li>
+<li>时序性（sequence）：工业大数据具有较强的时序性，如订单、设备状态数 据等。 </li>
+<li>强关联性（strong-relevance）：一 方面，产品生命周期同一阶段的数据具有 强关联性，如产品零部件组成、工况、设备 状态、维修情况、零部件补充采购等；另一 方面，产品生命周期的研发设计、生产、服 务等不同环节的数据之间需要进行关联。 </li>
+<li>准确性（accuracy）：主要指数据 的真实性、完整性和可靠性，更加关注数据质量以及处理、分析技术和方法的可靠 性。对数据分析的置信度要求较高，仅依靠统计相关性分析不足以支撑故障诊断、 预测预警等工业应用，需要将物理模型与数据模型结合，挖掘因果关系。</li>
+<li>闭环性（closed-loop）：包括产品全 生命周期横向过程中数据链条的封闭和关 联以及智能制造纵向数据采集和处理过程 中，需要支撑状态感知、分析、反馈、控制 等闭环场景下的动态持续调整和优化</li>
+</ol>
+<h3 id="3-3-2-技术架构"><a href="#3-3-2-技术架构" class="headerlink" title="3.3.2 技术架构"></a>3.3.2 技术架构</h3><p>如下图所示，是大数据技术架构白皮书中提出的工业大数据平台技术架构。涉及七项核心技术：</p>
+<ol>
+<li>数据集成与边缘处理技术 <ol>
+<li>设备接入：基于工业以太网、工业总线等工业通信协议，以 太网、光纤等通用协议，3G/4G、NB-IOT 等无线协议将工业现场设备接入到平台边缘层。</li>
+<li>协议转换：一方面运用协议解析、中间件等技术兼容 ModBus、 OPC、CAN、Profibus 等各类工业通信协议和软件通信接口，实现数据格式转换和统一。另一方面利用 HTTP、MQTT 等方式从边缘侧将采集到的数据传输到云端，实现数据的远程接入。</li>
+<li>边缘数据处理：基于高性能计算芯片、实时操作系统、边缘分析算法等技术支撑，在靠近设备或数据源头的网络边缘侧进行数据预处理、存储以及智能分析应用，提升操作响应灵敏度、消除网络堵塞，并与云端分析形成协同。</li>
+</ol>
+</li>
+<li>IaaS 技术 <ol>
+<li>基于虚拟化、分布式存储、并行计算、负载调度等技术，实现网络、计算、存储等计算机资源的池化管理，根据需求进行弹性分配，并确保资源使用的安全与隔离，为用户提供完善的云基础设施服务。 </li>
+</ol>
+</li>
+<li>平台使能技术<ol>
+<li>资源调度：通过实时监控云端应用的业务量动态变化，结合相应的调度算法为应用程序分配相应的底层资源，从而使云端应用可以自动适应业务量的变化。</li>
+<li> 多租户管理：通过虚拟化、数据库隔离、容器等技术实现不同租户应用和服务的隔离，保护其隐私与安全。</li>
+</ol>
+</li>
+<li>数据管理技术 <ol>
+<li>数据处理框架：借助 Hadoop、Spark、Storm 等分布式处理架构，满足海量数据的批处理和流处理计算需求。 </li>
+<li>数据预处理：运用数据冗余剔除、异常检测、归一化等方法对原始数据进行清洗，为后续存储、管理与分析提供高质量数据来源。 </li>
+<li>数据存储与管理：通过分布式文件系统、NoSQL 数据库、关系数据库、时序数据库等不同的数据管理引擎实现海量工业数据的分区选择、存储、编目与索引等。</li>
+</ol>
+</li>
+<li>应用开发和微服务技术 <ol>
+<li>多语言与工具支持：支持 Java,Ruby 和 PHP 等多种语言编译环境，并提供 Eclipse integration，JBoss Developer Studio、 git 和 Jenkins 等各类开发工具，构建高效便捷的集成开发环 境。 </li>
+<li>微服务架构：提供涵盖服务注册、发现、通信、调用的管理 机制和运行环境，支撑基于微型服务单元集成的“松耦合”应用 开发和部署。 </li>
+<li>图形化编程：通过类似 Labview 的图形化编程工具，简化开 发流程，支持用户采用拖拽方式进行应用创建、测试、扩展等。 </li>
+</ol>
+</li>
+<li>工业数据建模与分析技术<ol>
+<li> 数据分析算法：运用数学统计、机器学习及最新的人工智能 算法实现面向历史数据、实时数据、时序数据的聚类、关联和预 测分析。 </li>
+<li>机理建模：利用机械、电子、物理、化学等领域专业知识，10 结合工业生产实践经验，基于已知工业机理构建各类模型，实现分析应用。 </li>
+</ol>
+</li>
+<li>安全技术数据<ol>
+<li>接入安全：通过工业防火墙技术、工业网闸技术、加密 隧道传输技术，防止数据泄漏、被侦听或篡改，保障数据在源头和传输过程中安全。 </li>
+<li>平台安全：通过平台入侵实时检测、网络安全防御系统、恶意代码防护、网站威胁防护、网页防篡改等技术实现工业互联网 平台的代码安全、应用安全、数据安全、网站安全。</li>
+<li> 访问安全：通过建立统一的访问机制，限制用户的访问权限 和所能使用的计算资源和网络资源实现对云平台重要资源的访 问控制和管理, 防止非法访问。</li>
+</ol>
+</li>
+</ol>
+<img src="/2021/05/14/%E5%B7%A5%E4%B8%9A%E5%A4%A7%E6%95%B0%E6%8D%AE/%E5%B7%A5%E4%B8%9A%E4%BA%92%E8%81%94%E7%BD%91%E5%B9%B3%E5%8F%B0%E6%8A%80%E6%9C%AF%E6%9E%B6%E6%9E%84.png" class="" title="工业互联网平台技术架构">
+
+
+
+<p>下面是从服务商角度来做技术体系划分：</p>
+<ol>
+<li>边缘层，包括各种设备、生产系统</li>
+<li>网络层，包括工厂车间内部的网络通信、工厂数据与大数据中心的网络通信</li>
+<li>数据层，主要是提供基础计算、存储、网络资源，可以看做IaaS层</li>
+<li>平台层，提供支持工业数据的存储 、建模、分析等，可以看做PaaS层（下图有点不太准）</li>
+<li>应用层，工业相关的应用软件，可以看做SaaS层，涉及到不同行业不同生产阶段的功能需求</li>
+<li>安全层，提供多种安全机制，保障数据安全</li>
+</ol>
+<img src="/2021/05/14/%E5%B7%A5%E4%B8%9A%E5%A4%A7%E6%95%B0%E6%8D%AE/%E4%BC%81%E4%B8%9A%E5%BE%AE%E4%BF%A1%E6%88%AA%E5%9B%BE_16211553432886.png" class="" title="img">
+
+<p><strong>下面是按不同层次的服务提供商划分，下图比上图要准确一些。</strong></p>
+<img src="/2021/05/14/%E5%B7%A5%E4%B8%9A%E5%A4%A7%E6%95%B0%E6%8D%AE/%E4%BC%81%E4%B8%9A%E5%BE%AE%E4%BF%A1%E6%88%AA%E5%9B%BE_1621155029325.png" class="" title="img">
+
+
+
+<h3 id="3-3-3-数据采集"><a href="#3-3-3-数据采集" class="headerlink" title="3.3.3 数据采集"></a>3.3.3 数据采集</h3><h4 id="按数据类型分类"><a href="#按数据类型分类" class="headerlink" title="按数据类型分类"></a>按数据类型分类</h4><ol>
+<li>海量的Key-Value数据。在传感器技术飞速发展的今天，包括光电、热敏、气敏、力敏、磁敏、声敏、湿敏等不同类别的工业传感器在现场得到了大量应用，而且很多时候机器设备的数据大概要到ms的精度才能分析海量的工业数据，因此，这部分数据的特点是每条数据内容很少，但是频率极高。</li>
+<li>文档数据。包括工程图纸、仿真数据、设计的CAD图纸等，还有大量的传统工程文档。</li>
+<li>信息化数据。由工业信息系统产生的数据，一般是通过数据库形式存储的，这部分数据是最好采集的。</li>
+<li>接口数据。由已经建成的工业自动化或信息系统提供的接口类型的数据，包括txt格式、JSON格式、XML格式等。</li>
+<li>视频数据。工业现场会有大量的视频监控设备，这些设备会产生大量的视频数据。</li>
+<li>图像数据。包括工业现场各类图像设备拍摄的图片（例如，巡检人员用手持设备拍摄的设备、环境信息图片）。</li>
+<li>音频数据。包括语音及声音信息（例如，操作人员的通话、设备运转的音量等）。</li>
+<li>其他数据。例如遥感遥测信息、三维高程信息等等。</li>
+</ol>
+<h4 id="难点"><a href="#难点" class="headerlink" title="难点"></a>难点</h4><ol>
+<li>数据量巨大。工业大数据量大，并且大量的工业数据是“脏”数据，直接存储无法用于分析，在存储之前，必须进行处理，对海量的数据进行处理，从技术上又提高了难度。</li>
+<li>工业数据的协议不标准。互联网数据采集一般都是我们常见的HTTP等协议，但在工业领域，会出现ModBus、OPC、CAN、ControlNet、DeviceNet、Profibus、Zigbee等等各类型的工业协议，而且各个自动化设备生产及集成商还会自己开发各种私有的工业协议，导致在工业协议的互联互通上，出现了极大地难度。</li>
+<li>视频传输所需带宽巨大，大量视频数据上公有云带宽非常大</li>
+<li>对原有系统的采集难度大。采集的是已经完成部属的自动化系统上位机数据，这些自动化系统在部署时厂商水平参差不齐，大部分系统是没有数据接口的，文档也大量缺失，大量的现场系统没有点表等基础设置数据，使得对于这部分数据采集的难度极大。</li>
+<li>安全性考虑不足。原先的工业系统都是运行在局域网中，安全问题不是突出考虑的重点。一旦需要通过云端调度工业之中最为核心的生产能力，又没有对安全的充分考虑，造成损失，是难以弥补的。</li>
+</ol>
+<h3 id="3-3-4-数据存储管理和计算能力"><a href="#3-3-4-数据存储管理和计算能力" class="headerlink" title="3.3.4 数据存储管理和计算能力"></a>3.3.4 数据存储管理和计算能力</h3><h4 id="存储管理"><a href="#存储管理" class="headerlink" title="存储管理"></a>存储管理</h4><table>
+<thead>
+<tr>
+<th>类型</th>
+<th>典型系统</th>
+<th>试用场景</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>海量低成本存储</td>
+<td>对象存储、云盘</td>
+<td>海量历史数据的归档和备份</td>
+</tr>
+<tr>
+<td>分布式文件系统</td>
+<td>HDFS</td>
+<td>海量数据的离线存储</td>
+</tr>
+<tr>
+<td>数据仓库</td>
+<td>MPP、Hive</td>
+<td>报表综合分析、多维随机分析</td>
+</tr>
+<tr>
+<td>NoSQL数据库</td>
+<td>HBase、MongoDB</td>
+<td>各类报表文档，使用于简单对点查询及交互式查询场景</td>
+</tr>
+<tr>
+<td>关系型数据库</td>
+<td>MySQL、PostgreSQL、Oracle</td>
+<td>适用于交互式查询分析</td>
+</tr>
+<tr>
+<td>时序数据库</td>
+<td>InfluxDB、Apache IoTDB、KDB+</td>
+<td>依据时间顺序分析历史趋势、周期规律、异常性等场景</td>
+</tr>
+<tr>
+<td>内存数据库</td>
+<td>Redis、Memcached</td>
+<td>数据量不大且要求快速实时查询场景</td>
+</tr>
+<tr>
+<td>图数据库</td>
+<td>Neo4j、HugeGraph</td>
+<td>分析关联关系及具有明显点、边分析的场景</td>
+</tr>
+<tr>
+<td>文本数据索引</td>
+<td>Solr、Elasticsearch</td>
+<td>文本/全文检索</td>
+</tr>
+</tbody></table>
+<h4 id="计算能力"><a href="#计算能力" class="headerlink" title="计算能力"></a>计算能力</h4><table>
+<thead>
+<tr>
+<th>类型</th>
+<th>典型系统</th>
+<th>适用场景</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>实时计算引擎</td>
+<td>Storm、Flink、Spark Streaming</td>
+<td>设备监控、实时诊断等对时效性要求较高的场景</td>
+</tr>
+<tr>
+<td>离线计算引擎</td>
+<td>MapReduce、Spark、Hive</td>
+<td>适用于大数据量的，周期性的数据分析，例如阶段性的营销分析，或生产能耗分析等</td>
+</tr>
+<tr>
+<td>图计算引擎</td>
+<td>GraphLab、GraphX</td>
+<td>适用于事件及人之间的关联分析，比如建立用户画像进行个性化定制或营销</td>
+</tr>
+<tr>
+<td>数据综合分析OLAP</td>
+<td>MPP</td>
+<td>产线或销售环节的综合报表分析</td>
+</tr>
+<tr>
+<td>业务交互查询OLTP</td>
+<td>MySQL、PostgreSQL、Oracle</td>
+<td>交互式查询分析</td>
+</tr>
+<tr>
+<td>分布式数据库中间件</td>
+<td>Cobar、TTDL、MyCAT</td>
+<td>海量数据搞并发时的弹性扩容解决方案</td>
+</tr>
+<tr>
+<td>数据挖掘能力</td>
+<td>Spark、TensorFlow</td>
+<td>需要迭代优化的数据挖掘场景，如故障预测、用户需求挖掘等</td>
+</tr>
+</tbody></table>
+<h3 id="3-3-5-数据应用分析"><a href="#3-3-5-数据应用分析" class="headerlink" title="3.3.5 数据应用分析"></a>3.3.5 数据应用分析</h3><h4 id="时序模式分析技术"><a href="#时序模式分析技术" class="headerlink" title="时序模式分析技术"></a>时序模式分析技术</h4><p>传感器数据的很多重要信息是隐藏在时序模式结 构中，只有挖掘出背后的结构模式，才能构建一个效果稳定的数据模型。</p>
+<p>工时序数据的时间序列类算法主要分六个方面：</p>
+<ol>
+<li>时间序列的预测算法如 ARIMA，GARCH 等；</li>
+<li>时间序列的异常变动模式检测算法，包含基于统计的方法、 基于滑动窗窗口的方法等；</li>
+<li>时间序列的分类算法，包括 SAX 算法、基于相似度的 方法等；</li>
+<li>时间序列的分解算法，包括时间序列的趋势特征分解、季节特征分解、 周期性分解等；</li>
+<li>时间序列的频繁模式挖掘，典型时序模式智能匹配算法（精准匹 配、保形匹配、仿射匹配等），包括 MEON 算法、基于 motif 的挖掘方法等；</li>
+<li>时间序列的切片算法，包括 AutoPlait 算法、HOD-1D 算法等。</li>
+</ol>
+<p>工业大数据分析的一个重要应用方向是对机器设备的故障预警和故障诊断， 其中设备的振动分析是故障诊断的重要手段。设备的振动分析需要融合设备机理 模型和数据挖掘技术，针对旋转设备的振动分析类算法主要分成三类：</p>
+<ol>
+<li>振动数据的时域分析算法，主要提取设备振动的时域特征，如峭度、斜度、峰度系数等；</li>
+<li> 振动数据的频域分析算法，主要从频域的角度提取设备的振动特征，包括高阶谱 算法、全息谱算法、倒谱算法、相干谱算法、特征模式分解等；</li>
+<li>振动数据的时频分析算法，综合时域信息和频域信息一种分析手段，对设备的故障模型有较好的 提取效果，主要有短时傅里叶变换、小波分析等</li>
+</ol>
+<h4 id="工业知识图谱技术"><a href="#工业知识图谱技术" class="headerlink" title="工业知识图谱技术"></a>工业知识图谱技术</h4><p>工业生产过程中会积累大量的日志文本，如维修工单、工艺流程文件、故障记录等，此类非结构化数据中蕴含着丰富的专家经验，利用文本分析的技术能够 实现事件实体和类型提取（故障类型抽取）、事件线索抽取（故障现象、征兆、 排查路线、结果分析），通过专家知识的沉淀实现专家知识库（故障排查知识库、 运维检修知识库、设备操作知识库）。 针对文本这类的非结构化数据，数据分析领域已经形成了成熟的通用文本挖 掘类算法，包括分词算法（POS tagging、实体识别）、关键词提取算法（TD-IDF)、 词向量转换算法、词性标注算法（CLAWS、VOLSUNGA）、主题模型算法（如 LDA） 等。但在工业场景中，这些通用的文本分析算法，由于缺乏行业专有名词（专业 术语、厂商、产品型号、量纲等）、语境上下文（包括典型工况描述、故障现象 等），分析效果欠佳。这就需要构建特定领域的行业知识图谱（即工业知识图谱）， 并将工业知识图谱与结构化数据图语义模型融合，实现更加灵活的查询和一定程度上的推理。</p>
+<h4 id="多源数据融合分析技术"><a href="#多源数据融合分析技术" class="headerlink" title="多源数据融合分析技术"></a>多源数据融合分析技术</h4><p>在企业生产经营、营销推广、采购运输等环节中，会有大量的管理经营数据， 其中包含着众多不同来源的结构化和非结构化数据，例如来源于企业内部信息系 统（CRM、MES、ERP、SEM）的生产数据、管理数据、销售数据等，来源于企业外 部的物流数据、行业数据、政府数据等。利用这些数据可实现市场洞察、价格预测、供应链协同、精准销售、市场调度、产品追溯、能力分析、质量管控等等。 通过对这些数据的分析，能够极大的提高企业的生产加工能力、质量监控能力、 企业运营能力、市场营销能力、风险感知能力等。</p>
+<p>但多源数据也带来一定的技术挑战，不同数据源的数据质量和可信度存在差异，并且在不同业务场景下的表征 能力不同。这就需要一些技术手段去有效融合多源数据。 </p>
+<p>针对多源数据分析的技术主要包括：统计分析算法、深度学习算法、回归算法、分类算法、聚类算法、关联规则等。可以通过不同的算法对不同的数据源进行独立的分析，并通过对多个分析结果的统计决策或人工辅助决策，实现多源融合分析。也可以从分析方法上实现融合，例如通过非结构化文本数据语义融合构 建具有制造语义的知识图谱，完成其他类型数据的实体和语义标注，通过图模型 从语义标注中找出跨领域本体相互间的关联性，可以用于识别和发现工业时序数 据中时间序列片段对应的文本数据（维修报告）上的故障信息，实现对时间序列 的分类决策</p>
+<h1 id="4-总结"><a href="#4-总结" class="headerlink" title="4. 总结"></a>4. 总结</h1><ol>
+<li>工业大数据大有可为，而且时间跨度会很长，影响接下来的可能跨越数十年的工业化发展。</li>
+<li>考虑到当前很多制造业企业甚至连数据中心都没有，而且又不想把数据放入到公有云环境中。因此如果自己搭建一套工业大数据平台，可以对上述的技术架构进行裁减。将大数据平台划分为以下5层：<ol>
+<li>边缘层，工厂各种设备的数据采集 ，这里一般需要涉及到对不同传感器、生产系统的数据读取或订阅操作，并将采集数据通过网络协议上传到大数据平台中</li>
+<li>平台层，直接物理部署的大数据平台<ol>
+<li>通过消息队列来统一接入不同设备、不同协议的数据</li>
+<li>针对不同类型的数据采用不同的数据存储技术，将数据管理起来，并提供多种大数据计算能力给应用层</li>
+</ol>
+</li>
+<li>建模分析层，使用平台层的数据和计算能力，提供数据建模、数据分析、数据可视化、知识库能力、统计分析、规则引擎等数据分析工具。</li>
+<li>应用层，基于数据分析结果，生成描述、诊断、预测、决策、控制等不同应用，对生产系统做各种优化（例如供应链优化、设备预测检修等）</li>
+<li>安全层，提供访问控制安全，数据安全等能力</li>
+</ol>
+</li>
+<li>工业大数据的技术链路很长，想要获得好的发展，对接好上下游的生态非常重要。</li>
+</ol>
+<h1 id="5-参考"><a href="#5-参考" class="headerlink" title="5. 参考"></a>5. 参考</h1><ol>
+<li>[1]李金华. 德国”工业4.0”与”中国制造2025”的比较及启示[J]. 中国地质大学学报:社会科学版, 2015, 015(005):71-79.</li>
+<li>[1]郑树泉, 覃海焕, 王倩. 工业大数据技术与架构[J]. 大数据, 2017, 003(004):67-80.</li>
+<li>《工业4.0:即将来袭的第四次工业革命》</li>
+<li><a target="_blank" rel="noopener" href="https://zhuanlan.zhihu.com/p/62589639">【管理4.0 】第四次工业革命与工业4.0 - 知乎 (zhihu.com)</a></li>
+<li><a target="_blank" rel="noopener" href="http://xkzj.mofcom.gov.cn/article/myszh/szhzx/202012/8589.html">中华人民共和国商务部配额许可证事务局 (mofcom.gov.cn)</a></li>
+<li><a target="_blank" rel="noopener" href="http://qccdata.qichacha.com/ReportData/PDF/fce27a1408c9b71ddb0bfea0528f10c5.pdf">2020年中国工业大数据行业概览</a></li>
+<li><a target="_blank" rel="noopener" href="http://www.cesi.cn/images/editor/20190401/20190401145953698.pdf">工业大数据白皮书</a></li>
+<li><a target="_blank" rel="noopener" href="http://www.todayim.cn/download/%E5%B7%A5%E4%B8%9A%E4%BA%92%E8%81%94%E7%BD%91%E4%BA%A7%E4%B8%9A%E5%8F%91%E5%B1%95%E8%81%94%E7%9B%9F%EF%BC%88AII%EF%BC%89/%E5%B7%A5%E4%B8%9A%E5%A4%A7%E6%95%B0%E6%8D%AE%E6%8A%80%E6%9C%AF%E6%9E%B6%E6%9E%84%E7%99%BD%E7%9A%AE%E4%B9%A6.pdf">工业大数据技术架构白皮书.pdf (todayim.cn)</a></li>
+<li><a target="_blank" rel="noopener" href="https://pdf.dfcfw.com/pdf/H3_AP202011101427888212_1.pdf?1605000779000.pdf">亿欧智库-2020工业互联网行业产业研究报告：服务商案例集-201109.pdf (dfcfw.com)</a></li>
+</ol>
+
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/%E5%B7%A5%E4%B8%9A%E4%BA%92%E8%81%94%E7%BD%91/" rel="tag"># 工业互联网</a>
+          </div>
+
+        
+
+          <div class="post-nav">
+            <div class="post-nav-item">
+                <a href="/2021/02/07/OpenTSDB%E5%85%A5%E9%97%A8/" rel="prev" title="OpenTSDB入门">
+                  <i class="fa fa-chevron-left"></i> OpenTSDB入门
+                </a>
+            </div>
+            <div class="post-nav-item">
+                <a href="/2021/05/17/%E5%B7%A5%E4%B8%9ASaaS/" rel="next" title="工业SaaS">
+                  工业SaaS <i class="fa fa-chevron-right"></i>
+                </a>
+            </div>
+          </div>
+    </footer>
+  </article>
+</div>
+
+
+
+
+
+
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      const activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      const commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+</div>
+  </main>
+
+  <footer class="footer">
+    <div class="footer-inner">
+
+
+<div class="copyright">
+  &copy; 
+  <span itemprop="copyrightYear">2021</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Jason Chao</span>
+</div>
+  <div class="powered-by">由 <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://theme-next.js.org/" class="theme-link" rel="noopener" target="_blank">NexT.Gemini</a> 强力驱动
+  </div>
+
+    </div>
+  </footer>
+
+  
+  <script src="//cdn.jsdelivr.net/npm/animejs@3.2.1/lib/anime.min.js"></script>
+<script src="/js/utils.js"></script><script src="/js/motion.js"></script><script src="/js/next-boot.js"></script>
+
+  
+
+
+
+
+
+
+  
+
+
+
+
+
+</body>
+</html>

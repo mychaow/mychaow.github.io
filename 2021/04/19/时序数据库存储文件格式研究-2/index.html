@@ -1,0 +1,589 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 5.3.0">
+
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+
+<link rel="stylesheet" href="//cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@5.15.1/css/all.min.css">
+  <link rel="stylesheet" href="//cdn.jsdelivr.net/npm/animate.css@3.1.1/animate.min.css">
+
+<script class="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"example.com","root":"/","images":"/images","scheme":"Gemini","version":"8.2.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12},"copycode":false,"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"fadeInDown","post_body":"fadeInDown","coll_header":"fadeInLeft","sidebar":"fadeInUp"}},"prism":false,"i18n":{"placeholder":"搜索...","empty":"没有找到任何搜索结果：${query}","hits_time":"找到 ${hits} 个搜索结果（用时 ${time} 毫秒）","hits":"找到 ${hits} 个搜索结果"}};
+  </script>
+<meta name="description" content="上一篇介绍了超高性能的时序数据库CirroData-TimeS的第一代文件存储格式设计思路（极致性能大揭秘（之一）！CirroData-TimeS时序数据库的文件存储格式），本篇继续介绍文件格式演化。  1. 第一代文件格式回顾如下图所示，TsFile文件格式分为几大块：  文件头（magic number）  数据部分  元数据部分（索引部分）  文件尾（magic number）     读">
+<meta property="og:type" content="article">
+<meta property="og:title" content="时序数据库存储文件格式研究-2">
+<meta property="og:url" content="http://example.com/2021/04/19/%E6%97%B6%E5%BA%8F%E6%95%B0%E6%8D%AE%E5%BA%93%E5%AD%98%E5%82%A8%E6%96%87%E4%BB%B6%E6%A0%BC%E5%BC%8F%E7%A0%94%E7%A9%B6-2/index.html">
+<meta property="og:site_name" content="我住8楼">
+<meta property="og:description" content="上一篇介绍了超高性能的时序数据库CirroData-TimeS的第一代文件存储格式设计思路（极致性能大揭秘（之一）！CirroData-TimeS时序数据库的文件存储格式），本篇继续介绍文件格式演化。  1. 第一代文件格式回顾如下图所示，TsFile文件格式分为几大块：  文件头（magic number）  数据部分  元数据部分（索引部分）  文件尾（magic number）     读">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="http://example.com/2021/04/19/%E6%97%B6%E5%BA%8F%E6%95%B0%E6%8D%AE%E5%BA%93%E5%AD%98%E5%82%A8%E6%96%87%E4%BB%B6%E6%A0%BC%E5%BC%8F%E7%A0%94%E7%A9%B6-2/Tsfile0.8.png">
+<meta property="og:image" content="http://example.com/2021/04/19/%E6%97%B6%E5%BA%8F%E6%95%B0%E6%8D%AE%E5%BA%93%E5%AD%98%E5%82%A8%E6%96%87%E4%BB%B6%E6%A0%BC%E5%BC%8F%E7%A0%94%E7%A9%B6-2/TsFile0.10.png">
+<meta property="og:image" content="http://example.com/2021/04/19/%E6%97%B6%E5%BA%8F%E6%95%B0%E6%8D%AE%E5%BA%93%E5%AD%98%E5%82%A8%E6%96%87%E4%BB%B6%E6%A0%BC%E5%BC%8F%E7%A0%94%E7%A9%B6-2/%E4%BC%81%E4%B8%9A%E5%BE%AE%E4%BF%A1%E6%88%AA%E5%9B%BE_16218412107930.png">
+<meta property="article:published_time" content="2021-04-19T12:47:13.000Z">
+<meta property="article:modified_time" content="2021-05-25T10:58:19.967Z">
+<meta property="article:author" content="Jason Chao">
+<meta property="article:tag" content="tsdb">
+<meta property="article:tag" content="file">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http://example.com/2021/04/19/%E6%97%B6%E5%BA%8F%E6%95%B0%E6%8D%AE%E5%BA%93%E5%AD%98%E5%82%A8%E6%96%87%E4%BB%B6%E6%A0%BC%E5%BC%8F%E7%A0%94%E7%A9%B6-2/Tsfile0.8.png">
+
+
+<link rel="canonical" href="http://example.com/2021/04/19/%E6%97%B6%E5%BA%8F%E6%95%B0%E6%8D%AE%E5%BA%93%E5%AD%98%E5%82%A8%E6%96%87%E4%BB%B6%E6%A0%BC%E5%BC%8F%E7%A0%94%E7%A9%B6-2/">
+
+
+<script class="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'zh-CN'
+  };
+</script>
+<title>时序数据库存储文件格式研究-2 | 我住8楼</title><meta name="robots" content="noindex">
+  
+
+
+
+
+  <noscript>
+  <style>
+  body { margin-top: 2rem; }
+
+  .use-motion .menu-item,
+  .use-motion .sidebar,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header {
+    visibility: visible;
+  }
+
+  .use-motion .header,
+  .use-motion .site-brand-container .toggle,
+  .use-motion .footer { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle,
+  .use-motion .custom-logo-image {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line {
+    transform: scaleX(1);
+  }
+
+  .search-pop-overlay, .sidebar-nav { display: none; }
+  .sidebar-panel { display: block; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" class="use-motion">
+  <div class="headband"></div>
+
+  <main class="main">
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏" role="button">
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <i class="logo-line"></i>
+      <h1 class="site-title">我住8楼</h1>
+      <i class="logo-line"></i>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+    </div>
+  </div>
+</div>
+
+
+
+<nav class="site-nav">
+  <ul class="main-menu menu">
+        <li class="menu-item menu-item-home"><a href="/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a></li>
+        <li class="menu-item menu-item-tags"><a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>标签</a></li>
+        <li class="menu-item menu-item-categories"><a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>分类</a></li>
+        <li class="menu-item menu-item-archives"><a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档</a></li>
+  </ul>
+</nav>
+
+
+
+
+</div>
+        
+  
+  <div class="toggle sidebar-toggle" role="button">
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+  </div>
+
+  <aside class="sidebar">
+
+    <div class="sidebar-inner sidebar-nav-active sidebar-toc-active">
+      <ul class="sidebar-nav">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <div class="sidebar-panel-container">
+        <!--noindex-->
+        <div class="post-toc-wrap sidebar-panel">
+            <div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#1-%E7%AC%AC%E4%B8%80%E4%BB%A3%E6%96%87%E4%BB%B6%E6%A0%BC%E5%BC%8F%E5%9B%9E%E9%A1%BE"><span class="nav-number">1.</span> <span class="nav-text">1. 第一代文件格式回顾</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#2-%E6%9B%B4%E9%AB%98%E6%9F%A5%E8%AF%A2%E6%80%A7%E8%83%BD"><span class="nav-number">2.</span> <span class="nav-text">2. 更高查询性能</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#2-1-%E7%B4%A2%E5%BC%95%E7%BB%93%E6%9E%84"><span class="nav-number">2.1.</span> <span class="nav-text">2.1 索引结构</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#2-2-%E6%96%87%E4%BB%B6%E6%A0%BC%E5%BC%8F"><span class="nav-number">2.2.</span> <span class="nav-text">2.2 文件格式</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#2-2-1-%E6%96%87%E4%BB%B6%E5%A4%B4-amp-%E6%96%87%E4%BB%B6%E5%B0%BE"><span class="nav-number">2.2.1.</span> <span class="nav-text">2.2.1 文件头&amp;文件尾</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#2-2-2-%E6%95%B0%E6%8D%AE%E9%83%A8%E5%88%86"><span class="nav-number">2.2.2.</span> <span class="nav-text">2.2.2 数据部分</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#2-2-2-1-ChunkGroup"><span class="nav-number">2.2.2.1.</span> <span class="nav-text">2.2.2.1 ChunkGroup</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#2-2-2-2-Chunk"><span class="nav-number">2.2.2.2.</span> <span class="nav-text">2.2.2.2 Chunk</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#2-2-2-3-Page"><span class="nav-number">2.2.2.3.</span> <span class="nav-text">2.2.2.3 Page</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#2-3-3-%E5%85%83%E6%95%B0%E6%8D%AE%E9%83%A8%E5%88%86"><span class="nav-number">2.2.3.</span> <span class="nav-text">2.3.3 元数据部分</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#2-3-3-1-ChunkMetaData"><span class="nav-number">2.2.3.1.</span> <span class="nav-text">2.3.3.1 ChunkMetaData</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#2-3-3-2-Timeseriesmetadata"><span class="nav-number">2.2.3.2.</span> <span class="nav-text">2.3.3.2 Timeseriesmetadata</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#2-3-3-3-TsFileMetadata"><span class="nav-number">2.2.3.3.</span> <span class="nav-text">2.3.3.3 TsFileMetadata</span></a><ol class="nav-child"><li class="nav-item nav-level-5"><a class="nav-link" href="#2-3-3-3-1-MetadataIndexNode"><span class="nav-number">2.2.3.3.1.</span> <span class="nav-text">2.3.3.3.1 MetadataIndexNode</span></a></li></ol></li></ol></li></ol></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#3-%E6%94%AF%E6%8C%81%E6%9B%B4%E9%AB%98%E6%95%88%E7%9A%84%E5%8E%8B%E7%BC%A9"><span class="nav-number">3.</span> <span class="nav-text">3. 支持更高效的压缩</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#3-1-%E6%97%8B%E8%BD%AC%E9%97%A8%E5%8E%8B%E7%BC%A9%E7%AE%97%E6%B3%95"><span class="nav-number">3.1.</span> <span class="nav-text">3.1 旋转门压缩算法</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#3-1-1-%E5%90%8D%E8%AF%8D%E8%A7%A3%E9%87%8A"><span class="nav-number">3.1.1.</span> <span class="nav-text">3.1.1 名词解释</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#3-1-2-%E7%AE%97%E6%B3%95%E6%B5%81%E7%A8%8B%E8%AF%B4%E6%98%8E"><span class="nav-number">3.1.2.</span> <span class="nav-text">3.1.2 算法流程说明</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#3-1-2-1-%E7%9B%B8%E5%85%B3%E8%AF%B4%E6%98%8E"><span class="nav-number">3.1.2.1.</span> <span class="nav-text">3.1.2.1 相关说明</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#3-1-2-2-%E5%8E%8B%E7%BC%A9%E8%BF%87%E7%A8%8B%E5%A6%82%E4%B8%8B"><span class="nav-number">3.1.2.2.</span> <span class="nav-text">3.1.2.2 压缩过程如下</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#3-1-3-%E7%AE%97%E6%B3%95%E6%80%BB%E7%BB%93"><span class="nav-number">3.1.3.</span> <span class="nav-text">3.1.3 算法总结</span></a></li></ol></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#4-%E5%8F%82%E8%80%83"><span class="nav-number">4.</span> <span class="nav-text">4. 参考</span></a></li></ol></div>
+        </div>
+        <!--/noindex-->
+
+        <div class="site-overview-wrap sidebar-panel">
+          <div class="site-author site-overview-item animated" itemprop="author" itemscope itemtype="http://schema.org/Person">
+  <p class="site-author-name" itemprop="name">Jason Chao</p>
+  <div class="site-description" itemprop="description"></div>
+</div>
+<div class="site-state-wrap site-overview-item animated">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">14</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+          
+        <span class="site-state-item-count">2</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+          
+        <span class="site-state-item-count">10</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+
+
+
+        </div>
+      </div>
+    </div>
+  </aside>
+  <div class="sidebar-dimmer"></div>
+
+
+    </header>
+
+    
+  <div class="back-to-top" role="button">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+<noscript>
+  <div class="noscript-warning">Theme NexT works best with JavaScript enabled</div>
+</noscript>
+
+
+    <div class="main-inner post posts-expand">
+
+
+  
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="http://example.com/2021/04/19/%E6%97%B6%E5%BA%8F%E6%95%B0%E6%8D%AE%E5%BA%93%E5%AD%98%E5%82%A8%E6%96%87%E4%BB%B6%E6%A0%BC%E5%BC%8F%E7%A0%94%E7%A9%B6-2/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="Jason Chao">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="我住8楼">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          时序数据库存储文件格式研究-2
+        </h1>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">发表于</span>
+
+      <time title="创建时间：2021-04-19 20:47:13" itemprop="dateCreated datePublished" datetime="2021-04-19T20:47:13+08:00">2021-04-19</time>
+    </span>
+      <span class="post-meta-item">
+        <span class="post-meta-item-icon">
+          <i class="far fa-calendar-check"></i>
+        </span>
+        <span class="post-meta-item-text">更新于</span>
+        <time title="修改时间：2021-05-25 18:58:19" itemprop="dateModified" datetime="2021-05-25T18:58:19+08:00">2021-05-25</time>
+      </span>
+
+  
+</div>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+        <blockquote>
+<p>上一篇介绍了超高性能的时序数据库CirroData-TimeS的第一代文件存储格式设计思路（<a target="_blank" rel="noopener" href="https://mp.weixin.qq.com/s/jfXb3OL1_HWet3QaYd0oVQ">极致性能大揭秘（之一）！CirroData-TimeS时序数据库的文件存储格式</a>），本篇继续介绍文件格式演化。</p>
+</blockquote>
+<h1 id="1-第一代文件格式回顾"><a href="#1-第一代文件格式回顾" class="headerlink" title="1. 第一代文件格式回顾"></a>1. 第一代文件格式回顾</h1><p>如下图所示，TsFile文件格式分为几大块：</p>
+<ol>
+<li><p>文件头（magic number）</p>
+</li>
+<li><p>数据部分</p>
+</li>
+<li><p>元数据部分（索引部分）</p>
+</li>
+<li><p>文件尾（magic number）</p>
+<img src="/2021/04/19/%E6%97%B6%E5%BA%8F%E6%95%B0%E6%8D%AE%E5%BA%93%E5%AD%98%E5%82%A8%E6%96%87%E4%BB%B6%E6%A0%BC%E5%BC%8F%E7%A0%94%E7%A9%B6-2/Tsfile0.8.png" class="" title="Tsfile0.8">
+
+</li>
+</ol>
+<p>读取的流程如下：</p>
+<ol>
+<li>读取文件元数据信息，把所有的deviceIndexMetadata都反序列化到内存中</li>
+<li>二分查找deviceIndexMetadata，找到对应的device的ChunkGroupMetadata</li>
+<li>读取该device下所有的ChunkMetaData到内存中</li>
+<li>二分查找ChunkMetaData，然后读取对应的数据</li>
+</ol>
+<p>实际生产过程中会遇到一个设备有几十万的传感器的情况，此时会加载大量与当前查询无关的ChunkMetaData信息，对查询性能也会有巨大的性能开销。</p>
+<p>怎么进行优化？</p>
+<h1 id="2-更高查询性能"><a href="#2-更高查询性能" class="headerlink" title="2. 更高查询性能"></a>2. 更高查询性能</h1><h2 id="2-1-索引结构"><a href="#2-1-索引结构" class="headerlink" title="2.1 索引结构"></a>2.1 索引结构</h2><p>既然每次查询时，一次性序列化一个设备下所有的传感器的元数据非常费时，比较直观的方式是再抽象一层索引出来，提高查询准确度，降低需要反序列化的元数据数量，带来的性能开销。</p>
+<p><strong>这里有一个权衡</strong>：是多读一次磁盘开销比较大，还是一次反序列化许多对象的时间比较大？</p>
+<p><em>测试表明，当反序列化30万元数据对象时大概耗时250ms，而读一次磁盘大概也就8ms左右。因此当反序列化的对象比较多的时候，其开销超过了读磁盘的开销，那此时进行元数据分层索引来降低反序列化的对象个数，收益更大。</em></p>
+<p>因此做第二代文件格式设计上做两点考虑：</p>
+<ul>
+<li><p>对元数据这块引入多层索引结构来降低一个设备中测点非常多场景下的访问开销。</p>
+</li>
+<li><p>同理，因为每次读取时会反序列化非常多的设备级别的元数据，一旦设备个数非常多，查询时也会有非常高的性能开销，因此也需要引入多层索引结构来降低反序列化设备索引的个数。</p>
+</li>
+</ul>
+<p>第二代文件格式如下图所示：</p>
+<img src="/2021/04/19/%E6%97%B6%E5%BA%8F%E6%95%B0%E6%8D%AE%E5%BA%93%E5%AD%98%E5%82%A8%E6%96%87%E4%BB%B6%E6%A0%BC%E5%BC%8F%E7%A0%94%E7%A9%B6-2/TsFile0.10.png" class="" title="TsFile0.10">
+
+<p>有三个变化：</p>
+<ol>
+<li><p>之前的deviceIndexData改成多层级索引树结构，分为internal_device和leaf_device两种节点：</p>
+<ul>
+<li><p>internal_device属于中间层次的设备级索引，指向的是下一级internal_device或者leaf_device</p>
+</li>
+<li><p>leaf_device是末尾的设备级索引，指向的是传感器级的索引，即internal_measurement或leaf_measurement</p>
+</li>
+</ul>
+</li>
+<li><p>添加新的索引层级，传感器级索引，分为internal_measurement和leaf_measurement两种节点：</p>
+<ul>
+<li><p>internal_measurement属于中间层次的传感器级索引，指向的是下一级internal_measurement或者leaf_measurement</p>
+</li>
+<li><p>leaf_measurement是末尾的传感器级索引，指向的是传感器级的元数据，即TimeseriesMetadata</p>
+</li>
+</ul>
+</li>
+<li><p>去掉chunkGroupMetaData，新增TimeseriesMetadata，之前是每个设备下的一批传感器的所有chunkMetaData索引在一起，现在改成按传感器来索引ChunkMetaData。这样组织，在只查询某个传感器的数据时，可以只加载与此传感器相关的数据，对于只是关注某个传感器的某段时间数据的查询比较友好。</p>
+</li>
+</ol>
+<p>分析下新文件格式中的io次数。</p>
+<p>读取的流程如下：</p>
+<ol>
+<li>读取文件元数据信息，把第一层的设备级索引都反序列化到内存中</li>
+<li>二分查找设备级索引，找到对应的传感器层的索引</li>
+<li>读取传感器层的索引，反序列化到内存中</li>
+<li>二分查找传感器层的索引，找到并读取该传感器下TimeseriesMetaData</li>
+<li>根据TimeseriesMetadata读取所有的ChunkMetaData到内存中</li>
+<li>二分查找ChunkMetaData，然后读取对应的数据</li>
+</ol>
+<p>可以看到比文件格式的第一版要多一次io，但是其序列化的元数据列表因为只跟要查询的传感器相关，会比较小，综合来看，查询性能会提升。</p>
+<h2 id="2-2-文件格式"><a href="#2-2-文件格式" class="headerlink" title="2.2 文件格式"></a>2.2 文件格式</h2><p>如下图所示，TsFile文件格式仍然分为四大块：</p>
+<ol>
+<li>文件头（magic number）</li>
+<li>数据部分</li>
+<li>元数据部分（索引部分）</li>
+<li>文件尾（magic number）</li>
+</ol>
+<h3 id="2-2-1-文件头-amp-文件尾"><a href="#2-2-1-文件头-amp-文件尾" class="headerlink" title="2.2.1 文件头&amp;文件尾"></a>2.2.1 文件头&amp;文件尾</h3><p>都是magic number，共12字节<code>TsFile000002</code></p>
+<h3 id="2-2-2-数据部分"><a href="#2-2-2-数据部分" class="headerlink" title="2.2.2 数据部分"></a>2.2.2 数据部分</h3><h4 id="2-2-2-1-ChunkGroup"><a href="#2-2-2-1-ChunkGroup" class="headerlink" title="2.2.2.1 ChunkGroup"></a>2.2.2.1 ChunkGroup</h4><p>代表一个设备（device）的一段时间的数据，包含一系列Chunk，末尾还有一个ChunkFooter（用来记录deviceId信息）。</p>
+<h4 id="2-2-2-2-Chunk"><a href="#2-2-2-2-Chunk" class="headerlink" title="2.2.2.2 Chunk"></a>2.2.2.2 Chunk</h4><p>代表一个传感器一段时间的数据，包含一个ChunkHeader和一系列Page。</p>
+<h4 id="2-2-2-3-Page"><a href="#2-2-2-3-Page" class="headerlink" title="2.2.2.3 Page"></a>2.2.2.3 Page</h4><p>代表一个传感器一小段时间的数据，包含一个PageHeader和一系列点数据。其中点数据包含是时间列和数值列，一一对应。</p>
+<h3 id="2-3-3-元数据部分"><a href="#2-3-3-元数据部分" class="headerlink" title="2.3.3 元数据部分"></a>2.3.3 元数据部分</h3><h4 id="2-3-3-1-ChunkMetaData"><a href="#2-3-3-1-ChunkMetaData" class="headerlink" title="2.3.3.1 ChunkMetaData"></a>2.3.3.1 ChunkMetaData</h4><p>某个传感器某段时间的数据索引。</p>
+<h4 id="2-3-3-2-Timeseriesmetadata"><a href="#2-3-3-2-Timeseriesmetadata" class="headerlink" title="2.3.3.2 Timeseriesmetadata"></a>2.3.3.2 Timeseriesmetadata</h4><p>某个传感器所有的数据元数据（chunkMetaData）索引。</p>
+<h4 id="2-3-3-3-TsFileMetadata"><a href="#2-3-3-3-TsFileMetadata" class="headerlink" title="2.3.3.3 TsFileMetadata"></a>2.3.3.3 TsFileMetadata</h4><p>整个文件元数据根，包括索引树，版本信息，bloom过滤器等。</p>
+<h5 id="2-3-3-3-1-MetadataIndexNode"><a href="#2-3-3-3-1-MetadataIndexNode" class="headerlink" title="2.3.3.3.1 MetadataIndexNode"></a>2.3.3.3.1 MetadataIndexNode</h5><p>索引树的根，分层级架构，如上图所示。</p>
+<h1 id="3-支持更高效的压缩"><a href="#3-支持更高效的压缩" class="headerlink" title="3. 支持更高效的压缩"></a>3. 支持更高效的压缩</h1><p>目前实时数据库领域的有损压缩方法主要分为两大类：死区压缩和趋势压缩。</p>
+<ul>
+<li>死区压缩，是将新值与上一次的记录值进行比较，当两者差的绝对值小于误差允许阈值时，就抛弃该数据，反之保留该数据。死区压缩算法简单，但是压缩比低，很难满足实时数据库系统的要求。</li>
+<li>趋势压缩，是根据测点的阶段性趋势进行压缩，原则上只记录满足趋势条件的起点和终点。趋势算法以PI公司的旋转门算法为代表，旋转门算法大大提高了实时数据库的压缩率，一般可以达到30:1的压缩比。</li>
+</ul>
+<p>在设计第二代文件格式过程中，还引入了旋转门压缩算法来进一步提高压缩效果。</p>
+<h2 id="3-1-旋转门压缩算法"><a href="#3-1-旋转门压缩算法" class="headerlink" title="3.1 旋转门压缩算法"></a>3.1 旋转门压缩算法</h2><h3 id="3-1-1-名词解释"><a href="#3-1-1-名词解释" class="headerlink" title="3.1.1 名词解释"></a>3.1.1 名词解释</h3><table>
+<thead>
+<tr>
+<th>名词</th>
+<th>解释</th>
+<th>备注</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Error Compression Deviation (CD) 压缩偏差</td>
+<td>一个数据点与线性趋势的最大差异值 E</td>
+<td>运行程序前，预先设定的E绝对压缩偏差值 <br/>在偏差范围内，数据被压缩并扔掉 <br/>在偏差范围外，数据不被压缩，保存下来</td>
+</tr>
+<tr>
+<td>segment</td>
+<td>当前正在进行压缩判断的是数据段，包含一个起点和一个终点。</td>
+<td></td>
+</tr>
+<tr>
+<td>noisy point</td>
+<td>噪音点，测量中的随机错误或偏差</td>
+<td></td>
+</tr>
+<tr>
+<td>Compression minimum (comp min)</td>
+<td>segment起止数据点之间的最小时间间隔距离</td>
+<td>若 compMin = 0，记录每一个超过CD的点<br/>可以设定compMin 防止noisy point 占用存储空间</td>
+</tr>
+<tr>
+<td>Compression maximum (comp max)</td>
+<td>segment 起止数据点之间的最大时间间隔距离</td>
+<td>不论CD 的值，若两点之间的时间距离 &gt;= compMax，系统会记录当前数据点并结束当当前segment<br/>为了更精准的压缩数据</td>
+</tr>
+<tr>
+<td>upperDoor</td>
+<td>当前保留数据点值+CD为支点的门</td>
+<td>起始默认为关闭状态 Integer.min <br/>和curUpperSlope 进行比较，取最大值，只能逆时针打开</td>
+</tr>
+<tr>
+<td>lowerDoor</td>
+<td>当前保留数据点值-CD为支点的门</td>
+<td>起始默认为关闭状态 Integer.max  <br/>和curLowerSlope进行比较，取最小值，只能顺时针打开</td>
+</tr>
+<tr>
+<td>curUpperSlope</td>
+<td>当前数据点到segment starttime 的上斜率</td>
+<td></td>
+</tr>
+<tr>
+<td>curLowerSlope</td>
+<td>当前数据点到segment starttime 的下斜率</td>
+<td></td>
+</tr>
+</tbody></table>
+<h3 id="3-1-2-算法流程说明"><a href="#3-1-2-算法流程说明" class="headerlink" title="3.1.2 算法流程说明"></a>3.1.2 算法流程说明</h3><img src="/2021/04/19/%E6%97%B6%E5%BA%8F%E6%95%B0%E6%8D%AE%E5%BA%93%E5%AD%98%E5%82%A8%E6%96%87%E4%BB%B6%E6%A0%BC%E5%BC%8F%E7%A0%94%E7%A9%B6-2/%E4%BC%81%E4%B8%9A%E5%BE%AE%E4%BF%A1%E6%88%AA%E5%9B%BE_16218412107930.png" class="" title="img">
+
+<h4 id="3-1-2-1-相关说明"><a href="#3-1-2-1-相关说明" class="headerlink" title="3.1.2.1 相关说明"></a>3.1.2.1 相关说明</h4><ul>
+<li><p>绿色虚线： upperDoor, lowerDoor</p>
+</li>
+<li><p>灰色虚线：新节点加入时重新计算的upperDoor，lowerDoor</p>
+</li>
+<li><p>lowerDoor：当前segment 所有数据最小的下斜率</p>
+</li>
+<li><p>upperDoor：当前segment 所有数据最大的上斜率</p>
+</li>
+<li><p>红色实线：segment，实际上是存储 startpoint endpoint，后续解压缩时使用</p>
+</li>
+<li><p>lastStored：上一次保存的点，包含time和value，即lastStoredVal, lastStoredTime</p>
+</li>
+<li><p>lastRead：上一次读取的点，包含time和value</p>
+</li>
+<li><p>上下斜率计算方式：</p>
+<ul>
+<li><p>curUpperSlope = (curVal - lastStoredVal - CD) / (curTime - lastStoredTime)</p>
+</li>
+<li><p>curLowerSlope = (curVal - lastStoredVal + CD) / (curTime - lastStoredTime)</p>
+</li>
+<li><p>upperDoor = Math.max(curUpperSlope, upperDoor)</p>
+</li>
+<li><p>lowerDoor = Math.min(curLowerSlope, lowerDoor)</p>
+</li>
+</ul>
+</li>
+</ul>
+<h4 id="3-1-2-2-压缩过程如下"><a href="#3-1-2-2-压缩过程如下" class="headerlink" title="3.1.2.2 压缩过程如下"></a>3.1.2.2 压缩过程如下</h4><p>如上图，数据加入及压缩流程：</p>
+<ol>
+<li>新加入数据点p0，设置为lastStored，并保存下来<ol>
+<li>lastStored = p0 当数据为第一个数据或者超过CD时，标记lastStored，并加入compressedList</li>
+</ol>
+</li>
+<li>upperDoor, lowerDoor 起始默认为关闭的（绿色虚线）<ol>
+<li>upperDoor 只能逆时针打开，lowerDoor 只能顺时针打开</li>
+</ol>
+</li>
+<li>新加入数据点p1，计算p1 的 upperSlope，lowerSlope</li>
+<li>当前计算的upperSlope &gt; upperDoor，lowerSlope &lt; lowerDoor<ol>
+<li>两扇门分别打开，并更新其最大最小值</li>
+<li>因为p1 在CD 范围内，不会被保存，标记为lastRead。lastStored 依旧为 p0</li>
+</ol>
+</li>
+<li>新加入数据点p2，重新计算upperSlope，lowerSlope。并更新upperDoor，lowerDoor</li>
+<li>新加入数据点p3，重新计算upperSlope，lowerSlope。并更新upperDoor。不更新lowerDoor，因为 lowerSlope &gt; lowerDoor，lowerDoor 只能顺时针打开</li>
+<li>新加入数据点p4，重新计算upperSlope，lowerSlope。并更新lowerDoor，不更新upperDoor</li>
+<li>每次计算完上下斜率，进行upperDoor lowerDoor 检查是否超过平行</li>
+<li>加入p4 的时候。发现upperDoor &gt;= lowerDoor，两扇门超过平行水平，数据范围已经超过了CD，需要保存上一个数据点lastRead p3<ol>
+<li>标记 lastStored = p3，compressedList 加入p3</li>
+<li>p3 作为segment0 endpoint</li>
+<li>p3 作为segment1 startpoint</li>
+<li>p4 和p3 进行比较，重新计算upperDoor，lowerDoor（绿色虚线）</li>
+</ol>
+</li>
+</ol>
+<h3 id="3-1-3-算法总结"><a href="#3-1-3-算法总结" class="headerlink" title="3.1.3 算法总结"></a>3.1.3 算法总结</h3><ol>
+<li>第一个数据点需要保存</li>
+<li>第二个及以后的数据点，通过比较last read point<ol>
+<li>计算当前到segment startpoint 的上斜率，并和upperDoor 进行比较</li>
+<li>计算当前到segment startpoint 的下斜率，并和lowerDoor进行比较</li>
+</ol>
+</li>
+<li>upperDoor 只能逆时针打开，lowerDoor 只能顺时针打开</li>
+<li>若两扇门处于或超过平行状态，并且当前点和上一存储点的时间间隔 &gt;= comp min，存储last read point，并开启新的segment</li>
+<li>新的segment upperDoor，lowerDoor 计算通过当前数据和上一个segment endpoint 进行比较</li>
+<li>若当前点和上一存储点的时间间隔 &gt;= comp max，存储当前点，开启新的segment</li>
+<li>若当前点和上一存储点的时间间隔 &lt;= comp min，不存储当前点，防止noisy point</li>
+<li>若全部rawData 读取完毕，compressedList 只有第一个数据（所有数据偏差不超过CD）则加入最后一个读取的数据点</li>
+</ol>
+<p>我们在原有的一些编码压缩方式上，再加上SDT压缩，混合起来可以获得超过30:1的压缩比，进一步节约存储成本。</p>
+<p>到本篇为止，已经介绍完了第一代和第二代的文件格式。后续我们将继续介绍基于文件的读写逻辑，分析下一些分析数据框架如何基于文件对接。</p>
+<blockquote>
+<p>预告一下：分布式正式版本预计下周就要发布了，并会在官网上有相关介绍。目前已经在某些场景上线验证中，欢迎访问<a target="_blank" rel="noopener" href="http://www.cirrodata.com/">官网</a>咨询试用，敬请期待！</p>
+</blockquote>
+<h1 id="4-参考"><a href="#4-参考" class="headerlink" title="4. 参考"></a>4. 参考</h1><ol>
+<li><a target="_blank" rel="noopener" href="http://iotdb.apache.org/zh/SystemDesign/TsFile/Format.html">文件格式</a></li>
+<li><a target="_blank" rel="noopener" href="https://patents.google.com/patent/CN103136202A/zh">CN103136202A - 实时数据库中动态预测有损压缩及解压的方法 - Google Patents</a></li>
+<li><a target="_blank" rel="noopener" href="https://blog.csdn.net/Herman_He/article/details/50260705">实时数据库历史数据容量的计算方法_Herman 的博客-CSDN博客</a></li>
+</ol>
+<!-- flag of hidden posts -->
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/tsdb/" rel="tag"># tsdb</a>
+              <a href="/tags/file/" rel="tag"># file</a>
+          </div>
+
+        
+
+    </footer>
+  </article>
+</div>
+
+
+
+
+
+
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      const activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      const commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+</div>
+  </main>
+
+  <footer class="footer">
+    <div class="footer-inner">
+
+
+<div class="copyright">
+  &copy; 
+  <span itemprop="copyrightYear">2021</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Jason Chao</span>
+</div>
+  <div class="powered-by">由 <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://theme-next.js.org/" class="theme-link" rel="noopener" target="_blank">NexT.Gemini</a> 强力驱动
+  </div>
+
+    </div>
+  </footer>
+
+  
+  <script src="//cdn.jsdelivr.net/npm/animejs@3.2.1/lib/anime.min.js"></script>
+<script src="/js/utils.js"></script><script src="/js/motion.js"></script><script src="/js/next-boot.js"></script>
+
+  
+
+
+
+
+
+
+  
+
+
+
+
+
+</body>
+</html>

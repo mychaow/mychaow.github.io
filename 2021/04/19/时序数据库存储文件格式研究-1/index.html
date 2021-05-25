@@ -1,0 +1,552 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 5.3.0">
+
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+
+<link rel="stylesheet" href="//cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@5.15.1/css/all.min.css">
+  <link rel="stylesheet" href="//cdn.jsdelivr.net/npm/animate.css@3.1.1/animate.min.css">
+
+<script class="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"example.com","root":"/","images":"/images","scheme":"Gemini","version":"8.2.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12},"copycode":false,"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"fadeInDown","post_body":"fadeInDown","coll_header":"fadeInLeft","sidebar":"fadeInUp"}},"prism":false,"i18n":{"placeholder":"搜索...","empty":"没有找到任何搜索结果：${query}","hits_time":"找到 ${hits} 个搜索结果（用时 ${time} 毫秒）","hits":"找到 ${hits} 个搜索结果"}};
+  </script>
+<meta name="description" content="上一篇介绍了超高性能的时序数据库CirroData-TimeS的数据建模方式以及性能（如何应对物联网时代数据爆炸式增长？CirroData-TimeS 时序数据库来了！)，本篇继续介绍如何达到这么高的性能的核心技术—–文件存储格式  1. 时序数据特征上一篇介绍到，时序数据有如下特征：   数据是时序的，即一定带有时间戳。 由于时序数据是某个测点，或是某个事件源持续不断的产生的，产生数据的时间点">
+<meta property="og:type" content="article">
+<meta property="og:title" content="时序数据库存储文件格式研究-1">
+<meta property="og:url" content="http://example.com/2021/04/19/%E6%97%B6%E5%BA%8F%E6%95%B0%E6%8D%AE%E5%BA%93%E5%AD%98%E5%82%A8%E6%96%87%E4%BB%B6%E6%A0%BC%E5%BC%8F%E7%A0%94%E7%A9%B6-1/index.html">
+<meta property="og:site_name" content="我住8楼">
+<meta property="og:description" content="上一篇介绍了超高性能的时序数据库CirroData-TimeS的数据建模方式以及性能（如何应对物联网时代数据爆炸式增长？CirroData-TimeS 时序数据库来了！)，本篇继续介绍如何达到这么高的性能的核心技术—–文件存储格式  1. 时序数据特征上一篇介绍到，时序数据有如下特征：   数据是时序的，即一定带有时间戳。 由于时序数据是某个测点，或是某个事件源持续不断的产生的，产生数据的时间点">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="http://example.com/2021/04/19/%E6%97%B6%E5%BA%8F%E6%95%B0%E6%8D%AE%E5%BA%93%E5%AD%98%E5%82%A8%E6%96%87%E4%BB%B6%E6%A0%BC%E5%BC%8F%E7%A0%94%E7%A9%B6-1/%E8%A1%8C%E5%AD%98-1613703347907.png">
+<meta property="og:image" content="http://example.com/2021/04/19/%E6%97%B6%E5%BA%8F%E6%95%B0%E6%8D%AE%E5%BA%93%E5%AD%98%E5%82%A8%E6%96%87%E4%BB%B6%E6%A0%BC%E5%BC%8F%E7%A0%94%E7%A9%B6-1/%E5%88%97%E5%AD%98-1613703374518.png">
+<meta property="og:image" content="http://example.com/2021/04/19/%E6%97%B6%E5%BA%8F%E6%95%B0%E6%8D%AE%E5%BA%93%E5%AD%98%E5%82%A8%E6%96%87%E4%BB%B6%E6%A0%BC%E5%BC%8F%E7%A0%94%E7%A9%B6-1/%E8%A1%8C%E5%88%97%E5%BC%8F-1613703384899.png">
+<meta property="og:image" content="http://example.com/2021/04/19/%E6%97%B6%E5%BA%8F%E6%95%B0%E6%8D%AE%E5%BA%93%E5%AD%98%E5%82%A8%E6%96%87%E4%BB%B6%E6%A0%BC%E5%BC%8F%E7%A0%94%E7%A9%B6-1/image-20210219113445811.png">
+<meta property="og:image" content="http://example.com/2021/04/19/%E6%97%B6%E5%BA%8F%E6%95%B0%E6%8D%AE%E5%BA%93%E5%AD%98%E5%82%A8%E6%96%87%E4%BB%B6%E6%A0%BC%E5%BC%8F%E7%A0%94%E7%A9%B6-1/ChunkGroup-1613706831185.png">
+<meta property="og:image" content="http://example.com/2021/04/19/%E6%97%B6%E5%BA%8F%E6%95%B0%E6%8D%AE%E5%BA%93%E5%AD%98%E5%82%A8%E6%96%87%E4%BB%B6%E6%A0%BC%E5%BC%8F%E7%A0%94%E7%A9%B6-1/%E7%B4%A2%E5%BC%95%E6%A0%910.8-1613784353367.png">
+<meta property="og:image" content="http://example.com/2021/04/19/%E6%97%B6%E5%BA%8F%E6%95%B0%E6%8D%AE%E5%BA%93%E5%AD%98%E5%82%A8%E6%96%87%E4%BB%B6%E6%A0%BC%E5%BC%8F%E7%A0%94%E7%A9%B6-1/Tsfile0.8-1613785133160.png">
+<meta property="article:published_time" content="2021-04-19T02:34:50.000Z">
+<meta property="article:modified_time" content="2021-05-25T10:59:08.684Z">
+<meta property="article:author" content="Jason Chao">
+<meta property="article:tag" content="tsdb">
+<meta property="article:tag" content="file">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http://example.com/2021/04/19/%E6%97%B6%E5%BA%8F%E6%95%B0%E6%8D%AE%E5%BA%93%E5%AD%98%E5%82%A8%E6%96%87%E4%BB%B6%E6%A0%BC%E5%BC%8F%E7%A0%94%E7%A9%B6-1/%E8%A1%8C%E5%AD%98-1613703347907.png">
+
+
+<link rel="canonical" href="http://example.com/2021/04/19/%E6%97%B6%E5%BA%8F%E6%95%B0%E6%8D%AE%E5%BA%93%E5%AD%98%E5%82%A8%E6%96%87%E4%BB%B6%E6%A0%BC%E5%BC%8F%E7%A0%94%E7%A9%B6-1/">
+
+
+<script class="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'zh-CN'
+  };
+</script>
+<title>时序数据库存储文件格式研究-1 | 我住8楼</title><meta name="robots" content="noindex">
+  
+
+
+
+
+  <noscript>
+  <style>
+  body { margin-top: 2rem; }
+
+  .use-motion .menu-item,
+  .use-motion .sidebar,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header {
+    visibility: visible;
+  }
+
+  .use-motion .header,
+  .use-motion .site-brand-container .toggle,
+  .use-motion .footer { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle,
+  .use-motion .custom-logo-image {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line {
+    transform: scaleX(1);
+  }
+
+  .search-pop-overlay, .sidebar-nav { display: none; }
+  .sidebar-panel { display: block; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" class="use-motion">
+  <div class="headband"></div>
+
+  <main class="main">
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏" role="button">
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <i class="logo-line"></i>
+      <h1 class="site-title">我住8楼</h1>
+      <i class="logo-line"></i>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+    </div>
+  </div>
+</div>
+
+
+
+<nav class="site-nav">
+  <ul class="main-menu menu">
+        <li class="menu-item menu-item-home"><a href="/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a></li>
+        <li class="menu-item menu-item-tags"><a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>标签</a></li>
+        <li class="menu-item menu-item-categories"><a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>分类</a></li>
+        <li class="menu-item menu-item-archives"><a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档</a></li>
+  </ul>
+</nav>
+
+
+
+
+</div>
+        
+  
+  <div class="toggle sidebar-toggle" role="button">
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+  </div>
+
+  <aside class="sidebar">
+
+    <div class="sidebar-inner sidebar-nav-active sidebar-toc-active">
+      <ul class="sidebar-nav">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <div class="sidebar-panel-container">
+        <!--noindex-->
+        <div class="post-toc-wrap sidebar-panel">
+            <div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#1-%E6%97%B6%E5%BA%8F%E6%95%B0%E6%8D%AE%E7%89%B9%E5%BE%81"><span class="nav-number">1.</span> <span class="nav-text">1. 时序数据特征</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#2-%E6%96%87%E4%BB%B6%E5%AD%98%E5%82%A8%E6%96%B9%E5%BC%8F"><span class="nav-number">2.</span> <span class="nav-text">2. 文件存储方式</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#2-1-%E8%A1%8C%E5%AD%98"><span class="nav-number">2.1.</span> <span class="nav-text">2.1 行存</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#2-2-%E5%88%97%E5%AD%98"><span class="nav-number">2.2.</span> <span class="nav-text">2.2 列存</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#2-3-%E8%A1%8C%E5%88%97%E5%BC%8F%E5%AD%98%E5%82%A8"><span class="nav-number">2.3.</span> <span class="nav-text">2.3 行列式存储</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#3-%E6%96%87%E4%BB%B6%E5%AD%98%E5%82%A8%E6%A0%BC%E5%BC%8F%E9%80%89%E6%8B%A9"><span class="nav-number">3.</span> <span class="nav-text">3. 文件存储格式选择</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#4-%E5%88%97%E5%BC%8F%E6%97%B6%E5%BA%8F%E6%95%B0%E6%8D%AE%E5%AD%98%E5%82%A8%E6%A0%BC%E5%BC%8FTsfile-Time-Series-File"><span class="nav-number">4.</span> <span class="nav-text">4. 列式时序数据存储格式Tsfile(Time Series File)</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#4-1-%E6%95%B0%E6%8D%AE%E5%AD%98%E5%82%A8%E6%96%B9%E5%BC%8F"><span class="nav-number">4.1.</span> <span class="nav-text">4.1 数据存储方式</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#4-2-%E7%B4%A2%E5%BC%95%E5%AD%98%E5%82%A8%E6%96%B9%E5%BC%8F"><span class="nav-number">4.2.</span> <span class="nav-text">4.2 索引存储方式</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#4-3-%E6%96%87%E4%BB%B6%E6%A0%BC%E5%BC%8F"><span class="nav-number">4.3.</span> <span class="nav-text">4.3 文件格式</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#4-3-1-%E6%96%87%E4%BB%B6%E5%A4%B4-amp-%E6%96%87%E4%BB%B6%E5%B0%BE"><span class="nav-number">4.3.1.</span> <span class="nav-text">4.3.1 文件头&amp;文件尾</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#4-3-2-%E6%95%B0%E6%8D%AE%E9%83%A8%E5%88%86"><span class="nav-number">4.3.2.</span> <span class="nav-text">4.3.2 数据部分</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#4-3-2-1-ChunkGroup"><span class="nav-number">4.3.2.1.</span> <span class="nav-text">4.3.2.1 ChunkGroup</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#4-3-2-2-Chunk"><span class="nav-number">4.3.2.2.</span> <span class="nav-text">4.3.2.2 Chunk</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#4-3-2-3-Page"><span class="nav-number">4.3.2.3.</span> <span class="nav-text">4.3.2.3 Page</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#4-3-3-%E5%85%83%E6%95%B0%E6%8D%AE%E9%83%A8%E5%88%86"><span class="nav-number">4.3.3.</span> <span class="nav-text">4.3.3 元数据部分</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#4-3-3-1-ChunkGroupMetaData"><span class="nav-number">4.3.3.1.</span> <span class="nav-text">4.3.3.1 ChunkGroupMetaData</span></a><ol class="nav-child"><li class="nav-item nav-level-5"><a class="nav-link" href="#4-3-3-1-1-ChunkMetaData"><span class="nav-number">4.3.3.1.1.</span> <span class="nav-text">4.3.3.1.1 ChunkMetaData</span></a></li></ol></li><li class="nav-item nav-level-4"><a class="nav-link" href="#4-3-3-2-FileMetadata"><span class="nav-number">4.3.3.2.</span> <span class="nav-text">4.3.3.2 FileMetadata</span></a><ol class="nav-child"><li class="nav-item nav-level-5"><a class="nav-link" href="#4-3-3-2-1-DeviceIndexMetadata"><span class="nav-number">4.3.3.2.1.</span> <span class="nav-text">4.3.3.2.1 DeviceIndexMetadata</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#4-3-3-2-2-MeasurementSchema"><span class="nav-number">4.3.3.2.2.</span> <span class="nav-text">4.3.3.2.2 MeasurementSchema</span></a></li></ol></li></ol></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#4-4-%E4%BC%98%E5%8C%96"><span class="nav-number">4.4.</span> <span class="nav-text">4.4 优化</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#4-4-1-%E9%97%AE%E9%A2%98"><span class="nav-number">4.4.1.</span> <span class="nav-text">4.4.1 问题</span></a></li></ol></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E5%8F%82%E8%80%83%E8%B5%84%E6%96%99"><span class="nav-number">5.</span> <span class="nav-text">参考资料</span></a></li></ol></div>
+        </div>
+        <!--/noindex-->
+
+        <div class="site-overview-wrap sidebar-panel">
+          <div class="site-author site-overview-item animated" itemprop="author" itemscope itemtype="http://schema.org/Person">
+  <p class="site-author-name" itemprop="name">Jason Chao</p>
+  <div class="site-description" itemprop="description"></div>
+</div>
+<div class="site-state-wrap site-overview-item animated">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">14</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+          
+        <span class="site-state-item-count">2</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+          
+        <span class="site-state-item-count">10</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+
+
+
+        </div>
+      </div>
+    </div>
+  </aside>
+  <div class="sidebar-dimmer"></div>
+
+
+    </header>
+
+    
+  <div class="back-to-top" role="button">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+<noscript>
+  <div class="noscript-warning">Theme NexT works best with JavaScript enabled</div>
+</noscript>
+
+
+    <div class="main-inner post posts-expand">
+
+
+  
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="http://example.com/2021/04/19/%E6%97%B6%E5%BA%8F%E6%95%B0%E6%8D%AE%E5%BA%93%E5%AD%98%E5%82%A8%E6%96%87%E4%BB%B6%E6%A0%BC%E5%BC%8F%E7%A0%94%E7%A9%B6-1/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="Jason Chao">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="我住8楼">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          时序数据库存储文件格式研究-1
+        </h1>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">发表于</span>
+
+      <time title="创建时间：2021-04-19 10:34:50" itemprop="dateCreated datePublished" datetime="2021-04-19T10:34:50+08:00">2021-04-19</time>
+    </span>
+      <span class="post-meta-item">
+        <span class="post-meta-item-icon">
+          <i class="far fa-calendar-check"></i>
+        </span>
+        <span class="post-meta-item-text">更新于</span>
+        <time title="修改时间：2021-05-25 18:59:08" itemprop="dateModified" datetime="2021-05-25T18:59:08+08:00">2021-05-25</time>
+      </span>
+
+  
+</div>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+        <blockquote>
+<p>上一篇介绍了超高性能的时序数据库CirroData-TimeS的数据建模方式以及性能（<a target="_blank" rel="noopener" href="https://mp.weixin.qq.com/s/uwWqPeBsMwtDBLQVNql0TA">如何应对物联网时代数据爆炸式增长？CirroData-TimeS 时序数据库来了！</a>)，本篇继续介绍如何达到这么高的性能的核心技术—–文件存储格式</p>
+</blockquote>
+<h1 id="1-时序数据特征"><a href="#1-时序数据特征" class="headerlink" title="1. 时序数据特征"></a>1. 时序数据特征</h1><p>上一篇介绍到，时序数据有如下特征：</p>
+<blockquote>
+<ol>
+<li><p><strong>数据是时序的，即一定带有时间戳。</strong></p>
+<p>由于时序数据是某个测点，或是某个事件源持续不断的产生的，产生数据的时间点对于追溯、分析这个时间下测点，事件的状态非常重要，所以时序数据一般都带有时间戳，这个是时序数据最大的特征。</p>
+</li>
+<li><p><strong>按时间范围读取</strong></p>
+<p>通常来说，一般不会关心某个特定点的数据，而且关注一段时间的数据，关注这段时间之内的数据的走势。</p>
+</li>
+<li><p><strong>聚合查询价值高</strong></p>
+<p>用户会对某段时间之内某些测点的一些聚合值感兴趣，比如count、avg、max、last_value、first_value等。</p>
+</li>
+<li><p><strong>时间序列多大千万级甚至亿级别</strong></p>
+<p>由于入网设备的增多，测点数量增加，时间序列就会越来越多，如何管理和存储这些时间序列元信息，也是将要面临的挑战。</p>
+</li>
+<li><p><strong>数据量大，存储成本高</strong></p>
+<p>由于测点数据是不间断持续写入的，随着入网设备逐渐增加，数据量将会越来越大，会占用大量的磁盘空间，这就要求时序数据库具有较高的压缩比，能够节省磁盘空间。</p>
+</li>
+</ol>
+</blockquote>
+<h1 id="2-文件存储方式"><a href="#2-文件存储方式" class="headerlink" title="2. 文件存储方式"></a>2. 文件存储方式</h1><p>文件存储格式主要有两类：行存和列存。</p>
+<p>假设有如下数据。</p>
+<table>
+<thead>
+<tr>
+<th></th>
+<th>时间</th>
+<th>地点</th>
+<th>气温</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>1</td>
+<td>2021-02-16</td>
+<td>北京</td>
+<td>3</td>
+</tr>
+<tr>
+<td>2</td>
+<td>2020-02-17</td>
+<td>北京</td>
+<td>4</td>
+</tr>
+<tr>
+<td>3</td>
+<td>2020-02-18</td>
+<td>北京</td>
+<td>8</td>
+</tr>
+</tbody></table>
+<h2 id="2-1-行存"><a href="#2-1-行存" class="headerlink" title="2.1 行存"></a>2.1 行存</h2><p>行存如下图所示：</p>
+<ol>
+<li>每行数据连续存储</li>
+<li>行和行之间顺序存储</li>
+<li>典型的代表有Apache Avro</li>
+</ol>
+<img src="/2021/04/19/%E6%97%B6%E5%BA%8F%E6%95%B0%E6%8D%AE%E5%BA%93%E5%AD%98%E5%82%A8%E6%96%87%E4%BB%B6%E6%A0%BC%E5%BC%8F%E7%A0%94%E7%A9%B6-1/%E8%A1%8C%E5%AD%98-1613703347907.png" class="" title="行存">
+
+
+
+<h2 id="2-2-列存"><a href="#2-2-列存" class="headerlink" title="2.2 列存"></a>2.2 列存</h2><p>列存如下图所示：</p>
+<ol>
+<li>每列连续存储</li>
+<li>列和列之间顺序存储</li>
+</ol>
+<img src="/2021/04/19/%E6%97%B6%E5%BA%8F%E6%95%B0%E6%8D%AE%E5%BA%93%E5%AD%98%E5%82%A8%E6%96%87%E4%BB%B6%E6%A0%BC%E5%BC%8F%E7%A0%94%E7%A9%B6-1/%E5%88%97%E5%AD%98-1613703374518.png" class="" title="列存">
+
+<h2 id="2-3-行列式存储"><a href="#2-3-行列式存储" class="headerlink" title="2.3 行列式存储"></a>2.3 行列式存储</h2><p>还有一类是行列式存储，实际上是对列式文件存储格式的改进，如下图所示：</p>
+<ol>
+<li>以两行为一个存储单元对数据进行切分</li>
+<li>每个存储单元内按列存储</li>
+<li>典型的代表有Apache Parquet，Apache ORC</li>
+</ol>
+<img src="/2021/04/19/%E6%97%B6%E5%BA%8F%E6%95%B0%E6%8D%AE%E5%BA%93%E5%AD%98%E5%82%A8%E6%96%87%E4%BB%B6%E6%A0%BC%E5%BC%8F%E7%A0%94%E7%A9%B6-1/%E8%A1%8C%E5%88%97%E5%BC%8F-1613703384899.png" class="" title="行列式">
+
+
+
+<h1 id="3-文件存储格式选择"><a href="#3-文件存储格式选择" class="headerlink" title="3. 文件存储格式选择"></a>3. 文件存储格式选择</h1><table>
+<thead>
+<tr>
+<th></th>
+<th>行式</th>
+<th>列式</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>写入</td>
+<td>写入一次完成，完整性可确定。</td>
+<td>一行拆成多个列单独存储，写入次数比行式多很多倍</td>
+</tr>
+<tr>
+<td>读取</td>
+<td>整行读取有优势。如果只是读取几列会读取冗余列。而且每列不一样，数据解析时也会复杂一些。</td>
+<td>读取几列不会存在冗余；每列数据类型一致，解析简单。</td>
+</tr>
+<tr>
+<td>压缩</td>
+<td>各列之间数据类型特征不一致，压缩比较困难。</td>
+<td>每列数据类型一致，数据特征类似，可以高效压缩。</td>
+</tr>
+</tbody></table>
+<p>　　行存储的写入是一次性完成，消耗的时间比列存储少，并且能够保证数据的完整性，缺点是数据读取过程中会产生冗余数据，如果只有少量数据，此影响可以忽略；数量大可能会影响到数据的处理效率。</p>
+<p>​       列存储在写入效率、保证数据完整性上都不如行存储，它的优势是在读取过程，不会产生冗余数据，这对数据完整性要求不高的大数据处理领域，尤为重要；并且压缩效果好，能降低存储成本。</p>
+<p>​        <strong>而时序数据的特性是写多读少，量大，对完整性要求不高，读取模式更多的是对某些列某段数据的读取，因此其更适合列式存储格式。</strong></p>
+<h1 id="4-列式时序数据存储格式Tsfile-Time-Series-File"><a href="#4-列式时序数据存储格式Tsfile-Time-Series-File" class="headerlink" title="4. 列式时序数据存储格式Tsfile(Time Series File)"></a>4. 列式时序数据存储格式Tsfile(Time Series File)</h1><p>​        TsFile是CirroData-TimeS的数据文件存储格式，类似于Parquet的文件结构。分析TsFile文件格式之前，先来看下真实环境中时序数据的格式。</p>
+<p>​        如下图所示，一般工厂内有多个设备（device），每个设备会有多个传感器（sensor），每个传感器会采集某种指标（measurement）。</p>
+<img src="/2021/04/19/%E6%97%B6%E5%BA%8F%E6%95%B0%E6%8D%AE%E5%BA%93%E5%AD%98%E5%82%A8%E6%96%87%E4%BB%B6%E6%A0%BC%E5%BC%8F%E7%A0%94%E7%A9%B6-1/image-20210219113445811.png" class="" title="image-20210219113445811">
+
+
+
+<h2 id="4-1-数据存储方式"><a href="#4-1-数据存储方式" class="headerlink" title="4.1 数据存储方式"></a>4.1 数据存储方式</h2><ol>
+<li><strong>同一个设备（device）下的数据最好存放在一起</strong>，因为我们习惯查询一个设备的一些信息关联分析设备的情况</li>
+<li><strong>同一种指标（measurement）的数据最好放在一起</strong>，因为数据量会比较大（7x24小时产生），需要考虑压缩效率，同一类数据相似度比较高，有利于压缩</li>
+<li><strong>数据最好按时间序来存储</strong>，因为指标数据采集是源源不断的，用户查询时一般也会有监控最近一段时间，或者某段时间区间数据的需求，按时间序排序能加快查询速度</li>
+</ol>
+<p>因此入下图所示，对数据进行抽象如下：</p>
+<ol>
+<li>一个设备（device）下的数据隶属于一个ChunkGroup</li>
+<li>而每个指标（measurement）的数据存储为一个Chunk</li>
+<li>每个Chunk内数据按时间序排序，每段时间数据为一个Page</li>
+</ol>
+<img src="/2021/04/19/%E6%97%B6%E5%BA%8F%E6%95%B0%E6%8D%AE%E5%BA%93%E5%AD%98%E5%82%A8%E6%96%87%E4%BB%B6%E6%A0%BC%E5%BC%8F%E7%A0%94%E7%A9%B6-1/ChunkGroup-1613706831185.png" class="" title="ChunkGroup">
+
+<blockquote>
+<p>这里把一个chunk的数据拆成多个Page是有好处的，提供更细粒度的存储抽象单元可以降低读取冗余数据的数量。</p>
+</blockquote>
+<h2 id="4-2-索引存储方式"><a href="#4-2-索引存储方式" class="headerlink" title="4.2 索引存储方式"></a>4.2 索引存储方式</h2><p>存储完数据后，为了加快查询，一般需要建立索引，而索引越细查询越快。根据上面的数据划分，最细粒度的是Page，但是如果以Page为粒度做索引，索引的开销会很大，毕竟数据量过大，会导致大量的Page产生，索引将变得非常大，查询时如果索引无法被加载进内存，那查询效果会大打折扣。</p>
+<p>一个比较直观的做法就是以Chunk为粒度来构建索引。因此索引树就有三层。</p>
+<ol>
+<li>某个设备（device）的所有数据的索引根</li>
+<li>某个文件多次刷写设备（device）数据的索引，因为一个设备（device）的数据可能会多次刷写到一个文件里，因此其数据会分布在文件的多个位置里，需要给这每个部分加一层索引</li>
+<li>某个指标（measurement）的数据索引，因为一个设备（device）的数据里会包含多个传感器的数据，因此还需要给每个指标的数据加一层索引</li>
+</ol>
+<p>如果将一个设备（device）的某段时间的数据索引及其下的指标（measurement）的索引可以放在一起，查询时可以一并读出，可以减少一层索引的查找。</p>
+<p>最终索引树如下图所示：</p>
+<ol>
+<li>所有设备（device）的索引根按设备id顺序存放，其指向其数据的二级索引起始处</li>
+<li>某个设备（device）的所有数据的索引按时间序存放，每段时间区间的数据实际上是分散在文件的多个位置</li>
+<li>设备（device）数据索引内包含多个指标（measurement）的数据索引，按指标id顺序存放</li>
+</ol>
+<img src="/2021/04/19/%E6%97%B6%E5%BA%8F%E6%95%B0%E6%8D%AE%E5%BA%93%E5%AD%98%E5%82%A8%E6%96%87%E4%BB%B6%E6%A0%BC%E5%BC%8F%E7%A0%94%E7%A9%B6-1/%E7%B4%A2%E5%BC%95%E6%A0%910.8-1613784353367.png" class="" title="索引树0.8">
+
+
+
+<h2 id="4-3-文件格式"><a href="#4-3-文件格式" class="headerlink" title="4.3 文件格式"></a>4.3 文件格式</h2><p>如下图所示，TsFile文件格式分为几大块：</p>
+<ol>
+<li>文件头（magic number）</li>
+<li>数据部分</li>
+<li>元数据部分（索引部分）</li>
+<li>文件尾（magic number）</li>
+</ol>
+<img src="/2021/04/19/%E6%97%B6%E5%BA%8F%E6%95%B0%E6%8D%AE%E5%BA%93%E5%AD%98%E5%82%A8%E6%96%87%E4%BB%B6%E6%A0%BC%E5%BC%8F%E7%A0%94%E7%A9%B6-1/Tsfile0.8-1613785133160.png" class="" title="Tsfile0.8">
+
+<h3 id="4-3-1-文件头-amp-文件尾"><a href="#4-3-1-文件头-amp-文件尾" class="headerlink" title="4.3.1 文件头&amp;文件尾"></a>4.3.1 文件头&amp;文件尾</h3><p>都是magic number，共12字节<code>TsFilev0.8.0</code></p>
+<h3 id="4-3-2-数据部分"><a href="#4-3-2-数据部分" class="headerlink" title="4.3.2 数据部分"></a>4.3.2 数据部分</h3><h4 id="4-3-2-1-ChunkGroup"><a href="#4-3-2-1-ChunkGroup" class="headerlink" title="4.3.2.1 ChunkGroup"></a>4.3.2.1 ChunkGroup</h4><p>代表一个设备（device）的一段时间的数据，包含一系列Chunk，末尾还有一个ChunkFooter（用来记录deviceId信息）。</p>
+<h4 id="4-3-2-2-Chunk"><a href="#4-3-2-2-Chunk" class="headerlink" title="4.3.2.2 Chunk"></a>4.3.2.2 Chunk</h4><p>代表一个传感器一段时间的数据，包含一个ChunkHeader和一系列Page。</p>
+<h4 id="4-3-2-3-Page"><a href="#4-3-2-3-Page" class="headerlink" title="4.3.2.3 Page"></a>4.3.2.3 Page</h4><p>代表一个传感器一小段时间的数据，包含一个PageHeader和一系列点数据。其中点数据包含是时间列和数值列，一一对应。</p>
+<h3 id="4-3-3-元数据部分"><a href="#4-3-3-元数据部分" class="headerlink" title="4.3.3 元数据部分"></a>4.3.3 元数据部分</h3><h4 id="4-3-3-1-ChunkGroupMetaData"><a href="#4-3-3-1-ChunkGroupMetaData" class="headerlink" title="4.3.3.1 ChunkGroupMetaData"></a>4.3.3.1 ChunkGroupMetaData</h4><p>每个设备（device）某段时间的数据的索引，会有多个，每个下面会包含多个ChunkMetaData。</p>
+<h5 id="4-3-3-1-1-ChunkMetaData"><a href="#4-3-3-1-1-ChunkMetaData" class="headerlink" title="4.3.3.1.1 ChunkMetaData"></a>4.3.3.1.1 ChunkMetaData</h5><p>某个传感器某段时间的数据索引。</p>
+<h4 id="4-3-3-2-FileMetadata"><a href="#4-3-3-2-FileMetadata" class="headerlink" title="4.3.3.2 FileMetadata"></a>4.3.3.2 FileMetadata</h4><p>整个文件的元数据信息，包括设备（device）数据索引的根，指标（measurement）的元数据信息，以及一些统计数据。</p>
+<h5 id="4-3-3-2-1-DeviceIndexMetadata"><a href="#4-3-3-2-1-DeviceIndexMetadata" class="headerlink" title="4.3.3.2.1 DeviceIndexMetadata"></a>4.3.3.2.1 DeviceIndexMetadata</h5><p>某个设备（device）的索引的根。</p>
+<h5 id="4-3-3-2-2-MeasurementSchema"><a href="#4-3-3-2-2-MeasurementSchema" class="headerlink" title="4.3.3.2.2 MeasurementSchema"></a>4.3.3.2.2 MeasurementSchema</h5><p>当前文件的所有指标（measurement）的元数据信息。</p>
+<blockquote>
+<p>更详细的元数据和数据信息可以看参考2</p>
+</blockquote>
+<h2 id="4-4-优化"><a href="#4-4-优化" class="headerlink" title="4.4 优化"></a>4.4 优化</h2><h3 id="4-4-1-问题"><a href="#4-4-1-问题" class="headerlink" title="4.4.1 问题"></a>4.4.1 问题</h3><p>读取的流程如下：</p>
+<ol>
+<li>读取文件元数据信息</li>
+<li>二分查找deviceIndexMetadata，找到对应的device的ChunkGroupMetadata</li>
+<li>读取该device下所有的ChunkMetaData到内存中</li>
+<li>根据ChunkMetaData读取对应的数据</li>
+</ol>
+<p>实际生产过程中会遇到一个设备有几十万的传感器的情况，此时会加载大量与当前查询无关的ChunkMetaData信息，对查询性能也会有巨大的性能开销。</p>
+<p>怎么进行优化？</p>
+<p>下篇再继续介绍新的改进。</p>
+<blockquote>
+<p>CirroData-TimeS时序数据库是基于开源Apache IoTDB改进、东方国信深度参与的国产时序数据库。</p>
+<p>CirroData-TimeS时序数据库团队目前有2名资深Apache IoTDB Committer。</p>
+</blockquote>
+<h1 id="参考资料"><a href="#参考资料" class="headerlink" title="参考资料"></a>参考资料</h1><ol>
+<li><a target="_blank" rel="noopener" href="https://zhuanlan.zhihu.com/p/35622907">处理海量数据：列式存储综述（存储篇）</a></li>
+<li><a target="_blank" rel="noopener" href="http://iotdb.apache.org/UserGuide/V0.8.x/7-TsFile/3-Hierarchy.html">Hierarchy</a></li>
+</ol>
+<!-- flag of hidden posts -->
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/tsdb/" rel="tag"># tsdb</a>
+              <a href="/tags/file/" rel="tag"># file</a>
+          </div>
+
+        
+
+    </footer>
+  </article>
+</div>
+
+
+
+
+
+
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      const activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      const commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+</div>
+  </main>
+
+  <footer class="footer">
+    <div class="footer-inner">
+
+
+<div class="copyright">
+  &copy; 
+  <span itemprop="copyrightYear">2021</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Jason Chao</span>
+</div>
+  <div class="powered-by">由 <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://theme-next.js.org/" class="theme-link" rel="noopener" target="_blank">NexT.Gemini</a> 强力驱动
+  </div>
+
+    </div>
+  </footer>
+
+  
+  <script src="//cdn.jsdelivr.net/npm/animejs@3.2.1/lib/anime.min.js"></script>
+<script src="/js/utils.js"></script><script src="/js/motion.js"></script><script src="/js/next-boot.js"></script>
+
+  
+
+
+
+
+
+
+  
+
+
+
+
+
+</body>
+</html>
