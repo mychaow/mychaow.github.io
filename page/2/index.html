@@ -167,7 +167,7 @@
       <div class="site-state-item site-state-posts">
           <a href="/archives/">
         
-          <span class="site-state-item-count">14</span>
+          <span class="site-state-item-count">15</span>
           <span class="site-state-item-name">日志</span>
         </a>
       </div>
@@ -180,7 +180,7 @@
       <div class="site-state-item site-state-tags">
             <a href="/tags/">
           
-        <span class="site-state-item-count">10</span>
+        <span class="site-state-item-count">13</span>
         <span class="site-state-item-name">标签</span></a>
       </div>
   </nav>
@@ -209,6 +209,166 @@
 
 
     <div class="main-inner index posts-expand">
+
+    
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="http://example.com/2021/01/29/stl%E6%BA%90%E7%A0%81%E5%89%96%E6%9E%90-%E5%BA%8F%E5%88%97%E5%BC%8F%E5%AE%B9%E5%99%A8/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="Jason Chao">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="我住8楼">
+    </span>
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">
+          <a href="/2021/01/29/stl%E6%BA%90%E7%A0%81%E5%89%96%E6%9E%90-%E5%BA%8F%E5%88%97%E5%BC%8F%E5%AE%B9%E5%99%A8/" class="post-title-link" itemprop="url">stl源码剖析-序列式容器</a>
+        </h2>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">发表于</span>
+      
+
+      <time title="创建时间：2021-01-29 15:17:08 / 修改时间：16:40:23" itemprop="dateCreated datePublished" datetime="2021-01-29T15:17:08+08:00">2021-01-29</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-folder"></i>
+      </span>
+      <span class="post-meta-item-text">分类于</span>
+        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+          <a href="/categories/stl/" itemprop="url" rel="index"><span itemprop="name">stl</span></a>
+        </span>
+    </span>
+
+  
+</div>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+          <h1 id="容器按排列分类"><a href="#容器按排列分类" class="headerlink" title="容器按排列分类"></a>容器按排列分类</h1><table>
+<thead>
+<tr>
+<th align="left">序列式容器</th>
+<th align="left"></th>
+<th align="left">关联式容器</th>
+<th align="left"></th>
+</tr>
+</thead>
+<tbody><tr>
+<td align="left">array(build-in)</td>
+<td align="left"></td>
+<td align="left">RB-Tree</td>
+<td align="left"></td>
+</tr>
+<tr>
+<td align="left">vector</td>
+<td align="left"></td>
+<td align="left"></td>
+<td align="left">set</td>
+</tr>
+<tr>
+<td align="left"></td>
+<td align="left">heap</td>
+<td align="left"></td>
+<td align="left">map</td>
+</tr>
+<tr>
+<td align="left"></td>
+<td align="left">priority-queue</td>
+<td align="left"></td>
+<td align="left">multiset</td>
+</tr>
+<tr>
+<td align="left">list</td>
+<td align="left"></td>
+<td align="left"></td>
+<td align="left">multimap</td>
+</tr>
+<tr>
+<td align="left">slist</td>
+<td align="left"></td>
+<td align="left">hashtable</td>
+<td align="left"></td>
+</tr>
+<tr>
+<td align="left">deque</td>
+<td align="left"></td>
+<td align="left"></td>
+<td align="left">hash_set</td>
+</tr>
+<tr>
+<td align="left"></td>
+<td align="left">stack</td>
+<td align="left"></td>
+<td align="left">hash_map</td>
+</tr>
+<tr>
+<td align="left"></td>
+<td align="left">queue</td>
+<td align="left"></td>
+<td align="left">hash_multiset</td>
+</tr>
+<tr>
+<td align="left"></td>
+<td align="left"></td>
+<td align="left"></td>
+<td align="left">hash_multimap</td>
+</tr>
+</tbody></table>
+<p><em>每一大列第二格是第一格的衍生</em></p>
+<h1 id="序列式容器"><a href="#序列式容器" class="headerlink" title="序列式容器"></a>序列式容器</h1><h2 id="vector"><a href="#vector" class="headerlink" title="vector"></a>vector</h2><p>如下代码所示，先来看看vector内部的成员变量，vector是一个线性空间，由三个变量分别记录使用情况和容量，非常直观好理解。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br></pre></td><td class="code"><pre><span class="line">template &lt;class _Tp, class _Alloc &#x3D; __STL_DEFAULT_ALLOCATOR(_Tp) &gt;</span><br><span class="line">class vector : protected _Vector_base&lt;_Tp, _Alloc&gt; </span><br><span class="line">&#123;</span><br><span class="line">  &#x2F;&#x2F; requirements:</span><br><span class="line"></span><br><span class="line">  __STL_CLASS_REQUIRES(_Tp, _Assignable);</span><br><span class="line"></span><br><span class="line">private:</span><br><span class="line">  typedef _Vector_base&lt;_Tp, _Alloc&gt; _Base;</span><br><span class="line">public:</span><br><span class="line">  typedef _Tp value_type;</span><br><span class="line">  typedef value_type* pointer;</span><br><span class="line">  typedef const value_type* const_pointer;</span><br><span class="line">  typedef value_type* iterator;  &#x2F;&#x2F; 迭代器就是普通指针</span><br><span class="line">  typedef const value_type* const_iterator;</span><br><span class="line">  typedef value_type&amp; reference;</span><br><span class="line">  typedef const value_type&amp; const_reference;</span><br><span class="line">  typedef size_t size_type;</span><br><span class="line">  typedef ptrdiff_t difference_type;</span><br><span class="line"></span><br><span class="line">  typedef typename _Base::allocator_type allocator_type;</span><br><span class="line">  allocator_type get_allocator() const &#123; return _Base::get_allocator(); &#125;</span><br><span class="line"></span><br><span class="line">#ifdef __STL_CLASS_PARTIAL_SPECIALIZATION</span><br><span class="line">  typedef reverse_iterator&lt;const_iterator&gt; const_reverse_iterator;</span><br><span class="line">  typedef reverse_iterator&lt;iterator&gt; reverse_iterator;</span><br><span class="line">#else &#x2F;* __STL_CLASS_PARTIAL_SPECIALIZATION *&#x2F;</span><br><span class="line">  typedef reverse_iterator&lt;const_iterator, value_type, const_reference, </span><br><span class="line">                           difference_type&gt;  const_reverse_iterator;</span><br><span class="line">  typedef reverse_iterator&lt;iterator, value_type, reference, difference_type&gt;</span><br><span class="line">          reverse_iterator;</span><br><span class="line">#endif &#x2F;* __STL_CLASS_PARTIAL_SPECIALIZATION *&#x2F;</span><br><span class="line"></span><br><span class="line">protected:</span><br><span class="line">#ifdef __STL_HAS_NAMESPACES</span><br><span class="line">  using _Base::_M_allocate;</span><br><span class="line">  using _Base::_M_deallocate;</span><br><span class="line">  using _Base::_M_start;  &#x2F;&#x2F; 表示目前使用空间的头部</span><br><span class="line">  using _Base::_M_finish; &#x2F;&#x2F; 表示目前使用空间的尾部</span><br><span class="line">  using _Base::_M_end_of_storage; &#x2F;&#x2F; 表示目前可用空间的尾部，也就是容量尾部</span><br><span class="line">#endif &#x2F;* __STL_HAS_NAMESPACES *&#x2F;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+
+<p>再来看看vector容量不够时扩容的算法，都比较简单直观</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br></pre></td><td class="code"><pre><span class="line">&#x2F;&#x2F; push_back一个元素时扩容算法</span><br><span class="line"></span><br><span class="line">template &lt;class _Tp, class _Alloc&gt;</span><br><span class="line">void </span><br><span class="line">vector&lt;_Tp, _Alloc&gt;::_M_insert_aux(iterator __position, const _Tp&amp; __x)</span><br><span class="line">&#123;</span><br><span class="line">  if (_M_finish !&#x3D; _M_end_of_storage) &#123;  &#x2F;&#x2F; 空间足够</span><br><span class="line">    construct(_M_finish, *(_M_finish - 1));</span><br><span class="line">    ++_M_finish;</span><br><span class="line">    _Tp __x_copy &#x3D; __x;</span><br><span class="line">    copy_backward(__position, _M_finish - 2, _M_finish - 1);</span><br><span class="line">    *__position &#x3D; __x_copy;</span><br><span class="line">  &#125;</span><br><span class="line">  else &#123;  &#x2F;&#x2F; 空间不够</span><br><span class="line">    const size_type __old_size &#x3D; size();</span><br><span class="line">    const size_type __len &#x3D; __old_size !&#x3D; 0 ? 2 * __old_size : 1;  &#x2F;&#x2F; 原有空间*2</span><br><span class="line">    iterator __new_start &#x3D; _M_allocate(__len);</span><br><span class="line">    iterator __new_finish &#x3D; __new_start;</span><br><span class="line">    __STL_TRY &#123;</span><br><span class="line">      __new_finish &#x3D; uninitialized_copy(_M_start, __position, __new_start);</span><br><span class="line">      construct(__new_finish, __x);</span><br><span class="line">      ++__new_finish;</span><br><span class="line">      __new_finish &#x3D; uninitialized_copy(__position, _M_finish, __new_finish);</span><br><span class="line">    &#125;</span><br><span class="line">    __STL_UNWIND((destroy(__new_start,__new_finish), </span><br><span class="line">                  _M_deallocate(__new_start,__len)));</span><br><span class="line">    destroy(begin(), end());</span><br><span class="line">    _M_deallocate(_M_start, _M_end_of_storage - _M_start);</span><br><span class="line">    _M_start &#x3D; __new_start;</span><br><span class="line">    _M_finish &#x3D; __new_finish;</span><br><span class="line">    _M_end_of_storage &#x3D; __new_start + __len;</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">&#x2F;&#x2F; 插入多个数据时扩容算法</span><br><span class="line"></span><br><span class="line">template &lt;class _Tp, class _Alloc&gt;</span><br><span class="line">void vector&lt;_Tp, _Alloc&gt;::_M_fill_insert(iterator __position, size_type __n, </span><br><span class="line">                                         const _Tp&amp; __x)</span><br><span class="line">&#123;</span><br><span class="line">  if (__n !&#x3D; 0) &#123;</span><br><span class="line">    if (size_type(_M_end_of_storage - _M_finish) &gt;&#x3D; __n) &#123;</span><br><span class="line">      _Tp __x_copy &#x3D; __x;</span><br><span class="line">      const size_type __elems_after &#x3D; _M_finish - __position;</span><br><span class="line">      iterator __old_finish &#x3D; _M_finish;</span><br><span class="line">      if (__elems_after &gt; __n) &#123;</span><br><span class="line">        uninitialized_copy(_M_finish - __n, _M_finish, _M_finish);</span><br><span class="line">        _M_finish +&#x3D; __n;</span><br><span class="line">        copy_backward(__position, __old_finish - __n, __old_finish);</span><br><span class="line">        fill(__position, __position + __n, __x_copy);</span><br><span class="line">      &#125;</span><br><span class="line">      else &#123;</span><br><span class="line">        uninitialized_fill_n(_M_finish, __n - __elems_after, __x_copy);</span><br><span class="line">        _M_finish +&#x3D; __n - __elems_after;</span><br><span class="line">        uninitialized_copy(__position, __old_finish, _M_finish);</span><br><span class="line">        _M_finish +&#x3D; __elems_after;</span><br><span class="line">        fill(__position, __old_finish, __x_copy);</span><br><span class="line">      &#125;</span><br><span class="line">    &#125;</span><br><span class="line">    else &#123;</span><br><span class="line">      const size_type __old_size &#x3D; size();        </span><br><span class="line">      const size_type __len &#x3D; __old_size + max(__old_size, __n); &#x2F;&#x2F; 当前空间*2 或者加新加的元素个数</span><br><span class="line">      iterator __new_start &#x3D; _M_allocate(__len);</span><br><span class="line">      iterator __new_finish &#x3D; __new_start;</span><br><span class="line">      __STL_TRY &#123;</span><br><span class="line">        __new_finish &#x3D; uninitialized_copy(_M_start, __position, __new_start);</span><br><span class="line">        __new_finish &#x3D; uninitialized_fill_n(__new_finish, __n, __x);</span><br><span class="line">        __new_finish</span><br><span class="line">          &#x3D; uninitialized_copy(__position, _M_finish, __new_finish);</span><br><span class="line">      &#125;</span><br><span class="line">      __STL_UNWIND((destroy(__new_start,__new_finish), </span><br><span class="line">                    _M_deallocate(__new_start,__len)));</span><br><span class="line">      destroy(_M_start, _M_finish);</span><br><span class="line">      _M_deallocate(_M_start, _M_end_of_storage - _M_start);</span><br><span class="line">      _M_start &#x3D; __new_start;</span><br><span class="line">      _M_finish &#x3D; __new_finish;</span><br><span class="line">      _M_end_of_storage &#x3D; __new_start + __len;</span><br><span class="line">    &#125;</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+
+<h2 id="list"><a href="#list" class="headerlink" title="list"></a>list</h2><p>内部实现是环形双向列表，在末尾提供一个空的node作为头部，或者尾部，其前后指针都指向自己。遍历list的时候，这个节点作为end节点，提供哨兵的功能。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">struct _List_node_base &#123;</span><br><span class="line">  _List_node_base* _M_next;</span><br><span class="line">  _List_node_base* _M_prev;</span><br><span class="line">&#125;;</span><br><span class="line"></span><br><span class="line">template &lt;class _Tp&gt;</span><br><span class="line">struct _List_node : public _List_node_base &#123;</span><br><span class="line">  _Tp _M_data;</span><br><span class="line">&#125;;</span><br></pre></td></tr></table></figure>
+
+
+<h2 id="deque"><a href="#deque" class="headerlink" title="deque"></a>deque</h2><p>是一个双向开口的连续线性空间。虽然说是整体连续的，但是实际上是一段一段定量连续空间拼凑起来的。整体构造如下图所示：</p>
+<p>deque由一个中控map来管理所有的存储块，其迭代器如下图所示：</p>
+<h2 id="stack"><a href="#stack" class="headerlink" title="stack"></a>stack</h2><p>封装了一下deque的接口，LIFO，没有迭代器</p>
+<h2 id="queue"><a href="#queue" class="headerlink" title="queue"></a>queue</h2><p>封装了一下deque的接口，FIFO，没有迭代器</p>
+<h2 id="heap"><a href="#heap" class="headerlink" title="heap"></a>heap</h2>
+      
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+        <div class="post-eof"></div>
+      
+    </footer>
+  </article>
+</div>
+
+
+
 
     
 
