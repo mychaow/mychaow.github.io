@@ -1,0 +1,477 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 5.3.0">
+
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+
+<link rel="stylesheet" href="//cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@5.15.1/css/all.min.css">
+  <link rel="stylesheet" href="//cdn.jsdelivr.net/npm/animate.css@3.1.1/animate.min.css">
+
+<script class="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"example.com","root":"/","images":"/images","scheme":"Gemini","version":"8.2.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12},"copycode":false,"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"fadeInDown","post_body":"fadeInDown","coll_header":"fadeInLeft","sidebar":"fadeInUp"}},"prism":false,"i18n":{"placeholder":"搜索...","empty":"没有找到任何搜索结果：${query}","hits_time":"找到 ${hits} 个搜索结果（用时 ${time} 毫秒）","hits":"找到 ${hits} 个搜索结果"}};
+  </script>
+<meta name="description" content="存储组织数据命名规则应用程序通过向sqlite3_open传入数据库文件名来打开数据库。文件名可以是相对路径也可以是绝对路径。SQLite支持常见的文件系统支持的文件名，但是有两条例外：   如果文件名是c语言NULL指针（例如：0）或者空字符串，或者只包含空字符的字符串，SQLite打开一个新的临时文件  如果文件名是”:memory:”，SQLite创建一个只在内存中存在的数据库(in-mem">
+<meta property="og:type" content="article">
+<meta property="og:title" content="sqlite文件探索">
+<meta property="og:url" content="http://example.com/2021/07/06/sqlite%E6%96%87%E4%BB%B6%E6%8E%A2%E7%B4%A2/index.html">
+<meta property="og:site_name" content="我住8楼">
+<meta property="og:description" content="存储组织数据命名规则应用程序通过向sqlite3_open传入数据库文件名来打开数据库。文件名可以是相对路径也可以是绝对路径。SQLite支持常见的文件系统支持的文件名，但是有两条例外：   如果文件名是c语言NULL指针（例如：0）或者空字符串，或者只包含空字符的字符串，SQLite打开一个新的临时文件  如果文件名是”:memory:”，SQLite创建一个只在内存中存在的数据库(in-mem">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="http://example.com/2021/07/06/sqlite%E6%96%87%E4%BB%B6%E6%8E%A2%E7%B4%A2/%E4%BC%81%E4%B8%9A%E5%BE%AE%E4%BF%A1%E6%88%AA%E5%9B%BE_16255823128073.png">
+<meta property="og:image" content="http://example.com/2021/07/06/sqlite%E6%96%87%E4%BB%B6%E6%8E%A2%E7%B4%A2/%E4%BC%81%E4%B8%9A%E5%BE%AE%E4%BF%A1%E6%88%AA%E5%9B%BE_16256677282275.png">
+<meta property="og:image" content="http://example.com/2021/07/06/sqlite%E6%96%87%E4%BB%B6%E6%8E%A2%E7%B4%A2/%E4%BC%81%E4%B8%9A%E5%BE%AE%E4%BF%A1%E6%88%AA%E5%9B%BE_16256683475039.png">
+<meta property="og:image" content="http://example.com/2021/07/06/sqlite%E6%96%87%E4%BB%B6%E6%8E%A2%E7%B4%A2/%E4%BC%81%E4%B8%9A%E5%BE%AE%E4%BF%A1%E6%88%AA%E5%9B%BE_16256691984879.png">
+<meta property="og:image" content="http://example.com/2021/07/06/sqlite%E6%96%87%E4%BB%B6%E6%8E%A2%E7%B4%A2/%E4%BC%81%E4%B8%9A%E5%BE%AE%E4%BF%A1%E6%88%AA%E5%9B%BE_16256704019401.png">
+<meta property="og:image" content="http://example.com/2021/07/06/sqlite%E6%96%87%E4%BB%B6%E6%8E%A2%E7%B4%A2/%E4%BC%81%E4%B8%9A%E5%BE%AE%E4%BF%A1%E6%88%AA%E5%9B%BE_16257554339707.png">
+<meta property="og:image" content="http://example.com/2021/07/06/sqlite%E6%96%87%E4%BB%B6%E6%8E%A2%E7%B4%A2/%E4%BC%81%E4%B8%9A%E5%BE%AE%E4%BF%A1%E6%88%AA%E5%9B%BE_16257553541447.png">
+<meta property="og:image" content="http://example.com/2021/07/06/sqlite%E6%96%87%E4%BB%B6%E6%8E%A2%E7%B4%A2/%E4%BC%81%E4%B8%9A%E5%BE%AE%E4%BF%A1%E6%88%AA%E5%9B%BE_16257556265152.png">
+<meta property="og:image" content="http://example.com/2021/07/06/sqlite%E6%96%87%E4%BB%B6%E6%8E%A2%E7%B4%A2/image-20210710224302053.png">
+<meta property="og:image" content="http://example.com/2021/07/06/sqlite%E6%96%87%E4%BB%B6%E6%8E%A2%E7%B4%A2/image-20210711145809505.png">
+<meta property="article:published_time" content="2021-07-06T14:18:12.000Z">
+<meta property="article:modified_time" content="2021-07-11T12:45:56.885Z">
+<meta property="article:author" content="Jason Chao">
+<meta property="article:tag" content="sqlite">
+<meta property="article:tag" content="file">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http://example.com/2021/07/06/sqlite%E6%96%87%E4%BB%B6%E6%8E%A2%E7%B4%A2/%E4%BC%81%E4%B8%9A%E5%BE%AE%E4%BF%A1%E6%88%AA%E5%9B%BE_16255823128073.png">
+
+
+<link rel="canonical" href="http://example.com/2021/07/06/sqlite%E6%96%87%E4%BB%B6%E6%8E%A2%E7%B4%A2/">
+
+
+<script class="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'zh-CN'
+  };
+</script>
+<title>sqlite文件探索 | 我住8楼</title>
+  
+
+
+
+
+  <noscript>
+  <style>
+  body { margin-top: 2rem; }
+
+  .use-motion .menu-item,
+  .use-motion .sidebar,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header {
+    visibility: visible;
+  }
+
+  .use-motion .header,
+  .use-motion .site-brand-container .toggle,
+  .use-motion .footer { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle,
+  .use-motion .custom-logo-image {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line {
+    transform: scaleX(1);
+  }
+
+  .search-pop-overlay, .sidebar-nav { display: none; }
+  .sidebar-panel { display: block; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" class="use-motion">
+  <div class="headband"></div>
+
+  <main class="main">
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏" role="button">
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <i class="logo-line"></i>
+      <h1 class="site-title">我住8楼</h1>
+      <i class="logo-line"></i>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+    </div>
+  </div>
+</div>
+
+
+
+<nav class="site-nav">
+  <ul class="main-menu menu">
+        <li class="menu-item menu-item-home"><a href="/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a></li>
+        <li class="menu-item menu-item-tags"><a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>标签</a></li>
+        <li class="menu-item menu-item-categories"><a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>分类</a></li>
+        <li class="menu-item menu-item-archives"><a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档</a></li>
+  </ul>
+</nav>
+
+
+
+
+</div>
+        
+  
+  <div class="toggle sidebar-toggle" role="button">
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+  </div>
+
+  <aside class="sidebar">
+
+    <div class="sidebar-inner sidebar-nav-active sidebar-toc-active">
+      <ul class="sidebar-nav">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <div class="sidebar-panel-container">
+        <!--noindex-->
+        <div class="post-toc-wrap sidebar-panel">
+            <div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#%E5%AD%98%E5%82%A8%E7%BB%84%E7%BB%87"><span class="nav-number">1.</span> <span class="nav-text">存储组织</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%95%B0%E6%8D%AE%E5%91%BD%E5%90%8D%E8%A7%84%E5%88%99"><span class="nav-number">1.1.</span> <span class="nav-text">数据命名规则</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%95%B0%E6%8D%AE%E5%BA%93%E6%96%87%E4%BB%B6%E6%A0%BC%E5%BC%8F"><span class="nav-number">1.2.</span> <span class="nav-text">数据库文件格式</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E9%A1%B5%E7%B1%BB%E5%9E%8B"><span class="nav-number">1.2.1.</span> <span class="nav-text">页类型</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Page-1"><span class="nav-number">1.2.2.</span> <span class="nav-text">Page 1</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Incremental-Vacuum-amp-Autovacuum"><span class="nav-number">1.2.3.</span> <span class="nav-text">Incremental Vacuum &amp; Autovacuum</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#free-list"><span class="nav-number">1.2.4.</span> <span class="nav-text">free list</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%97%A5%E5%BF%97%E6%96%87%E4%BB%B6%E6%A0%BC%E5%BC%8F"><span class="nav-number">1.3.</span> <span class="nav-text">日志文件格式</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%9B%9E%E6%BB%9A%E6%97%A5%E5%BF%97"><span class="nav-number">1.3.1.</span> <span class="nav-text">回滚日志</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#%E6%97%A5%E5%BF%97%E6%95%B4%E4%BD%93%E7%BB%93%E6%9E%84"><span class="nav-number">1.3.1.1.</span> <span class="nav-text">日志整体结构</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E6%97%A5%E5%BF%97%E6%AE%B5header%E7%BB%93%E6%9E%84"><span class="nav-number">1.3.1.2.</span> <span class="nav-text">日志段header结构</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E6%97%A5%E5%BF%97%E8%AE%B0%E5%BD%95%E7%BB%93%E6%9E%84"><span class="nav-number">1.3.1.3.</span> <span class="nav-text">日志记录结构</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E8%AF%AD%E5%8F%A5%E5%A3%B0%E6%98%8E%E6%97%A5%E5%BF%97"><span class="nav-number">1.3.2.</span> <span class="nav-text">语句声明日志</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%A4%9A%E6%95%B0%E6%8D%AE%E5%BA%93%E4%BA%8B%E5%8A%A1%E6%97%A5%E5%BF%97"><span class="nav-number">1.3.3.</span> <span class="nav-text">多数据库事务日志</span></a></li></ol></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E6%80%BB%E7%BB%93"><span class="nav-number">2.</span> <span class="nav-text">总结</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E5%8F%82%E8%80%83"><span class="nav-number">3.</span> <span class="nav-text">参考</span></a></li></ol></div>
+        </div>
+        <!--/noindex-->
+
+        <div class="site-overview-wrap sidebar-panel">
+          <div class="site-author site-overview-item animated" itemprop="author" itemscope itemtype="http://schema.org/Person">
+  <p class="site-author-name" itemprop="name">Jason Chao</p>
+  <div class="site-description" itemprop="description"></div>
+</div>
+<div class="site-state-wrap site-overview-item animated">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">22</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+          
+        <span class="site-state-item-count">2</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+          
+        <span class="site-state-item-count">22</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+
+
+
+        </div>
+      </div>
+    </div>
+  </aside>
+  <div class="sidebar-dimmer"></div>
+
+
+    </header>
+
+    
+  <div class="back-to-top" role="button">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+<noscript>
+  <div class="noscript-warning">Theme NexT works best with JavaScript enabled</div>
+</noscript>
+
+
+    <div class="main-inner post posts-expand">
+
+
+  
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="http://example.com/2021/07/06/sqlite%E6%96%87%E4%BB%B6%E6%8E%A2%E7%B4%A2/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="Jason Chao">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="我住8楼">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          sqlite文件探索
+        </h1>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">发表于</span>
+
+      <time title="创建时间：2021-07-06 22:18:12" itemprop="dateCreated datePublished" datetime="2021-07-06T22:18:12+08:00">2021-07-06</time>
+    </span>
+      <span class="post-meta-item">
+        <span class="post-meta-item-icon">
+          <i class="far fa-calendar-check"></i>
+        </span>
+        <span class="post-meta-item-text">更新于</span>
+        <time title="修改时间：2021-07-11 20:45:56" itemprop="dateModified" datetime="2021-07-11T20:45:56+08:00">2021-07-11</time>
+      </span>
+
+  
+</div>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+        <h1 id="存储组织"><a href="#存储组织" class="headerlink" title="存储组织"></a>存储组织</h1><h2 id="数据命名规则"><a href="#数据命名规则" class="headerlink" title="数据命名规则"></a>数据命名规则</h2><p>应用程序通过向sqlite3_open传入数据库文件名来打开数据库。文件名可以是相对路径也可以是绝对路径。SQLite支持常见的文件系统支持的文件名，但是有两条例外：</p>
+<ul>
+<li><p> 如果文件名是c语言NULL指针（例如：0）或者空字符串，或者只包含空字符的字符串，SQLite打开一个新的临时文件</p>
+</li>
+<li><p>如果文件名是”:memory:”，SQLite创建一个只在内存中存在的数据库(in-memory database)</p>
+</li>
+</ul>
+<p>在这两种情况下创建的数据库文件是临时的，只要数据库关闭，文件就会消失。</p>
+<blockquote>
+<p>临时文件的作用：回滚日志、语句日志、多数据库主机日志、临时索引、vacuum命令使用的临时数据库、物化视图以及子查询</p>
+</blockquote>
+<p>在SQLite内部，数据库文件的名字不是数据库名。他们是两个不同的概念。通过使用attach命令，你可以将一个同样的数据库文件以一个不同的数据库名称连接到一个数据库连接上。你可以通过这些数据库名称对数据库文件进行操作。更多有关attach的信息请查询官网。</p>
+<p>如下图所示：每当应用程序使用sqlite3_open打开一个数据库连接，SQLite就为这个数据库连接维护一个独立的临时数据库，这个临时数据库被命名为temp。temp数据库存储临时实体，例如：表和索引。（应用程序可以在SQL语句中使用main或者temp，例如：select * from temp.table1将返回temp数据库的table1的所有行，而不是从main数据库返回这些信息。Temp数据库的目录名是sqlite_temp_master）临时实体只对本数据库连接是可见的（而不是指向同一个文件的，同一个线程、进程或者其他进程中的数据库连接）。SQLite将temp数据库存储在一个单独的临时文件中，而不是存储在main数据库文件中。当应用程序关闭数据库连接的时候，temp文件将被删除。</p>
+<p><em>临时数据库用来干什么的呢？为什么关闭后要删除？只是为了方便用户操作一些临时信息，而不用再attach一个临时数据库</em></p>
+<img src="/2021/07/06/sqlite%E6%96%87%E4%BB%B6%E6%8E%A2%E7%B4%A2/%E4%BC%81%E4%B8%9A%E5%BE%AE%E4%BF%A1%E6%88%AA%E5%9B%BE_16255823128073.png" class="" title="img">
+
+<h2 id="数据库文件格式"><a href="#数据库文件格式" class="headerlink" title="数据库文件格式"></a>数据库文件格式</h2><p>如下图所示：数据库文件划分为多个固定大小的页</p>
+<img src="/2021/07/06/sqlite%E6%96%87%E4%BB%B6%E6%8E%A2%E7%B4%A2/%E4%BC%81%E4%B8%9A%E5%BE%AE%E4%BF%A1%E6%88%AA%E5%9B%BE_16256677282275.png" class="" title="img">
+
+<p>默认页大小是1024B，可以在编译的时候指定默认值。大小范围是512~65536，不过页的大小必须得是2的幂次方。也可以在创建表之前通过一个参数page_size来制定页大小。</p>
+<h3 id="页类型"><a href="#页类型" class="headerlink" title="页类型"></a>页类型</h3><ul>
+<li>free：未使用的页</li>
+<li>tree<ul>
+<li>leaf, B+树的叶子节点会存放数据，如果一个页存放不下，剩下部分会存到溢出页中</li>
+<li>internal，B+树的内部节点存放的是下一层节点的索引，B树则是索引和数据都会存放，B树一般用来做索引，B+树则是存数据</li>
+<li>overflow</li>
+</ul>
+</li>
+<li>pointer-map：</li>
+<li>lock-byte</li>
+</ul>
+<h3 id="Page-1"><a href="#Page-1" class="headerlink" title="Page 1"></a>Page 1</h3><p>page 1是特殊的，一般用来存放B树根节点，以及前100字节的数据库相关属性信息</p>
+<img src="/2021/07/06/sqlite%E6%96%87%E4%BB%B6%E6%8E%A2%E7%B4%A2/%E4%BC%81%E4%B8%9A%E5%BE%AE%E4%BF%A1%E6%88%AA%E5%9B%BE_16256683475039.png" class="" title="img">
+
+<p>下面是header的内容，页被分成多个cell。</p>
+<p>其中22-24字节的意思：</p>
+<ol>
+<li>最大碎片负载（偏移量是21）指的是每页能够用于存储B/B+树内部节点的空间。255表示100%。默认值是64（25%），这个值用来限定cell的最大值，即每个节点最少有4个cell。如果cell的大小超过允许的最大值，SQLite就创建溢出页，把尽量多的byte移动到溢出页中，但是不能在分割的过程中导致cell的大小小于最小embedded payload(偏移量是22，默认值是32，即12.5%)。</li>
+<li>叶子页最小负载（偏移量23）和最小embedded payload相似，但是是针对B+树的叶子页来说的。（默认值是32,12.5%）。叶子页的最大负载百分比永远是100%，文件头中并没有保存该值的变量。</li>
+</ol>
+<img src="/2021/07/06/sqlite%E6%96%87%E4%BB%B6%E6%8E%A2%E7%B4%A2/%E4%BC%81%E4%B8%9A%E5%BE%AE%E4%BF%A1%E6%88%AA%E5%9B%BE_16256691984879.png" class="" title="img">
+
+
+
+<h3 id="Incremental-Vacuum-amp-Autovacuum"><a href="#Incremental-Vacuum-amp-Autovacuum" class="headerlink" title="Incremental Vacuum &amp; Autovacuum"></a><strong>Incremental Vacuum &amp; Autovacuum</strong></h3><p>vacuum命令可以清空自由页链表。该命令在内存中建立一个数据库的副本（这个副本是通过INSERT INTO…SELECT * FROM…命令实现的）。然后在事务系统的保护下，用内存中的副本重写原始数据库。</p>
+<h3 id="free-list"><a href="#free-list" class="headerlink" title="free list"></a>free list</h3><p>自由页链表（偏移量32）存储未使用的页。自由页页数存储在偏移量36。在自由页链表中页有两种类型：主干页和叶子页。文件头指出了自由页链表中的第一个主干页。每一个主干页里含有指向许多叶子页的指针。</p>
+<img src="/2021/07/06/sqlite%E6%96%87%E4%BB%B6%E6%8E%A2%E7%B4%A2/%E4%BC%81%E4%B8%9A%E5%BE%AE%E4%BF%A1%E6%88%AA%E5%9B%BE_16256704019401.png" class="" title="img">
+
+<p>主干页的格式如下所示：</p>
+<ul>
+<li><p>下一个主干页的页号（4bytes）</p>
+</li>
+<li><p>本页中含有的叶子页指针个数（4bytes）</p>
+</li>
+<li><p>0或者更多4bytes叶子页页号</p>
+</li>
+</ul>
+<p>当一个页变为非激活态，SQLite将该页添加到自由页链表中，并不会把页释放给本地文件系统。当你向数据库中添加新的数据的时候，SQLite从自由页链表中取出一页用来存储用户添加的数据。如果自由页链表是空的，SQLite向本地文件系统申请新的页，把新页附加到数据库文件上。</p>
+<h2 id="日志文件格式"><a href="#日志文件格式" class="headerlink" title="日志文件格式"></a>日志文件格式</h2><p>SQLite最新的支持wal日志，后面会介绍。下面是一些旧的日志格式设计。</p>
+<h3 id="回滚日志"><a href="#回滚日志" class="headerlink" title="回滚日志"></a>回滚日志</h3><p>回滚日志跟数据库文件在同一个目录下，每次写事务开始时创建，事务完成后就被删除。它的名字是数据库名字-journal。</p>
+<h4 id="日志整体结构"><a href="#日志整体结构" class="headerlink" title="日志整体结构"></a>日志整体结构</h4><p>如下图所示，是回滚日志的结构。日志会被分成多个日志段，每个日志段会有一个头部。</p>
+<img src="/2021/07/06/sqlite%E6%96%87%E4%BB%B6%E6%8E%A2%E7%B4%A2/%E4%BC%81%E4%B8%9A%E5%BE%AE%E4%BF%A1%E6%88%AA%E5%9B%BE_16257554339707.png" class="" title="img">
+
+<h4 id="日志段header结构"><a href="#日志段header结构" class="headerlink" title="日志段header结构"></a>日志段header结构</h4><img src="/2021/07/06/sqlite%E6%96%87%E4%BB%B6%E6%8E%A2%E7%B4%A2/%E4%BC%81%E4%B8%9A%E5%BE%AE%E4%BF%A1%E6%88%AA%E5%9B%BE_16257553541447.png" class="" title="img">
+
+<p>下面是各个字段的解释。</p>
+<blockquote>
+<p> 其中需要说明的是第16字节开始的4个字节，表示的是当前日志文件创建时数据库中含有的页个数。</p>
+</blockquote>
+<img src="/2021/07/06/sqlite%E6%96%87%E4%BB%B6%E6%8E%A2%E7%B4%A2/%E4%BC%81%E4%B8%9A%E5%BE%AE%E4%BF%A1%E6%88%AA%E5%9B%BE_16257556265152.png" class="" title="img">
+
+<h4 id="日志记录结构"><a href="#日志记录结构" class="headerlink" title="日志记录结构"></a>日志记录结构</h4><img src="/2021/07/06/sqlite%E6%96%87%E4%BB%B6%E6%8E%A2%E7%B4%A2/image-20210710224302053.png" class="" title="image-20210710224302053">
+
+<p>需要说明的是校验和的位置的安排是为了简单快速的检测到大概率出现的日志损坏问题。</p>
+<ol>
+<li>因为如果一条日志损坏，大概率是因为掉电导致的。而写入一般都是线性写入，因此只会出现一条日志的末尾或者中间是有问题，而不会出现两端没有问题，只有中间出问题的情况。<ol>
+<li>这里意思是checksum如果放在前面，那page number和checksum可能是对的，但是后面的data page image则可能发生了变化。但是最后校验的时候不就知道有问题了么？</li>
+<li><strong>可能data page image没写成功，但是checksum还是跟原来一样。但是如果把checksum放到最后，如果data page image没有写成功，checksum肯定也没写成功，那不可能出现成功的校验？</strong></li>
+</ol>
+</li>
+<li>另外，检验和校验的东西包括page number和中间的数据，还把日志段的头部那个随机数作为key，这样能尽量防止垃圾数据被认为是有效数据的概率。因为垃圾数据一般是旧的未删除的日志文件里的，每次新的日志段都会产生新的随机数，因此加上这个，能降低检验和一致，但是数据其实不一致的问题。</li>
+</ol>
+<h3 id="语句声明日志"><a href="#语句声明日志" class="headerlink" title="语句声明日志"></a>语句声明日志</h3><p>用来支持语句中止功能的。当有语句执行出错时，就需要语句声明日志来把数据恢复到正常的状态。它实际上是一个临时的回滚日志。</p>
+<h3 id="多数据库事务日志"><a href="#多数据库事务日志" class="headerlink" title="多数据库事务日志"></a>多数据库事务日志</h3><p>跨数据库事务时，因为每个数据库都有自己的回滚日志，因此跨数据库事务非原子的。为了做到原子，就支持一种多数据库事务日志，这种日志只包含子事务的回滚日志文件路径。跨数据库事务文件只有在要提交事务时才创建，如果事务中止，不会创建。</p>
+<p>如下图所示，每个子事务日志也包含一条跨数据库事务文件的路径记录。这个记录是在事务提交的时候append进去的。</p>
+<img src="/2021/07/06/sqlite%E6%96%87%E4%BB%B6%E6%8E%A2%E7%B4%A2/image-20210711145809505.png" class="" title="image-20210711145809505">
+
+<h1 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h1><ol>
+<li>SQLite的数据都存放在一个文件中，一个数据库文件可以理解为页的数组，可以伸缩。页被分为四类：空闲、树、锁字节、指针map。其中树页又可以细分为三类：中间页，叶子页，溢出页。所有的页中第一页是比较特殊的，它作为所有其他的页的根。</li>
+<li>SQLite支持三种过时的日志类型：回滚，语句声明，多数据库事务。回滚日志存放多个日志段，每个日志段由一个日志段头和多条日志记录组成。日志记录则由页个数，旧页数据，校验和组成。语句声明日志则记录单个插入、更新、删除操作的执行影响的回滚日志。跨数据库事务日志存放的是所有参与单个事务的子回滚日志的路径。</li>
+</ol>
+<h1 id="参考"><a href="#参考" class="headerlink" title="参考"></a>参考</h1><ol>
+<li><a target="_blank" rel="noopener" href="https://www.sqlite.org/fileformat.html">Database File Format (sqlite.org)</a></li>
+<li>SQLite Database System Design and Implementation</li>
+<li>inside sqlite</li>
+</ol>
+
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/sqlite/" rel="tag"># sqlite</a>
+              <a href="/tags/file/" rel="tag"># file</a>
+          </div>
+
+        
+
+          <div class="post-nav">
+            <div class="post-nav-item">
+                <a href="/2021/07/05/sqlite%E8%99%9A%E6%8B%9F%E6%9C%BAvdbe%E5%88%9D%E8%A7%88-01/" rel="prev" title="sqlite虚拟机vdbe初览-01">
+                  <i class="fa fa-chevron-left"></i> sqlite虚拟机vdbe初览-01
+                </a>
+            </div>
+            <div class="post-nav-item">
+                <a href="/2021/07/11/SQLite%E4%BA%8B%E5%8A%A1%E7%AE%A1%E7%90%86/" rel="next" title="SQLite事务管理">
+                  SQLite事务管理 <i class="fa fa-chevron-right"></i>
+                </a>
+            </div>
+          </div>
+    </footer>
+  </article>
+</div>
+
+
+
+
+
+
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      const activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      const commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+</div>
+  </main>
+
+  <footer class="footer">
+    <div class="footer-inner">
+
+
+<div class="copyright">
+  &copy; 
+  <span itemprop="copyrightYear">2021</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Jason Chao</span>
+</div>
+  <div class="powered-by">由 <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://theme-next.js.org/" class="theme-link" rel="noopener" target="_blank">NexT.Gemini</a> 强力驱动
+  </div>
+
+    </div>
+  </footer>
+
+  
+  <script src="//cdn.jsdelivr.net/npm/animejs@3.2.1/lib/anime.min.js"></script>
+<script src="/js/utils.js"></script><script src="/js/motion.js"></script><script src="/js/next-boot.js"></script>
+
+  
+
+
+
+
+
+
+  
+
+
+
+
+
+</body>
+</html>

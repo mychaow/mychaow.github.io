@@ -1,0 +1,541 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 5.3.0">
+
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+
+<link rel="stylesheet" href="//cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@5.15.1/css/all.min.css">
+  <link rel="stylesheet" href="//cdn.jsdelivr.net/npm/animate.css@3.1.1/animate.min.css">
+
+<script class="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"example.com","root":"/","images":"/images","scheme":"Gemini","version":"8.2.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12},"copycode":false,"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"fadeInDown","post_body":"fadeInDown","coll_header":"fadeInLeft","sidebar":"fadeInUp"}},"prism":false,"i18n":{"placeholder":"搜索...","empty":"没有找到任何搜索结果：${query}","hits_time":"找到 ${hits} 个搜索结果（用时 ${time} 毫秒）","hits":"找到 ${hits} 个搜索结果"}};
+  </script>
+<meta name="description" content="h2代码架构从上到下分为8层：  JDBC driver jdbc层，源码在org.h2.jdbc, org.h2.jdbcx两个包下   Connection&#x2F;session management 链接和会话管理 主要相关类是org.h2.engine.database&#x2F;session&#x2F;sessionlocal&#x2F;sessionremote   SQL Parser. 词法和语法解析器 使用递归下">
+<meta property="og:type" content="article">
+<meta property="og:title" content="h2源码分析01">
+<meta property="og:url" content="http://example.com/2021/08/04/h2%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%9001/index.html">
+<meta property="og:site_name" content="我住8楼">
+<meta property="og:description" content="h2代码架构从上到下分为8层：  JDBC driver jdbc层，源码在org.h2.jdbc, org.h2.jdbcx两个包下   Connection&#x2F;session management 链接和会话管理 主要相关类是org.h2.engine.database&#x2F;session&#x2F;sessionlocal&#x2F;sessionremote   SQL Parser. 词法和语法解析器 使用递归下">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="http://example.com/2021/08/04/h2%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%9001/TcpServer.png">
+<meta property="og:image" content="http://example.com/2021/08/04/h2%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%9001/Service-16283493788731.png">
+<meta property="article:published_time" content="2021-08-04T15:02:47.000Z">
+<meta property="article:modified_time" content="2021-09-06T15:08:28.183Z">
+<meta property="article:author" content="Jason Chao">
+<meta property="article:tag" content="h2">
+<meta property="article:tag" content="database">
+<meta property="article:tag" content="sourcecode">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http://example.com/2021/08/04/h2%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%9001/TcpServer.png">
+
+
+<link rel="canonical" href="http://example.com/2021/08/04/h2%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%9001/">
+
+
+<script class="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'zh-CN'
+  };
+</script>
+<title>h2源码分析01 | 我住8楼</title>
+  
+
+
+
+
+  <noscript>
+  <style>
+  body { margin-top: 2rem; }
+
+  .use-motion .menu-item,
+  .use-motion .sidebar,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header {
+    visibility: visible;
+  }
+
+  .use-motion .header,
+  .use-motion .site-brand-container .toggle,
+  .use-motion .footer { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle,
+  .use-motion .custom-logo-image {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line {
+    transform: scaleX(1);
+  }
+
+  .search-pop-overlay, .sidebar-nav { display: none; }
+  .sidebar-panel { display: block; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" class="use-motion">
+  <div class="headband"></div>
+
+  <main class="main">
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏" role="button">
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <i class="logo-line"></i>
+      <h1 class="site-title">我住8楼</h1>
+      <i class="logo-line"></i>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+    </div>
+  </div>
+</div>
+
+
+
+<nav class="site-nav">
+  <ul class="main-menu menu">
+        <li class="menu-item menu-item-home"><a href="/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a></li>
+        <li class="menu-item menu-item-tags"><a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>标签</a></li>
+        <li class="menu-item menu-item-categories"><a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>分类</a></li>
+        <li class="menu-item menu-item-archives"><a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档</a></li>
+  </ul>
+</nav>
+
+
+
+
+</div>
+        
+  
+  <div class="toggle sidebar-toggle" role="button">
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+  </div>
+
+  <aside class="sidebar">
+
+    <div class="sidebar-inner sidebar-nav-active sidebar-toc-active">
+      <ul class="sidebar-nav">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <div class="sidebar-panel-container">
+        <!--noindex-->
+        <div class="post-toc-wrap sidebar-panel">
+            <div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#h2%E4%BB%A3%E7%A0%81%E6%9E%B6%E6%9E%84"><span class="nav-number">1.</span> <span class="nav-text">h2代码架构</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#Server%E5%90%AF%E5%8A%A8%E6%9C%8D%E5%8A%A1%E6%B5%81%E7%A8%8B"><span class="nav-number">2.</span> <span class="nav-text">Server启动服务流程</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#transfer%E7%B1%BB"><span class="nav-number">2.1.</span> <span class="nav-text">transfer类</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#TcpServer%E7%B1%BB"><span class="nav-number">2.2.</span> <span class="nav-text">TcpServer类</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#TcpServerThread%E7%B1%BB"><span class="nav-number">2.3.</span> <span class="nav-text">TcpServerThread类</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E8%A7%A3%E6%9E%90%E5%99%A8"><span class="nav-number">3.</span> <span class="nav-text">解析器</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E8%AF%8D%E6%B3%95%E8%A7%A3%E6%9E%90%E5%99%A8"><span class="nav-number">3.1.</span> <span class="nav-text">词法解析器</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E8%AF%AD%E6%B3%95%E8%A7%A3%E6%9E%90%E5%99%A8"><span class="nav-number">3.2.</span> <span class="nav-text">语法解析器</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#trace%E6%9C%BA%E5%88%B6"><span class="nav-number">4.</span> <span class="nav-text">trace机制</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E8%AF%AD%E6%B3%95"><span class="nav-number">5.</span> <span class="nav-text">语法</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#DDL"><span class="nav-number">5.1.</span> <span class="nav-text">DDL</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#Create-Schema"><span class="nav-number">5.1.1.</span> <span class="nav-text">Create Schema</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Create-Table"><span class="nav-number">5.1.2.</span> <span class="nav-text">Create Table</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Create-View"><span class="nav-number">5.1.3.</span> <span class="nav-text">Create View</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Create-Index"><span class="nav-number">5.1.4.</span> <span class="nav-text">Create Index</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Create-Trigger"><span class="nav-number">5.1.5.</span> <span class="nav-text">Create Trigger</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Create-Role"><span class="nav-number">5.1.6.</span> <span class="nav-text">Create Role</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Create-User"><span class="nav-number">5.1.7.</span> <span class="nav-text">Create User</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Create-Linked-Table"><span class="nav-number">5.1.8.</span> <span class="nav-text">Create Linked Table</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Create-Sequence"><span class="nav-number">5.1.9.</span> <span class="nav-text">Create Sequence</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Create-Domain"><span class="nav-number">5.1.10.</span> <span class="nav-text">Create Domain</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Create-Constant"><span class="nav-number">5.1.11.</span> <span class="nav-text">Create Constant</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Create-Alias"><span class="nav-number">5.1.12.</span> <span class="nav-text">Create Alias</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Create-Aggregate"><span class="nav-number">5.1.13.</span> <span class="nav-text">Create Aggregate</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#DML"><span class="nav-number">5.2.</span> <span class="nav-text">DML</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Others"><span class="nav-number">5.3.</span> <span class="nav-text">Others</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E5%8F%82%E8%80%83"><span class="nav-number">6.</span> <span class="nav-text">参考</span></a></li></ol></div>
+        </div>
+        <!--/noindex-->
+
+        <div class="site-overview-wrap sidebar-panel">
+          <div class="site-author site-overview-item animated" itemprop="author" itemscope itemtype="http://schema.org/Person">
+  <p class="site-author-name" itemprop="name">Jason Chao</p>
+  <div class="site-description" itemprop="description"></div>
+</div>
+<div class="site-state-wrap site-overview-item animated">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">22</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+          
+        <span class="site-state-item-count">2</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+          
+        <span class="site-state-item-count">22</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+
+
+
+        </div>
+      </div>
+    </div>
+  </aside>
+  <div class="sidebar-dimmer"></div>
+
+
+    </header>
+
+    
+  <div class="back-to-top" role="button">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+<noscript>
+  <div class="noscript-warning">Theme NexT works best with JavaScript enabled</div>
+</noscript>
+
+
+    <div class="main-inner post posts-expand">
+
+
+  
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="http://example.com/2021/08/04/h2%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%9001/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="Jason Chao">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="我住8楼">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          h2源码分析01
+        </h1>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">发表于</span>
+
+      <time title="创建时间：2021-08-04 23:02:47" itemprop="dateCreated datePublished" datetime="2021-08-04T23:02:47+08:00">2021-08-04</time>
+    </span>
+      <span class="post-meta-item">
+        <span class="post-meta-item-icon">
+          <i class="far fa-calendar-check"></i>
+        </span>
+        <span class="post-meta-item-text">更新于</span>
+        <time title="修改时间：2021-09-06 23:08:28" itemprop="dateModified" datetime="2021-09-06T23:08:28+08:00">2021-09-06</time>
+      </span>
+
+  
+</div>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+        <h1 id="h2代码架构"><a href="#h2代码架构" class="headerlink" title="h2代码架构"></a>h2代码架构</h1><p>从上到下分为8层：</p>
+<ul>
+<li>JDBC driver<ul>
+<li>jdbc层，源码在org.h2.jdbc, org.h2.jdbcx两个包下</li>
+</ul>
+</li>
+<li>Connection/session management<ul>
+<li>链接和会话管理</li>
+<li>主要相关类是org.h2.engine.database/session/sessionlocal/sessionremote</li>
+</ul>
+</li>
+<li>SQL Parser.<ul>
+<li>词法和语法解析器</li>
+<li>使用递归下降算法来进行解析</li>
+</ul>
+</li>
+<li>Command execution and planning.<ul>
+<li>命令执行和计划</li>
+<li>相关实现在org.h2.command/expression包下，h2没有生成中间层（一般是逻辑计划层），而是直接生成物理执行计划</li>
+</ul>
+</li>
+<li>Table/Index/Constraints.<ul>
+<li>表、索引、约束</li>
+<li>相关实现在org.h2.index/table/constraint包下</li>
+</ul>
+</li>
+<li>Undo log, redo log, and transactions layer.<ul>
+<li>撤销日志，重做日志，事务管理</li>
+<li>事务日志是重做日志，所有session共享；撤销日志是每个session一个，主要是为了撤销操作和回滚事务。理论上，事务日志也是可以使用的，不过为了简便，h2当前只使用它自己的“操作列表”（通常在内存中）。对于MVStore，不再需要它（只需要事务日志）</li>
+</ul>
+</li>
+<li>B-tree engine and page-based storage allocation.<ul>
+<li>B树和存储管理分配，主要是基于页的分配和B树索引</li>
+<li>代码在包org.h2.store里</li>
+</ul>
+</li>
+<li>Filesystem abstraction.<ul>
+<li>文件系统抽象，实现可随机访问的文件抽象，方便屏蔽底层内存，磁盘， 或者压缩后的文件的读写</li>
+<li>代码在org.h2.store.fs里</li>
+</ul>
+</li>
+</ul>
+<h1 id="Server启动服务流程"><a href="#Server启动服务流程" class="headerlink" title="Server启动服务流程"></a>Server启动服务流程</h1><p>以下是h2启动后处理命令，并返回结果会涉及到的主要的类：</p>
+<ol>
+<li>启动服务是TcpServer</li>
+<li>正在处理逻辑是TcpServerThread</li>
+<li>TcpServerThread通过SessionLocal来管理跟远程客户端的会话信息</li>
+<li>TcpServerThread通过Transfer来跟远程客户端进行消息通信</li>
+<li>SessionLocal通过parser来解析语句成Prepared</li>
+<li>Prepared准备好要执行的参数和资源，然后生成Command</li>
+<li>Command执行后得到Result</li>
+<li>TcpServerThread把Result通过Transfer返回给远程客户端</li>
+</ol>
+<img src="/2021/08/04/h2%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%9001/TcpServer.png" class="" title="TcpServer">
+
+
+
+<p>Server类和service类</p>
+<p>Server类是用来启动对应的服务的，默认启动三个：</p>
+<ol>
+<li>TcpServer：主要用来接受远程链接的，支持h2自己的协议</li>
+<li>PgServer：也是用来接收远程链接的，支持pg的协议</li>
+<li>WebServer：主要是webconsole，在网页可以直接请求访问一个本地或者远程的h2</li>
+</ol>
+<img src="/2021/08/04/h2%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%9001/Service-16283493788731.png" class="" title="Service">
+
+
+
+<h2 id="transfer类"><a href="#transfer类" class="headerlink" title="transfer类"></a>transfer类</h2><p>主要是用来封装下数据socket，提供一些网络流对于不同基础数据类型的读写函数</p>
+<h2 id="TcpServer类"><a href="#TcpServer类" class="headerlink" title="TcpServer类"></a>TcpServer类</h2><p>初始化启动时，调用start方法：</p>
+<ol>
+<li>挑选一个合适的端口进行监听</li>
+<li>创建管理session的内存数据库</li>
+<li>创建关闭数据库的函数</li>
+</ol>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br></pre></td><td class="code"><pre><span class="line">   <span class="function"><span class="keyword">public</span> <span class="keyword">synchronized</span> <span class="keyword">void</span> <span class="title">start</span><span class="params">()</span> <span class="keyword">throws</span> SQLException </span>&#123;</span><br><span class="line">       stop = <span class="keyword">false</span>;</span><br><span class="line">       <span class="keyword">try</span> &#123;</span><br><span class="line">           serverSocket = NetUtils.createServerSocket(port, ssl);</span><br><span class="line">       &#125; <span class="keyword">catch</span> (DbException e) &#123;</span><br><span class="line">           <span class="keyword">if</span> (!portIsSet) &#123;</span><br><span class="line">               serverSocket = NetUtils.createServerSocket(<span class="number">0</span>, ssl);</span><br><span class="line">           &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">               <span class="keyword">throw</span> e;</span><br><span class="line">           &#125;</span><br><span class="line">       &#125;</span><br><span class="line">       port = serverSocket.getLocalPort(); <span class="comment">// 随机获取一个端口</span></span><br><span class="line">       initManagementDb();</span><br><span class="line">   &#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">private</span> <span class="keyword">void</span> <span class="title">initManagementDb</span><span class="params">()</span> <span class="keyword">throws</span> SQLException </span>&#123;</span><br><span class="line">       <span class="keyword">if</span> (managementPassword.isEmpty()) &#123;</span><br><span class="line">           managementPassword = StringUtils.convertBytesToHex(MathUtils.secureRandomBytes(<span class="number">32</span>));</span><br><span class="line">       &#125;</span><br><span class="line">       <span class="comment">// avoid using the driver manager</span></span><br><span class="line">       JdbcConnection conn = <span class="keyword">new</span> JdbcConnection(<span class="string">&quot;jdbc:h2:&quot;</span> + getManagementDbName(port), <span class="keyword">null</span>, <span class="string">&quot;&quot;</span>, managementPassword);</span><br><span class="line">       managementDb = conn;</span><br><span class="line"></span><br><span class="line">       <span class="keyword">try</span> (Statement stat = conn.createStatement()) &#123;</span><br><span class="line">           stat.execute(<span class="string">&quot;CREATE ALIAS IF NOT EXISTS STOP_SERVER FOR &#x27;&quot;</span> + TcpServer.class.getName() + <span class="string">&quot;.stopServer&#x27;&quot;</span>); <span class="comment">// 创建自定义函数，用来支持通过发命令停止h2数据库</span></span><br><span class="line">           stat.execute(<span class="string">&quot;CREATE TABLE IF NOT EXISTS SESSIONS&quot;</span> +</span><br><span class="line">                   <span class="string">&quot;(ID INT PRIMARY KEY, URL VARCHAR, `USER` VARCHAR, &quot;</span> +</span><br><span class="line">                   <span class="string">&quot;CONNECTED TIMESTAMP(9) WITH TIME ZONE)&quot;</span>);</span><br><span class="line">           managementDbAdd = conn.prepareStatement(</span><br><span class="line">                   <span class="string">&quot;INSERT INTO SESSIONS VALUES(?, ?, ?, CURRENT_TIMESTAMP(9))&quot;</span>);</span><br><span class="line">           managementDbRemove = conn.prepareStatement(</span><br><span class="line">                   <span class="string">&quot;DELETE FROM SESSIONS WHERE ID=?&quot;</span>);</span><br><span class="line">       &#125;</span><br><span class="line">       SERVERS.put(port, <span class="keyword">this</span>);</span><br><span class="line">   &#125;</span><br></pre></td></tr></table></figure>
+
+
+<p>另外一个就是监听方法：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">listen</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        listenerThread = Thread.currentThread();</span><br><span class="line">        String threadName = listenerThread.getName();</span><br><span class="line">        <span class="keyword">try</span> &#123;</span><br><span class="line">            <span class="keyword">while</span> (!stop) &#123;</span><br><span class="line">                Socket s = serverSocket.accept();</span><br><span class="line">                Utils10.setTcpQuickack(s, <span class="keyword">true</span>);  <span class="comment">// 用来降低小包的延迟的，防止nagle算法优化导致网络小包数据传输延迟比较高</span></span><br><span class="line">                <span class="keyword">int</span> id = nextThreadId++;</span><br><span class="line">                TcpServerThread c = <span class="keyword">new</span> TcpServerThread(s, <span class="keyword">this</span>, id);</span><br><span class="line">                running.add(c);</span><br><span class="line">                Thread thread = <span class="keyword">new</span> Thread(c, threadName + <span class="string">&quot; thread-&quot;</span> + id);</span><br><span class="line">                thread.setDaemon(isDaemon); <span class="comment">// 启动一个后台线程进行处理链接请求</span></span><br><span class="line">                c.setThread(thread);</span><br><span class="line">                thread.start();</span><br><span class="line">            &#125;</span><br><span class="line">            serverSocket = NetUtils.closeSilently(serverSocket);</span><br><span class="line">        &#125; <span class="keyword">catch</span> (Exception e) &#123;</span><br><span class="line">            <span class="keyword">if</span> (!stop) &#123;</span><br><span class="line">                DbException.traceThrowable(e);</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line">        stopManagementDb();</span><br><span class="line">    &#125;</span><br></pre></td></tr></table></figure>
+<h2 id="TcpServerThread类"><a href="#TcpServerThread类" class="headerlink" title="TcpServerThread类"></a>TcpServerThread类</h2><p>两个重要方法：</p>
+<ol>
+<li>run，启动函数，主要是根据跟client的链接进行一些检查和设置</li>
+<li>process，循环处理client的请求<ol>
+<li>处理来自客户端的一些命令，总有19条，其中process只处理其中的17条，run函数里处理剩下的两个。从大到小共分成三类：<ol>
+<li>Session级</li>
+<li>Command级</li>
+<li>Result级</li>
+</ol>
+</li>
+</ol>
+</li>
+</ol>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">final</span> <span class="keyword">int</span> SESSION_PREPARE = <span class="number">0</span>;</span><br><span class="line">   <span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">final</span> <span class="keyword">int</span> SESSION_CLOSE = <span class="number">1</span>;</span><br><span class="line">   <span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">final</span> <span class="keyword">int</span> COMMAND_EXECUTE_QUERY = <span class="number">2</span>;</span><br><span class="line">   <span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">final</span> <span class="keyword">int</span> COMMAND_EXECUTE_UPDATE = <span class="number">3</span>;</span><br><span class="line">   <span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">final</span> <span class="keyword">int</span> COMMAND_CLOSE = <span class="number">4</span>;</span><br><span class="line">   <span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">final</span> <span class="keyword">int</span> RESULT_FETCH_ROWS = <span class="number">5</span>;</span><br><span class="line">   <span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">final</span> <span class="keyword">int</span> RESULT_RESET = <span class="number">6</span>;</span><br><span class="line">   <span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">final</span> <span class="keyword">int</span> RESULT_CLOSE = <span class="number">7</span>;</span><br><span class="line">   <span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">final</span> <span class="keyword">int</span> COMMAND_COMMIT = <span class="number">8</span>;</span><br><span class="line">   <span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">final</span> <span class="keyword">int</span> CHANGE_ID = <span class="number">9</span>;</span><br><span class="line">   <span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">final</span> <span class="keyword">int</span> COMMAND_GET_META_DATA = <span class="number">10</span>;</span><br><span class="line">   <span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">final</span> <span class="keyword">int</span> SESSION_PREPARE_READ_PARAMS = <span class="number">11</span>;</span><br><span class="line">   <span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">final</span> <span class="keyword">int</span> SESSION_SET_ID = <span class="number">12</span>;</span><br><span class="line">   <span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">final</span> <span class="keyword">int</span> SESSION_CANCEL_STATEMENT = <span class="number">13</span>;</span><br><span class="line">   <span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">final</span> <span class="keyword">int</span> SESSION_CHECK_KEY = <span class="number">14</span>;</span><br><span class="line">   <span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">final</span> <span class="keyword">int</span> SESSION_SET_AUTOCOMMIT = <span class="number">15</span>;</span><br><span class="line">   <span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">final</span> <span class="keyword">int</span> SESSION_HAS_PENDING_TRANSACTION = <span class="number">16</span>;</span><br><span class="line">   <span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">final</span> <span class="keyword">int</span> LOB_READ = <span class="number">17</span>;</span><br><span class="line">   <span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">final</span> <span class="keyword">int</span> SESSION_PREPARE_READ_PARAMS2 = <span class="number">18</span>;</span><br><span class="line">   <span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">final</span> <span class="keyword">int</span> GET_JDBC_META = <span class="number">19</span>;</span><br></pre></td></tr></table></figure>
+<h1 id="解析器"><a href="#解析器" class="headerlink" title="解析器"></a>解析器</h1><h2 id="词法解析器"><a href="#词法解析器" class="headerlink" title="词法解析器"></a>词法解析器</h2><p>字符流被分为以下几类：</p>
+<ol>
+<li>CHAR_END<ol>
+<li>字符流结束</li>
+</ol>
+</li>
+<li>CHAR_VALUE<ol>
+<li>标识符</li>
+</ol>
+</li>
+<li>CHAR_QUOTED<ol>
+<li>双引号，一般用来把别名包起来</li>
+</ol>
+</li>
+<li>CHAR_NAME<ol>
+<li>标识符</li>
+</ol>
+</li>
+<li>CHAR_SPECIAL_1<ol>
+<li>只是一个符号组成一个运算符，例如&lt;</li>
+</ol>
+</li>
+<li>CHAR_SPECIAL_2<ol>
+<li>两个符号组成一个运算符，例如||，&amp;&amp;</li>
+</ol>
+</li>
+<li>CHAR_STRING<ol>
+<li>单引号括起来的字符串    </li>
+</ol>
+</li>
+<li>CHAR_DOT<ol>
+<li>点符号</li>
+</ol>
+</li>
+<li>CHAR_DOLLAR_QUOTED_STRING<ol>
+<li>两个$$符号包起来的字符串</li>
+</ol>
+</li>
+</ol>
+<p>词法解析器比较简单，将token流按需要支持的token类型进行分类，分成上述的9大类。</p>
+<p>对整个sql字符串进行一个字符一个字符的拆解，然后按类型进行标识。</p>
+<h2 id="语法解析器"><a href="#语法解析器" class="headerlink" title="语法解析器"></a>语法解析器</h2><p>语法解析器主要是按H2需要支持的语法，对token流进行解析。</p>
+<p>大概思路是：</p>
+<p>读取第一个token，找到其所属的表达式类型，然后再按该表达式类型进行后续的token解析，如果解析不通就直接报错</p>
+<h1 id="trace机制"><a href="#trace机制" class="headerlink" title="trace机制"></a>trace机制</h1><h1 id="语法"><a href="#语法" class="headerlink" title="语法"></a>语法</h1><h2 id="DDL"><a href="#DDL" class="headerlink" title="DDL"></a>DDL</h2><h3 id="Create-Schema"><a href="#Create-Schema" class="headerlink" title="Create Schema"></a>Create Schema</h3><blockquote>
+<p>create schema (if not exist) ? name (authorization ownerUserName)? (With tableEngineParamName)?</p>
+</blockquote>
+<h3 id="Create-Table"><a href="#Create-Table" class="headerlink" title="Create Table"></a>Create Table</h3><blockquote>
+</blockquote>
+<h3 id="Create-View"><a href="#Create-View" class="headerlink" title="Create View"></a>Create View</h3><h3 id="Create-Index"><a href="#Create-Index" class="headerlink" title="Create Index"></a>Create Index</h3><blockquote>
+<p>create (unique  (hash | spatial) ?  index  ((if not exists) ? newIndexName) ?  | primary key (hash) ? ) ? on tableName  (indexColumn) </p>
+</blockquote>
+<h3 id="Create-Trigger"><a href="#Create-Trigger" class="headerlink" title="Create Trigger"></a>Create Trigger</h3><h3 id="Create-Role"><a href="#Create-Role" class="headerlink" title="Create Role"></a>Create Role</h3><blockquote>
+<p>create role (if not exist) ? name</p>
+</blockquote>
+<h3 id="Create-User"><a href="#Create-User" class="headerlink" title="Create User"></a>Create User</h3><h3 id="Create-Linked-Table"><a href="#Create-Linked-Table" class="headerlink" title="Create Linked Table"></a>Create Linked Table</h3><h3 id="Create-Sequence"><a href="#Create-Sequence" class="headerlink" title="Create Sequence"></a>Create Sequence</h3><h3 id="Create-Domain"><a href="#Create-Domain" class="headerlink" title="Create Domain"></a>Create Domain</h3><blockquote>
+<p>create domain (if not exists) ? newDomainName as DataType (default expression) ?  ((not)? null) ? (selectivity selectivityInt) ? (check condition) ?</p>
+</blockquote>
+<h3 id="Create-Constant"><a href="#Create-Constant" class="headerlink" title="Create Constant"></a>Create Constant</h3><blockquote>
+<p>create constant (if not exists) ? newConstantName Value expression</p>
+</blockquote>
+<h3 id="Create-Alias"><a href="#Create-Alias" class="headerlink" title="Create Alias"></a>Create Alias</h3><blockquote>
+<p>create alias (if not exists)? newfunctionAliasName  (deterministic) ?   for classAndMethodName / As SourceCodeString</p>
+</blockquote>
+<h3 id="Create-Aggregate"><a href="#Create-Aggregate" class="headerlink" title="Create Aggregate"></a>Create Aggregate</h3><blockquote>
+<p>create aggregate (if not exists) ? newAggregateName for className</p>
+</blockquote>
+<h2 id="DML"><a href="#DML" class="headerlink" title="DML"></a>DML</h2><h2 id="Others"><a href="#Others" class="headerlink" title="Others"></a>Others</h2><h1 id="参考"><a href="#参考" class="headerlink" title="参考"></a>参考</h1><ol>
+<li><a target="_blank" rel="noopener" href="https://www.h2database.com/html/architecture.html">Architecture (h2database.com)</a></li>
+<li><a target="_blank" rel="noopener" href="https://github.com/codefollower/H2-Research/blob/master/h2/src/main/org/h2/server/TcpServer.java">H2-Research/TcpServer.java at master · codefollower/H2-Research (github.com)</a></li>
+<li><a target="_blank" rel="noopener" href="http://www.h2database.com/html/commands.html#create_schema">http://www.h2database.com/html/commands.html#create_schema</a></li>
+</ol>
+
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/h2/" rel="tag"># h2</a>
+              <a href="/tags/database/" rel="tag"># database</a>
+              <a href="/tags/sourcecode/" rel="tag"># sourcecode</a>
+          </div>
+
+        
+
+          <div class="post-nav">
+            <div class="post-nav-item">
+                <a href="/2021/07/29/SQLite%E9%A1%B5%E7%AE%A1%E7%90%86%E6%A8%A1%E5%9D%97/" rel="prev" title="SQLite页管理模块">
+                  <i class="fa fa-chevron-left"></i> SQLite页管理模块
+                </a>
+            </div>
+            <div class="post-nav-item">
+                <a href="/2021/08/12/%E7%BC%96%E8%AF%91zookeeper-c%E5%BA%93/" rel="next" title="编译zookeeper c库">
+                  编译zookeeper c库 <i class="fa fa-chevron-right"></i>
+                </a>
+            </div>
+          </div>
+    </footer>
+  </article>
+</div>
+
+
+
+
+
+
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      const activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      const commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+</div>
+  </main>
+
+  <footer class="footer">
+    <div class="footer-inner">
+
+
+<div class="copyright">
+  &copy; 
+  <span itemprop="copyrightYear">2021</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Jason Chao</span>
+</div>
+  <div class="powered-by">由 <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://theme-next.js.org/" class="theme-link" rel="noopener" target="_blank">NexT.Gemini</a> 强力驱动
+  </div>
+
+    </div>
+  </footer>
+
+  
+  <script src="//cdn.jsdelivr.net/npm/animejs@3.2.1/lib/anime.min.js"></script>
+<script src="/js/utils.js"></script><script src="/js/motion.js"></script><script src="/js/next-boot.js"></script>
+
+  
+
+
+
+
+
+
+  
+
+
+
+
+
+</body>
+</html>

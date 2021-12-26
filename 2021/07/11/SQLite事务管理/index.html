@@ -1,0 +1,441 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 5.3.0">
+
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+
+<link rel="stylesheet" href="//cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@5.15.1/css/all.min.css">
+  <link rel="stylesheet" href="//cdn.jsdelivr.net/npm/animate.css@3.1.1/animate.min.css">
+
+<script class="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"example.com","root":"/","images":"/images","scheme":"Gemini","version":"8.2.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12},"copycode":false,"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"fadeInDown","post_body":"fadeInDown","coll_header":"fadeInLeft","sidebar":"fadeInUp"}},"prism":false,"i18n":{"placeholder":"搜索...","empty":"没有找到任何搜索结果：${query}","hits_time":"找到 ${hits} 个搜索结果（用时 ${time} 毫秒）","hits":"找到 ${hits} 个搜索结果"}};
+  </script>
+<meta name="description" content="事务类型系统事务系统事务每条语句都会被包装成一个事务的形式进行执行。一个应用可以在一个数据库链接中并发执行多个查询事务，但是只能执行一个写入事务。 用户事务默认系统事务时自动提交模式，即针对每条语句都会有事务包装起来执行。对于写入比较频繁的应用来说性能非常不友好。因为一次写事务提交都涉及到重新打开、写入和关闭日志文件的操作。并且，这还有并发控制的开销，因为应用需要为每个语句执行重新获取和释放锁。">
+<meta property="og:type" content="article">
+<meta property="og:title" content="SQLite事务管理">
+<meta property="og:url" content="http://example.com/2021/07/11/SQLite%E4%BA%8B%E5%8A%A1%E7%AE%A1%E7%90%86/index.html">
+<meta property="og:site_name" content="我住8楼">
+<meta property="og:description" content="事务类型系统事务系统事务每条语句都会被包装成一个事务的形式进行执行。一个应用可以在一个数据库链接中并发执行多个查询事务，但是只能执行一个写入事务。 用户事务默认系统事务时自动提交模式，即针对每条语句都会有事务包装起来执行。对于写入比较频繁的应用来说性能非常不友好。因为一次写事务提交都涉及到重新打开、写入和关闭日志文件的操作。并且，这还有并发控制的开销，因为应用需要为每个语句执行重新获取和释放锁。">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="c:/Users/94121/AppData/Local/Temp/企业微信截图_1627450277474.png">
+<meta property="og:image" content="c:/Users/94121/AppData/Local/Temp/企业微信截图_16274509232827.png">
+<meta property="og:image" content="c:/Users/94121/AppData/Local/Temp/企业微信截图_1627484504367.png">
+<meta property="og:image" content="c:/Users/94121/AppData/Local/Temp/企业微信截图_16274868398561.png">
+<meta property="og:image" content="c:/Users/94121/AppData/Local/Temp/企业微信截图_16274878971206.png">
+<meta property="article:published_time" content="2021-07-11T12:46:49.000Z">
+<meta property="article:modified_time" content="2021-07-29T15:14:10.824Z">
+<meta property="article:author" content="Jason Chao">
+<meta property="article:tag" content="sqlite">
+<meta property="article:tag" content="transaction">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="c:/Users/94121/AppData/Local/Temp/企业微信截图_1627450277474.png">
+
+
+<link rel="canonical" href="http://example.com/2021/07/11/SQLite%E4%BA%8B%E5%8A%A1%E7%AE%A1%E7%90%86/">
+
+
+<script class="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'zh-CN'
+  };
+</script>
+<title>SQLite事务管理 | 我住8楼</title>
+  
+
+
+
+
+  <noscript>
+  <style>
+  body { margin-top: 2rem; }
+
+  .use-motion .menu-item,
+  .use-motion .sidebar,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header {
+    visibility: visible;
+  }
+
+  .use-motion .header,
+  .use-motion .site-brand-container .toggle,
+  .use-motion .footer { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle,
+  .use-motion .custom-logo-image {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line {
+    transform: scaleX(1);
+  }
+
+  .search-pop-overlay, .sidebar-nav { display: none; }
+  .sidebar-panel { display: block; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" class="use-motion">
+  <div class="headband"></div>
+
+  <main class="main">
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏" role="button">
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <i class="logo-line"></i>
+      <h1 class="site-title">我住8楼</h1>
+      <i class="logo-line"></i>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+    </div>
+  </div>
+</div>
+
+
+
+<nav class="site-nav">
+  <ul class="main-menu menu">
+        <li class="menu-item menu-item-home"><a href="/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a></li>
+        <li class="menu-item menu-item-tags"><a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>标签</a></li>
+        <li class="menu-item menu-item-categories"><a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>分类</a></li>
+        <li class="menu-item menu-item-archives"><a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档</a></li>
+  </ul>
+</nav>
+
+
+
+
+</div>
+        
+  
+  <div class="toggle sidebar-toggle" role="button">
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+  </div>
+
+  <aside class="sidebar">
+
+    <div class="sidebar-inner sidebar-nav-active sidebar-toc-active">
+      <ul class="sidebar-nav">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <div class="sidebar-panel-container">
+        <!--noindex-->
+        <div class="post-toc-wrap sidebar-panel">
+            <div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#%E4%BA%8B%E5%8A%A1%E7%B1%BB%E5%9E%8B"><span class="nav-number">1.</span> <span class="nav-text">事务类型</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E7%B3%BB%E7%BB%9F%E4%BA%8B%E5%8A%A1"><span class="nav-number">1.1.</span> <span class="nav-text">系统事务</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E7%B3%BB%E7%BB%9F%E4%BA%8B%E5%8A%A1-1"><span class="nav-number">1.1.1.</span> <span class="nav-text">系统事务</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E7%94%A8%E6%88%B7%E4%BA%8B%E5%8A%A1"><span class="nav-number">1.1.2.</span> <span class="nav-text">用户事务</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%AD%90%E4%BA%8B%E5%8A%A1"><span class="nav-number">1.1.3.</span> <span class="nav-text">子事务</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E9%94%81%E7%AE%A1%E7%90%86"><span class="nav-number">1.2.</span> <span class="nav-text">锁管理</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E9%94%81%E7%B1%BB%E5%9E%8B"><span class="nav-number">1.2.1.</span> <span class="nav-text">锁类型</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E9%94%81%E8%8E%B7%E5%8F%96%E9%A1%BA%E5%BA%8F"><span class="nav-number">1.2.2.</span> <span class="nav-text">锁获取顺序</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%AD%BB%E9%94%81%E5%92%8C%E9%A5%A5%E9%A5%BF"><span class="nav-number">1.2.3.</span> <span class="nav-text">死锁和饥饿</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E9%94%81%E5%AE%9E%E7%8E%B0"><span class="nav-number">1.2.4.</span> <span class="nav-text">锁实现</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#sqlite%E9%94%81%E6%98%A0%E5%B0%84%E6%88%90%E6%96%87%E4%BB%B6%E9%94%81"><span class="nav-number">1.2.4.1.</span> <span class="nav-text">sqlite锁映射成文件锁</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E5%B7%A5%E7%A8%8B%E9%97%AE%E9%A2%98"><span class="nav-number">1.2.4.2.</span> <span class="nav-text">工程问题</span></a></li></ol></li></ol></li></ol></li></ol></div>
+        </div>
+        <!--/noindex-->
+
+        <div class="site-overview-wrap sidebar-panel">
+          <div class="site-author site-overview-item animated" itemprop="author" itemscope itemtype="http://schema.org/Person">
+  <p class="site-author-name" itemprop="name">Jason Chao</p>
+  <div class="site-description" itemprop="description"></div>
+</div>
+<div class="site-state-wrap site-overview-item animated">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">22</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+          
+        <span class="site-state-item-count">2</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+          
+        <span class="site-state-item-count">22</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+
+
+
+        </div>
+      </div>
+    </div>
+  </aside>
+  <div class="sidebar-dimmer"></div>
+
+
+    </header>
+
+    
+  <div class="back-to-top" role="button">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+<noscript>
+  <div class="noscript-warning">Theme NexT works best with JavaScript enabled</div>
+</noscript>
+
+
+    <div class="main-inner post posts-expand">
+
+
+  
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="http://example.com/2021/07/11/SQLite%E4%BA%8B%E5%8A%A1%E7%AE%A1%E7%90%86/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="Jason Chao">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="我住8楼">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          SQLite事务管理
+        </h1>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">发表于</span>
+
+      <time title="创建时间：2021-07-11 20:46:49" itemprop="dateCreated datePublished" datetime="2021-07-11T20:46:49+08:00">2021-07-11</time>
+    </span>
+      <span class="post-meta-item">
+        <span class="post-meta-item-icon">
+          <i class="far fa-calendar-check"></i>
+        </span>
+        <span class="post-meta-item-text">更新于</span>
+        <time title="修改时间：2021-07-29 23:14:10" itemprop="dateModified" datetime="2021-07-29T23:14:10+08:00">2021-07-29</time>
+      </span>
+
+  
+</div>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+        <h1 id="事务类型"><a href="#事务类型" class="headerlink" title="事务类型"></a>事务类型</h1><h2 id="系统事务"><a href="#系统事务" class="headerlink" title="系统事务"></a>系统事务</h2><h3 id="系统事务-1"><a href="#系统事务-1" class="headerlink" title="系统事务"></a>系统事务</h3><p>每条语句都会被包装成一个事务的形式进行执行。一个应用可以在一个数据库链接中并发执行多个查询事务，但是只能执行一个写入事务。</p>
+<h3 id="用户事务"><a href="#用户事务" class="headerlink" title="用户事务"></a>用户事务</h3><p>默认系统事务时自动提交模式，即针对每条语句都会有事务包装起来执行。对于写入比较频繁的应用来说性能非常不友好。因为一次写事务提交都涉及到重新打开、写入和关闭日志文件的操作。并且，这还有并发控制的开销，因为应用需要为每个语句执行重新获取和释放锁。</p>
+<p>通过将多条语句组合成一个用户事务，可以降低这些性能开销。</p>
+<h3 id="子事务"><a href="#子事务" class="headerlink" title="子事务"></a>子事务</h3><p>在一个用户事务中，连续的非查询操作可以作为一个子事务执行。而查询操作则是单独的子事务操作。如果一个用户事务里有几个联系非查询操作，它们会作为一个子事务来执行。如果其中某个执行失败了，数据库会恢复到这个操作之前的状态，然后接着执行下一个操作。</p>
+<p>当前有五种处理违反约束的更新后的回滚策略：</p>
+<ol>
+<li>回滚，中止当前子事务</li>
+<li>中止当前语句，但是当前子事务的其他语句还是继续执行，这个也是默认策略</li>
+<li>失败，接受当前语句执行失败后的改动，并停止当前语句更进一步的改动。整个子事务继续执行。</li>
+<li>忽略，当前语句更新的有问题的行的更新被忽略，整个子事务继续执行。</li>
+<li>替代，违反约束的行直接被移除，子事务继续执行。</li>
+</ol>
+<h2 id="锁管理"><a href="#锁管理" class="headerlink" title="锁管理"></a>锁管理</h2><p>目前只有数据库级别的锁。</p>
+<h3 id="锁类型"><a href="#锁类型" class="headerlink" title="锁类型"></a>锁类型</h3><ol>
+<li>NOLOCK<ol>
+<li>事务初始状态就是无锁的，不能读写数据库</li>
+</ol>
+</li>
+<li>SHARED<ol>
+<li>允许读。任意数量的事务都可以获得共享锁。只有当所有的共享锁被释放了，才能执行写操作。</li>
+</ol>
+</li>
+<li>EXCLUSIVE<ol>
+<li>写锁。一个数据库只有一个写锁。如果存在写锁，其他的锁都不能存在。</li>
+</ol>
+</li>
+<li>RESERVED<ol>
+<li>预留锁。这个事务过会儿要执行写，不过当前只是读。其他的事务还是可以继续加shared锁。</li>
+</ol>
+</li>
+<li>PENGDING<ol>
+<li>阻塞锁。这个事务马上要执行写，此时就是在等所有的shared锁被释放，然后转成exclusive锁。其他的事务不能再加锁了。</li>
+</ol>
+</li>
+</ol>
+<p><img src="C:/Users/94121/AppData/Local/Temp/企业微信截图_1627450277474.png" alt="img"></p>
+<h3 id="锁获取顺序"><a href="#锁获取顺序" class="headerlink" title="锁获取顺序"></a>锁获取顺序</h3><p><img src="C:/Users/94121/AppData/Local/Temp/企业微信截图_16274509232827.png" alt="img"></p>
+<p>正常获取锁的顺序是上图黑色粗线的顺序。</p>
+<p>从Shared到Pending，只有一种情况会发生：当一个事务在读时，需要进行日志回滚。</p>
+<p>这些锁对用户不会暴露，全都是lockmanager自己进行锁获取和释放。</p>
+<h3 id="死锁和饥饿"><a href="#死锁和饥饿" class="headerlink" title="死锁和饥饿"></a>死锁和饥饿</h3><p>当两个事务同时获得shared锁，然后都要去获取Reserved锁时，其中一个成功，但是他要等待别的事务释放shared 锁才能变成exclusive锁。此时就产生死锁。解决办法就是在事务内多次尝试获得锁，如果超过指定次数锁还未获得，就释放掉自己的锁。</p>
+<p>但是这样还会有一个饥饿的问题，就是多个事务一直并发获得锁，然后都尝试多次失败，再回滚事务，导致一直没法进行下去。也可以称为活锁。</p>
+<h3 id="锁实现"><a href="#锁实现" class="headerlink" title="锁实现"></a>锁实现</h3><p>如下图所示，sqlite使用不同区域来加不同的锁的方式实现四种锁。</p>
+<p>linux只支持两种文件锁：读锁和写锁。写锁是排他的。但是锁可以锁定文件的某段区域，因此一个文件可能会同时存在多把锁，只要它们区域不一样。</p>
+<p>sqlite锁的实现方式如下：</p>
+<ol>
+<li>shared锁，通过在指定区域加读锁来实现</li>
+<li>exclusive锁，通过给指定区域的所有字节加上写锁。</li>
+<li>reserved锁，通过在某个指定的字节里加上写锁来实现的。</li>
+<li>pending锁，也在另一个指定的字节里加上写锁来实现的。</li>
+</ol>
+<p>如下图所示：</p>
+<p>锁页的起始位置定义在PENDING_BYTE里。第一个字节是pending锁字节，第二个字节是reserve锁字节。第三个开始接下来510个字节是shared锁字节。</p>
+<p><img src="C:/Users/94121/AppData/Local/Temp/企业微信截图_1627484504367.png" alt="img"></p>
+<h4 id="sqlite锁映射成文件锁"><a href="#sqlite锁映射成文件锁" class="headerlink" title="sqlite锁映射成文件锁"></a>sqlite锁映射成文件锁</h4><ol>
+<li>一个进程如果要获得shared锁，先获取pending byte的读锁（这个主要是为了确保没有别的进程获取到pending锁了），如果获取成功，说明从shared first开始的都是读锁。这个pending的读锁最终会被释放掉。</li>
+<li>一个进程只有在获得shared锁之后才能获得reserved锁，在reserved byte加上写锁即可。但是它本身的shared锁不会被释放，这个为了防止别的进程也获得exclude锁。（这个是为何？不加shared锁，就有可能别的进程也能获得exclusive锁？）</li>
+<li>一个进程只有在获得shared锁之后才能获得pending锁，在pending byte加上写锁即可。但是它本身的shared锁不会被释放，这个为了防止别的进程也获得reserved锁。（这个是为何？不加shared锁，就有可能别的进程也能获得exclusive锁？因为获取exclusive锁需要其他进程的shared锁都释放掉，假设有没有释放的就不能加上exclusive锁）</li>
+<li>一个进程只有在获得pending锁之后才能获得exclusive锁。为了获得exclusive锁，需要在所有的shared byte上加上写锁即可。</li>
+</ol>
+<p><img src="C:/Users/94121/AppData/Local/Temp/企业微信截图_16274868398561.png" alt="img"></p>
+<h4 id="工程问题"><a href="#工程问题" class="headerlink" title="工程问题"></a>工程问题</h4><ol>
+<li>锁映射问题，一个进程只能获得一个文件的一把锁，如果多线程，那就sqlite自己模拟出多个锁对象unixFile，但是共享一个unixInodeInfo对象，这个对象才是这个进程对文件的linux锁。</li>
+</ol>
+<p><img src="C:/Users/94121/AppData/Local/Temp/企业微信截图_16274878971206.png" alt="img"></p>
+
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/sqlite/" rel="tag"># sqlite</a>
+              <a href="/tags/transaction/" rel="tag"># transaction</a>
+          </div>
+
+        
+
+          <div class="post-nav">
+            <div class="post-nav-item">
+                <a href="/2021/07/06/sqlite%E6%96%87%E4%BB%B6%E6%8E%A2%E7%B4%A2/" rel="prev" title="sqlite文件探索">
+                  <i class="fa fa-chevron-left"></i> sqlite文件探索
+                </a>
+            </div>
+            <div class="post-nav-item">
+                <a href="/2021/07/29/SQLite%E9%A1%B5%E7%AE%A1%E7%90%86%E6%A8%A1%E5%9D%97/" rel="next" title="SQLite页管理模块">
+                  SQLite页管理模块 <i class="fa fa-chevron-right"></i>
+                </a>
+            </div>
+          </div>
+    </footer>
+  </article>
+</div>
+
+
+
+
+
+
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      const activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      const commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+</div>
+  </main>
+
+  <footer class="footer">
+    <div class="footer-inner">
+
+
+<div class="copyright">
+  &copy; 
+  <span itemprop="copyrightYear">2021</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Jason Chao</span>
+</div>
+  <div class="powered-by">由 <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://theme-next.js.org/" class="theme-link" rel="noopener" target="_blank">NexT.Gemini</a> 强力驱动
+  </div>
+
+    </div>
+  </footer>
+
+  
+  <script src="//cdn.jsdelivr.net/npm/animejs@3.2.1/lib/anime.min.js"></script>
+<script src="/js/utils.js"></script><script src="/js/motion.js"></script><script src="/js/next-boot.js"></script>
+
+  
+
+
+
+
+
+
+  
+
+
+
+
+
+</body>
+</html>

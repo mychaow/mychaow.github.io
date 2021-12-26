@@ -167,7 +167,7 @@
       <div class="site-state-item site-state-posts">
           <a href="/archives/">
         
-          <span class="site-state-item-count">15</span>
+          <span class="site-state-item-count">22</span>
           <span class="site-state-item-name">日志</span>
         </a>
       </div>
@@ -180,7 +180,7 @@
       <div class="site-state-item site-state-tags">
             <a href="/tags/">
           
-        <span class="site-state-item-count">13</span>
+        <span class="site-state-item-count">22</span>
         <span class="site-state-item-name">标签</span></a>
       </div>
   </nav>
@@ -209,6 +209,1551 @@
 
 
     <div class="main-inner index posts-expand">
+
+    
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="http://example.com/2021/05/17/%E5%B7%A5%E4%B8%9ASaaS/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="Jason Chao">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="我住8楼">
+    </span>
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">
+          <a href="/2021/05/17/%E5%B7%A5%E4%B8%9ASaaS/" class="post-title-link" itemprop="url">工业SaaS</a>
+        </h2>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">发表于</span>
+
+      <time title="创建时间：2021-05-17 17:56:49" itemprop="dateCreated datePublished" datetime="2021-05-17T17:56:49+08:00">2021-05-17</time>
+    </span>
+      <span class="post-meta-item">
+        <span class="post-meta-item-icon">
+          <i class="far fa-calendar-check"></i>
+        </span>
+        <span class="post-meta-item-text">更新于</span>
+        <time title="修改时间：2021-05-18 11:07:04" itemprop="dateModified" datetime="2021-05-18T11:07:04+08:00">2021-05-18</time>
+      </span>
+
+  
+</div>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+          <h1 id="工厂生产概念"><a href="#工厂生产概念" class="headerlink" title="工厂生产概念"></a>工厂生产概念</h1><p>下图是工厂生产流程图。</p>
+<img src="/2021/05/17/%E5%B7%A5%E4%B8%9ASaaS/gL2CA0s39vqIOnEmYIbg.png" class="" title="工业 SaaS 一定要懂的基础信息">
+
+<h2 id="产品"><a href="#产品" class="headerlink" title="产品"></a><strong>产品</strong></h2><p>但工业中需要注意的是产品的类型，有生产用料和非生产用料的区分。</p>
+<ul>
+<li><p>生产用料有原材料，半成品，成品；</p>
+</li>
+<li><p>非生产用料就是日常用品，比如办公桌，电脑等。</p>
+</li>
+</ul>
+<p>我们重点在于生产用料的管理：</p>
+<ul>
+<li>如果是加工型工厂，一般是购进原材料，比如：一大片钢板加工成螺丝螺帽，没加工完的产品就是半成品，加工完了要出厂销售了一般是成品；</li>
+<li>如果是组装型工厂，比如：小米电视买了一堆零部件过来组装，那采购来的就是半成品或者成品了。</li>
+</ul>
+<p>这里的产品和电商产品区别很大的是要经过加工，那么它就不是一个单纯的产品，它必须考虑到产品制造的物料清单和加工工艺。</p>
+<img src="/2021/05/17/%E5%B7%A5%E4%B8%9ASaaS/lgAON3N6aSks1nGOeSZI.png" class="" title="工业 SaaS 一定要懂的基础信息">
+
+<h2 id="BOM"><a href="#BOM" class="headerlink" title="BOM"></a><strong>BOM</strong></h2><p>BOM（Bill of Material），即物料清单，也就是以数据格式来描述产品结构的文件。</p>
+<p>BOM树长这样：</p>
+<img src="/2021/05/17/%E5%B7%A5%E4%B8%9ASaaS/xBR9dnKpZgXb4HKXKzuu.png" class="" title="工业 SaaS 一定要懂的基础信息">
+
+<p>但不同的阶段，BOM还有区分。</p>
+<p>产品要经过工程设计、工艺制造设计、生产制造 3 个阶段，对应就是 EBOM（工程 BOM）、PBOM（计划 BOM）、DBOM（设计 BOM）。</p>
+<ol>
+<li>EBOM（工程 BOM）：通常仅限于图纸零件明细表出现的物料，说明图纸的层次和从属关系；做好技术文档管理，虽然也有指导采购和估算报价的功能，但主要是为了管理图纸。</li>
+<li>PBOM（计划BOM）：是工艺工程师根据工厂的加工水平和能力，对EBOM再进行设计得出的；它用于工艺设计和生产制造管理，使用它可以明确地了解零件与零件之间的制造关系，跟踪零件是如何制造出来的，在哪里制造、由谁制造、用什么制造等信息。</li>
+<li>设计BOM：DBOM是产品的总体信息，对应常见文本格式表现形式包括产品明细表、图样目录、材料定额明细表等等；是最终工人生产的依据，PLM中至少要包含这层。</li>
+</ol>
+<p><strong>BOM有什么用呢？</strong></p>
+<p>我们看到上图的电动工具，由螺丝刀，充电器，批头组组成，但是批头组又由PE架，批头7件套组成，批头7件套又由批头组成，再往下，就是批头的加工过程了。</p>
+<p>那工厂在生产的时候，是有加工和组装环节的，比如说有7个小组，每个小组分别生产批头1到批头7，都生产完了，组装组组成批头7件套，另一个组装部门再领出PE架，组装成批头组，再这样一步步往上。</p>
+<p><strong>BOM 的作用就在于告诉工人你要干什么。</strong></p>
+<p>对于工人来说，他们不关心最终产品是什么，他们只关心手头任务是什么，客户要电动工具，但分配到每个车间的任务是批头加工，批头组装等。</p>
+<p>可以这样理解：BOM是工单任务拆分的重要依据，但作为工业的基础数据，它的作用肯定远不止如此。</p>
+<p>客户下了销售订单，系统要根据现有在制品量、库存原材料量、加工产能等进行MRP运算，计算出还需采购多少原材料、最晚哪一天要到货、首车间什么时候投料、其他车间怎么排期；如果要外协，什么时候发出订单、什么时候要完成等等。</p>
+<p>那么 MRP 运算就是基于BOM层层展开的（MRP是逻辑很复杂，但功能看似很简单的模块，这个后面再详细讲）。</p>
+<p>最后还是回到追溯上，最后的产成品是要能根据 BOM 树，自上往下去找到每一个节点的。</p>
+<p>知道了产品的物料清单，加工环节中另一个最重要的就是工艺了。</p>
+<h2 id="工序、工艺、质检"><a href="#工序、工艺、质检" class="headerlink" title="工序、工艺、质检"></a><strong>工序</strong>、工艺、质检</h2><p>工艺流程亦称“加工流程”或“生产流程”——指通过一定的生产设备或管道，从原材料投入到成品产出，按顺序连续进行加工的全过程。</p>
+<p>我们来看下面这张工艺卡片，里面包括了加工过程的每道工序、加工部门、所用设备、检测数据等；我们在系统设计时，工序、质检的数据肯定是单独维护的，但最终要被工艺引用到。</p>
+<img src="/2021/05/17/%E5%B7%A5%E4%B8%9ASaaS/L655tfb1f0We296I7TbJ.png" class="" title="工业 SaaS 一定要懂的基础信息">
+
+<p>实际的生产过程是这样的：</p>
+<ol>
+<li>工人在生产前，先点检下设备，就是查看下设备是不是好的，如果不好，就报修请人来修理，如果是好的，就开始今天的工作。</li>
+<li>加工完成后，一般首个零件会先检查下，是否符合标准，在生产过程中，过段时间会抽检下，有质检员还会定时来巡检。</li>
+<li>这道工序加工完了，就到下道工序。</li>
+</ol>
+<p>产品质量标准像下图这样：</p>
+<img src="/2021/05/17/%E5%B7%A5%E4%B8%9ASaaS/nEusi47SjY7aKbx8EWHA.png" class="" title="工业 SaaS 一定要懂的基础信息">
+
+<h2 id="标准作业指导书"><a href="#标准作业指导书" class="headerlink" title="标准作业指导书"></a>标准作业指导书</h2><p>将 BOM 和工艺结合起来，就是工厂编制的作业指导书。</p>
+<p>看下图里面包含了所需物料和数量、作业流程、工序说明、技术要求、设备工具、检查要求等。</p>
+<img src="/2021/05/17/%E5%B7%A5%E4%B8%9ASaaS/YtgB8BgyGg5yBZ6uufkk.png" class="" title="工业 SaaS 一定要懂的基础信息">
+
+<p>我们回头想想，最开始工厂生产，可能就是这样的一份操作指导书，但是我们做到系统里时，把这个指导书进行了拆分，分成了 BOM、工序、工艺、设备、质检、人员等模块，独立的模块对于后续的数字化管理是更加方便的。</p>
+<h2 id="工厂部门架构"><a href="#工厂部门架构" class="headerlink" title="工厂部门架构"></a>工厂部门架构</h2><p>一座典型工厂的部门架构、职能以及背后对应的价值链。</p>
+<img src="/2021/05/17/%E5%B7%A5%E4%B8%9ASaaS/zh1sPuK7Vd4jarTa4WrF.jpeg" class="" title="img">
+
+<h2 id="典型工业SaaS应用"><a href="#典型工业SaaS应用" class="headerlink" title="典型工业SaaS应用"></a>典型工业SaaS应用</h2><img src="/2021/05/17/%E5%B7%A5%E4%B8%9ASaaS/dZEwKgT94FOOXV5qVxO8.jpeg" class="" title="img">
+
+<h2 id="参考"><a href="#参考" class="headerlink" title="参考"></a>参考</h2><ol>
+<li><a target="_blank" rel="noopener" href="http://www.woshipm.com/pd/4096466.html">工业 SaaS 一定要懂的基础信息 | 人人都是产品经理 (woshipm.com)</a></li>
+<li><a target="_blank" rel="noopener" href="http://www.woshipm.com/it/3941692.html">当工业互联网遇上SaaS，说了10000次的新基建背后 | 人人都是产品经理 (woshipm.com)</a></li>
+</ol>
+
+      
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+        <div class="post-eof"></div>
+      
+    </footer>
+  </article>
+</div>
+
+
+
+
+    
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="http://example.com/2021/05/14/%E5%B7%A5%E4%B8%9A%E5%A4%A7%E6%95%B0%E6%8D%AE/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="Jason Chao">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="我住8楼">
+    </span>
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">
+          <a href="/2021/05/14/%E5%B7%A5%E4%B8%9A%E5%A4%A7%E6%95%B0%E6%8D%AE/" class="post-title-link" itemprop="url">工业大数据</a>
+        </h2>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">发表于</span>
+
+      <time title="创建时间：2021-05-14 11:11:13" itemprop="dateCreated datePublished" datetime="2021-05-14T11:11:13+08:00">2021-05-14</time>
+    </span>
+      <span class="post-meta-item">
+        <span class="post-meta-item-icon">
+          <i class="far fa-calendar-check"></i>
+        </span>
+        <span class="post-meta-item-text">更新于</span>
+        <time title="修改时间：2021-05-18 11:07:12" itemprop="dateModified" datetime="2021-05-18T11:07:12+08:00">2021-05-18</time>
+      </span>
+
+  
+</div>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+          <h1 id="1-工业革命4-0"><a href="#1-工业革命4-0" class="headerlink" title="1. 工业革命4.0"></a>1. 工业革命4.0</h1><h2 id="1-1-时间线划分"><a href="#1-1-时间线划分" class="headerlink" title="1.1 时间线划分"></a>1.1 时间线划分</h2><h3 id="1-1-1-全球时间线"><a href="#1-1-1-全球时间线" class="headerlink" title="1.1.1 全球时间线"></a>1.1.1 全球时间线</h3><ol>
+<li>2013年4月,全球国际工业博览会在德国汽车、机械、电子制造业中心汉诺威召开。会上,德国“工业4.0工作组”公布了研究成果报告《保障德国制造业的未来:关于实施“工业4.0”战略的建议》<a href="%E7%AE%80%E7%A7%B0%E5%BE%B7%E5%9B%BD%22%E5%B7%A5%E4%B8%9A4.0%22,%E5%90%8E%E6%96%87%E7%AE%80%E7%A7%B0%22%E5%B7%A5%E4%B8%9A4.0%22">1</a>,其目的是借助发挥德国制造业的传统优势,掀起新一轮制造技术的革命性创新与突破。报告的推出立即引起全球的广泛关注,产生了巨大的国际影响。</li>
+<li>2014年，美国通用电气、IBM等科技巨头成立工业互联网联盟，开发和制定全新的工业技术和标准，重新定义互联网生态下的制造业，并响应和推动美国的“回归制造业”战略。</li>
+<li>2015年5月,中国政府发布了《中国制造2025》(后文简称“制造2025”),提出要通过特殊政策和制度优势,突出创新驱动,依靠和发展高端装备制造业,打造中国品牌,形成中国创造,推出中国质量,完成中国由制造大国向制造强国的转变。</li>
+</ol>
+<h3 id="1-1-2-公认工业革命阶段"><a href="#1-1-2-公认工业革命阶段" class="headerlink" title="1.1.2 公认工业革命阶段"></a>1.1.2 公认工业革命阶段</h3><ol>
+<li>18世纪60年代，人类社会发生了以蒸汽机为代表的第一代工业革命，大机器生产取代了手工劳动</li>
+<li>19世纪70年代，自然科学开始同技术生产紧密结合起来，电力得到广泛应用，人类进入电气时代</li>
+<li>20世纪50年代，原子能技术、航天技术、电子计算机应用、人工合成材料、分子生物等取得重大突破，科学技术有力推动了人类生产力的进度，形成了所谓的第三次工业革命</li>
+</ol>
+<h3 id="1-1-3-德国工业4-0小组的工业时代划分"><a href="#1-1-3-德国工业4-0小组的工业时代划分" class="headerlink" title="1.1.3 德国工业4.0小组的工业时代划分"></a>1.1.3 德国工业4.0小组的工业时代划分</h3><ol>
+<li>1784年，以蒸汽机为动力的机械生产设备 导致了第一次工业革命</li>
+<li>1870年，基于劳动分工的以电为动力的大规模生产带来了第二次工业革命</li>
+<li>1969年，使用电子和信息技术让自动化程度更高</li>
+<li>现在，基于信息物理融合系统的第四次工业革命开始</li>
+</ol>
+<h2 id="1-2-德国工业4-0主要内容"><a href="#1-2-德国工业4-0主要内容" class="headerlink" title="1.2 德国工业4.0主要内容"></a>1.2 德国工业4.0主要内容</h2><h3 id="1-2-1-一个核心"><a href="#1-2-1-一个核心" class="headerlink" title="1.2.1 一个核心"></a>1.2.1 一个核心</h3><p>“工业4.0”的核心是“智能+网络化”，即通过虚拟实体系统（CPS），构建智能工厂，实现智能制造的目的。通过大量部署各类传感元件实现信息的大量采集；将IT控件小型化与自主化，然后将其嵌入各类制造设备中，从而实现设备的智能化；依托通信技术达到数据的高速与无差错传输；对控制设备、制造设备的数据云存储和分析系统，从而达到生产过程的智能化以及方便人工实时控制的目的。</p>
+<h3 id="1-2-2-两重战略"><a href="#1-2-2-两重战略" class="headerlink" title="1.2.2 两重战略"></a>1.2.2 两重战略</h3><p>一是“领先的供应商战略”，关注生产领域，要求德国的装备制造商必须遵循“工业4.0”的理念，产出具备“智能”与乐于“交流”的生产设备。该战略注重吸引中小企业的参与，希望它们不仅成为“智能生产”的使用者，也能化身为“智能生产”设备的供应者。这个关注的是智能工厂。</p>
+<p>二是“领先的市场战略”，强调整个德国国内制造业市场的有效整合，构建遍布德国的高速互联网络是实现这一战略的关键。通过这一网络，德国的各类企业就能实现快速的信息共享、最终达成有效的分工合作。在此基础上，生产工艺可以重新定义与进一步细化，从而实现更为专业化的生产，提高德国制造业的生产效率。除了生产以外，商业企业也能与生产单位无缝衔接，进一步拉近德国制造企业与国内市场以及世界市场之间的距离。这个关注的是智能生产，能全产业链联合起来提供智能生产。</p>
+<h3 id="1-2-3-三大集成"><a href="#1-2-3-三大集成" class="headerlink" title="1.2.3 三大集成"></a>1.2.3 三大集成</h3><p>一是关注产品的生产过程，力求在智能工厂内通过联网建成生产的纵向集成；</p>
+<p>二是关注产品整个生命周期的不同阶段，包括设计与开发、安排生产计划、管控生产过程以及产品的售后维护等，实现各个不同阶段之间的信息共享，从而达成工程数字化集成；</p>
+<p>三是关注全社会价值网络的实现，从产品的研究、开发与应用拓展至建立标准化策略、提高社会分工合作的有效性、探索新的商业模式以及考虑社会的可持续发展等，从而达成德国制造业的横向集成。</p>
+<p>信息通信技术（ICT）是３大集成实现的保证，相关技术包括：机器对机器（M2M）技术，用于终端设备之间的数据交换；物联网（IoT）技术，将整个社会的人与物连接成一个巨大的网络；各类实现企业系统化管理的应用软件，如企业资源计划系统（ERP）、产品生命周期管理（PLM）、供应链管理（SCM）、系统生命周期管理（SysLM）等，这些系统进一步发挥协同的作用，成为企业进行智能化生产和管理的利器。</p>
+<h3 id="1-2-4-八项行动举措"><a href="#1-2-4-八项行动举措" class="headerlink" title="1.2.4 八项行动举措"></a>1.2.4 八项行动举措</h3><p>一是实现技术标准化和开放标准的参考体系，制定参考架构的标准，促进企业之间网络的形成</p>
+<p>二是建立模型来管理复杂的系统。</p>
+<p>三是提供一套综合的工业宽带基础设施。</p>
+<p>四是建立安全保障机制。</p>
+<p>五是创新工作的组织和设计方式。</p>
+<p>六是注重培训和持续的职业发展。</p>
+<p>七是健全规章制度。</p>
+<p>八是提升资源效率。</p>
+<blockquote>
+<p>“工业4.0”所说的资源，不仅包括原材料与能源，也涉及人力资源和财务资源。</p>
+</blockquote>
+<h1 id="2-术语概念"><a href="#2-术语概念" class="headerlink" title="2. 术语概念"></a>2. 术语概念</h1><h2 id="2-1-系统"><a href="#2-1-系统" class="headerlink" title="2.1 系统"></a>2.1 系统</h2><h3 id="ERP"><a href="#ERP" class="headerlink" title="ERP"></a>ERP</h3><p>（企业资源管理计划）——Enterprise Resources Plannig，是在先进的企业管理思想的基础上，应用信息技术实现对整个企业资源的一体化管理。ERP是一种可以提供跨地区、跨部门、甚至跨公司整合实时信息的企业管理信息系统。它在企业资源最优化配置的前提下，整合企业内部主要或所有的经营活动，包括财务会计、管理会计、生产计划及管理、物料管理、销售与分销等主要功能模块，以达到效率化经营的目标。</p>
+<h3 id="MES"><a href="#MES" class="headerlink" title="MES"></a>MES</h3><p><a href="https://link.zhihu.com/?target=http://www.bjattn.com">MES制造执行系统</a>是一套面向制造企业车间执行层的生产信息化管理系统，主要针对于生产制造过程中流程、资源的管理系统，目标是实现生产制造过程“黑匣子”的可视、可控，为智能生产提供支撑。</p>
+<h3 id="PLM"><a href="#PLM" class="headerlink" title="PLM"></a>PLM</h3><p>(product lifecycle management)系统，即产品全生命周期管理系统的简称。该系统以产品相关数据管理为核心，将企业资源、业务流程和产品数据集成起来，以产品的生命周期为主线，通过计算机软件对企业对产品相关的业务流程及数据进行统一管理和支配，从而帮助人们管理产品研发流程及所有资料，提升研发能力。</p>
+<h3 id="HCM-HRM"><a href="#HCM-HRM" class="headerlink" title="HCM/HRM"></a>HCM/HRM</h3><p>人力资源管理</p>
+<h3 id="CRM"><a href="#CRM" class="headerlink" title="CRM"></a>CRM</h3><p>（CustomerRelationshipManagement）就是客户关系管理。<br>从字义上看，是指企业用CRM来管理与客户之间的关系。 CRM是选择和管理有价值客户及其关系的一种商业策略，CRM要求以客户为中心的商业哲学和企业文化来支持有效的市场营销、销售与服务流程。如果企业拥有正确的领导、策略和企业文化，CRM应用将为企业实现有效的客户关系管理。</p>
+<h3 id="SCM"><a href="#SCM" class="headerlink" title="SCM"></a>SCM</h3><p>(Supply Chain Management)就是对企业供应链的管理，是对供应、需求、原材料采购、市场、生产、库存、定单、分销发货等的管理，包括了从生产到发货、从供应商的供应商到顾客的顾客的每一个环节。</p>
+<h3 id="EAM"><a href="#EAM" class="headerlink" title="EAM"></a>EAM</h3><p>(Enterprise Asset Management)是面向资产密集型企业的企业信息化解决方案的总称。它以提高资产可利用率、降低企业运行维护成本为目标，以优化企业维修资源为核心，通过信息化手段，合理安排维修计划及相关资源与活动。通过提高设备可利用率得以增加收益，通过优化安排维修资源得以降低成本，从而提高企业的经济效益和企业的市场竞争力。</p>
+<h3 id="WMS"><a href="#WMS" class="headerlink" title="WMS"></a>WMS</h3><p>WMS是仓库管理系统(Warehouse Management System) 的缩写，是对物料存放空间进行管理的软件，区别于库存管理。其功能主要有两方面，一为通过在系统中设定一定的仓库仓位结构对物料具体空间位置的定位，二为通过在系统中设定一些策略对物料入库\出库\库内等作业流程进行指导。</p>
+<p>仓库管理系统是通过入库业务、出库业务、仓库调拨、库存调拨和虚仓管理等功能，对批次管理、物料对应、库存盘点、质检管理、虚仓管理和即时库存管理等功能综合运用的管理系统，有效控制并跟踪仓库业务的物流和成本管理全过程，实现或完善的企业仓储信息管理。该系统可以独立执行库存操作，也可与其他系统的单据和凭证等结合使用，可为企业提供更为完整企业物流管理流程和财务管理信息。</p>
+<h3 id="TMS"><a href="#TMS" class="headerlink" title="TMS"></a>TMS</h3><p>TMS是TransportationManagementSystem的英文缩写，意为运输管理系统。在管理软件中，以英文缩写命名的系统名称并不鲜见，TMS大部分只作为一个管理系统中的其中一个子系统来运用，主要在物流管理系统中，其主要功能是对物流环节中的运输环节的具体管理，包括车辆管理，在运途中货物的管理等。</p>
+<h3 id="EMS"><a href="#EMS" class="headerlink" title="EMS"></a>EMS</h3><p>能源管理系统是以帮助工业生产企业在扩大生产的同时，合理计划和利用能源，降低单位产品能源消耗，提高经济效益，EMS能源管理系统主要对企业内部水、电、气等公共资源进行管理。</p>
+<h3 id="OA"><a href="#OA" class="headerlink" title="OA"></a>OA</h3><p> 是Office Automation的缩写，指办公室自动化或自动化办公。</p>
+<h3 id="PHM"><a href="#PHM" class="headerlink" title="PHM"></a>PHM</h3><p>故障预测与健康管理（PHM，Prognostics and Health Management）：利用工业系统中产生的各类数据，经过信号处理和数据分析等运算手段，实现对复杂工业系统的健康状态进行检测、预测和管理的系统性工程。PHM技术将设备的健康管理从传统的故障管理转变为衰退管理，通过预测性维护实现设备的零宕机和持续可靠的运行。</p>
+<h3 id="APS"><a href="#APS" class="headerlink" title="APS"></a>APS</h3><p>APS高级计划系统（AdvancedPlanning System）或高级计划与排程(AdvancedPlanning and Scheduling)，分供应链级的APS和工厂级的APS。供应链级的APS侧重于SCP（Supply Chain Planning）供应链计划的优化，包括网络配置计划、需求计划、库存计划、多工厂计划、供应计划等的优化。工厂级的APS侧重于交期承诺、计划与排产、加工顺序调度、物料准时配送等的优化。</p>
+<h3 id="SPC"><a href="#SPC" class="headerlink" title="SPC"></a>SPC</h3><p><a target="_blank" rel="noopener" href="https://baike.baidu.com/item/%E7%BB%9F%E8%AE%A1%E8%BF%87%E7%A8%8B%E6%8E%A7%E5%88%B6">统计过程控制</a>（简称SPC）是一种借助数理统计方法的过程控制工具。它对生产过程进行分析评价，根据反馈信息及时发现系统性因素出现的征兆，并采取措施消除其影响，使过程维持在仅受随机性因素影响的受控状态，以达到控制质量的目的。</p>
+<h3 id="TPM"><a href="#TPM" class="headerlink" title="TPM"></a>TPM</h3><p>TPM管理，即“全员生产维修”，70年代起源于日本，是一种全员参与的生产维修方式，其主要点就在“生产维修”及“全员参与”上。通过建立一个全系统员工参与的生产维修活动，使设备性能达到最优。</p>
+<h2 id="2-2-名词解释"><a href="#2-2-名词解释" class="headerlink" title="2.2 名词解释"></a>2.2 名词解释</h2><h3 id="离散型制造业"><a href="#离散型制造业" class="headerlink" title="离散型制造业"></a>离散型制造业</h3><p>产品由多个零件经过一系列并不连续的工序加工而成，加工离散制造产品的行业称为离散型制造业（如机械制造业、汽车制造业、家电制造业）。典型特征是产品只是经过一些形状改变或组装而成。</p>
+<h4 id="流程型制造业"><a href="#流程型制造业" class="headerlink" title="流程型制造业"></a>流程型制造业</h4><p>产品被不间断地通过生产设备及加工装置，进行化学或者物理变化，制造流程型制造产品的行业称为流程型制造业（如化工业、造纸业、钢铁业）。典型特征是产品会发生化学或物理变化。</p>
+<h1 id="3-工业大数据"><a href="#3-工业大数据" class="headerlink" title="3. 工业大数据"></a>3. 工业大数据</h1><h2 id="3-1-愿景"><a href="#3-1-愿景" class="headerlink" title="3.1 愿景"></a>3.1 愿景</h2><ol>
+<li>精度更高。能利用大数据分析错误，防止错误发生，提高制造成功率。</li>
+<li>产量更高。利用大数据改进运营方式，同样的原材料下生成更多产品。</li>
+<li>更好的预测。利用大数据有助于制造商更好地掌握这种淡旺季变化导致的供需关系的变化，因此可以在最有价值的生产条件下进行生产。</li>
+<li>预测和跟踪供应商的产品优劣。利用大数据跟踪供应商的优劣，判断是否需要选择新的供应商具有成本效益。</li>
+<li>更高的可追溯性。大数据可帮制造商跟踪生产和交付的所有这些阶段，并提供对可能效率低的领域的洞察和分析。</li>
+</ol>
+<h2 id="3-2-产业链"><a href="#3-2-产业链" class="headerlink" title="3.2 产业链"></a>3.2 产业链</h2><h3 id="3-2-1-产业链分析"><a href="#3-2-1-产业链分析" class="headerlink" title="3.2.1 产业链分析"></a>3.2.1 产业链分析</h3><p>下图是工业数据行业市场产业链分析，覆盖上中下游。</p>
+<ol>
+<li>上游，是软硬件服务商，提供传感器来采集数据，主要是国外厂商。云计算服务提供商，国内已经达到一流水平。</li>
+<li>中游，大数据服务商，国内也诞生了一批大数据服务提供商。</li>
+<li>下游，不同行业制造商<img src="/2021/05/14/%E5%B7%A5%E4%B8%9A%E5%A4%A7%E6%95%B0%E6%8D%AE/%E4%BC%81%E4%B8%9A%E5%BE%AE%E4%BF%A1%E6%88%AA%E5%9B%BE_1620982571701-1620983043861-1620983046185.png" class="" title="img"></li>
+</ol>
+<h3 id="3-2-2-市场规模"><a href="#3-2-2-市场规模" class="headerlink" title="3.2.2 市场规模"></a>3.2.2 市场规模</h3>  <img src="/2021/05/14/%E5%B7%A5%E4%B8%9A%E5%A4%A7%E6%95%B0%E6%8D%AE/%E4%BC%81%E4%B8%9A%E5%BE%AE%E4%BF%A1%E6%88%AA%E5%9B%BE_16209837694242.png" class="" title="img">
+
+<h3 id="3-2-3-产品结构"><a href="#3-2-3-产品结构" class="headerlink" title="3.2.3 产品结构"></a>3.2.3 产品结构</h3><img src="/2021/05/14/%E5%B7%A5%E4%B8%9A%E5%A4%A7%E6%95%B0%E6%8D%AE/%E4%BC%81%E4%B8%9A%E5%BE%AE%E4%BF%A1%E6%88%AA%E5%9B%BE_16209838435228.png" class="" title="img">
+
+<h2 id="3-3-技术分析"><a href="#3-3-技术分析" class="headerlink" title="3.3 技术分析"></a>3.3 技术分析</h2><h3 id="3-3-1-数据分类和特征"><a href="#3-3-1-数据分类和特征" class="headerlink" title="3.3.1 数据分类和特征"></a>3.3.1 数据分类和特征</h3><h4 id="分类"><a href="#分类" class="headerlink" title="分类"></a>分类</h4><p>根据数据来源分类</p>
+<ol>
+<li>第一类是企业运营管理相关的业务数据。这类数据来自企业信息化范畴，包 括企业资源计划(ERP)、产品生命周期管理(PLM)、供应链管理(SCM)、客户关系 管理(CRM)和能耗管理系统（EMS)等，此类数据是工业企业传统意义上的数据资4 产。</li>
+<li> 第二类是制造过程数据。主要是指工业生产过程中，装备、物料及产品加工 过程的工况状态参数、环境参数等生产情况数据，通过 MES 系统实时传递，目 前在智能装备大量应用的情况下，此类数据量增长最快。 </li>
+<li>第三类是企业外部数据。包括工业企业产品售出之后的使用、运营情况的数 据，同时还包括大量客户名单、供应商名单、外部的互联网等数据。</li>
+</ol>
+<p>下表是一些常见的数据源及特征。</p>
+<table>
+<thead>
+<tr>
+<th>分类</th>
+<th>系统类型</th>
+<th>典型系统</th>
+<th>数据结构</th>
+<th>数据特点</th>
+<th>实时性</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>管理系统</td>
+<td>设计资料</td>
+<td>产品模型、图纸文档</td>
+<td>半结构化/ 非结构化</td>
+<td>类型各异、更新不 频繁、是企业核心 数据</td>
+<td>批量导入</td>
+</tr>
+<tr>
+<td></td>
+<td>价值链管 理</td>
+<td>供应链 SCM、客户关 系 CRM</td>
+<td>结构化/半 结构化</td>
+<td>没有严格的时效性 要求，需要定期同 步</td>
+<td>批量导入</td>
+</tr>
+<tr>
+<td></td>
+<td>资源管理</td>
+<td>ERP/OA、MES、 PLM、环境管理系 统、仓库管理系统、 能源管理系统</td>
+<td>结构化</td>
+<td>没有严格的时效性 要求，需要定期同 步</td>
+<td>批量导入</td>
+</tr>
+<tr>
+<td>生产系统</td>
+<td>工业控制 系统</td>
+<td>DCS、PLC</td>
+<td>结构化</td>
+<td>需要实时监控，实时反馈控制</td>
+<td>实时采集</td>
+</tr>
+<tr>
+<td></td>
+<td>生产监控 数据</td>
+<td>SCADA</td>
+<td>结构化</td>
+<td>包含实时数据和历 史数据</td>
+<td>实时采集/批量 导入</td>
+</tr>
+<tr>
+<td></td>
+<td>各类传感 器</td>
+<td>外挂式传感器、条 码、射频识别</td>
+<td>结构化</td>
+<td>单条数据量小，并 发度大，结合 IoT 网关</td>
+<td>实时采集</td>
+</tr>
+<tr>
+<td></td>
+<td>其他外部 装置</td>
+<td>视频摄像头</td>
+<td>非结构化</td>
+<td>数据量大、低时 延，要求网络带宽 和时延</td>
+<td>实时采集</td>
+</tr>
+<tr>
+<td>外部 数据</td>
+<td>外部数据</td>
+<td>相关行业、法规、市 场、竞品、环境数据</td>
+<td>非结构化</td>
+<td>数据相对静止，变 化较小，定期更新</td>
+<td>批量导入</td>
+</tr>
+</tbody></table>
+<h4 id="特征"><a href="#特征" class="headerlink" title="特征"></a>特征</h4><ol>
+<li> 数据容量大（volume）：数据的大小 决定所考虑的数据的价值和潜在的信息。工业数据体量比较大，大量机器设备的高频数 据和互联网数据持续涌入，大型工业企业的数据集将达到PB级甚至EB级别。 </li>
+<li> 多样（variety）：指数据类型的多样 性和来源广泛。工业数据分布广泛，分布于机器设备、工业产品、管理系统、互联网等各个环节，并且结构复杂，既有结构化和半结构化的传感数据，也有非结构化数据。 </li>
+<li>快速（velocity）：指获得和处理数据的速度。工业数据处理速度需求多样， 生产现场级要求分析时限达到毫秒级，管理与决策应用需要支持交互式或批量数据分析。 </li>
+<li>价值密度低（value）：工业大数据更强调用户价值驱动和数据本身的可用性， 包括：提升创新能力和生产经营效率及促 进个性化定制、服务化转型等智能制造新 模式变革。 </li>
+<li>时序性（sequence）：工业大数据具有较强的时序性，如订单、设备状态数 据等。 </li>
+<li>强关联性（strong-relevance）：一 方面，产品生命周期同一阶段的数据具有 强关联性，如产品零部件组成、工况、设备 状态、维修情况、零部件补充采购等；另一 方面，产品生命周期的研发设计、生产、服 务等不同环节的数据之间需要进行关联。 </li>
+<li>准确性（accuracy）：主要指数据 的真实性、完整性和可靠性，更加关注数据质量以及处理、分析技术和方法的可靠 性。对数据分析的置信度要求较高，仅依靠统计相关性分析不足以支撑故障诊断、 预测预警等工业应用，需要将物理模型与数据模型结合，挖掘因果关系。</li>
+<li>闭环性（closed-loop）：包括产品全 生命周期横向过程中数据链条的封闭和关 联以及智能制造纵向数据采集和处理过程 中，需要支撑状态感知、分析、反馈、控制 等闭环场景下的动态持续调整和优化</li>
+</ol>
+<h3 id="3-3-2-技术架构"><a href="#3-3-2-技术架构" class="headerlink" title="3.3.2 技术架构"></a>3.3.2 技术架构</h3><p>如下图所示，是大数据技术架构白皮书中提出的工业大数据平台技术架构。涉及七项核心技术：</p>
+<ol>
+<li>数据集成与边缘处理技术 <ol>
+<li>设备接入：基于工业以太网、工业总线等工业通信协议，以 太网、光纤等通用协议，3G/4G、NB-IOT 等无线协议将工业现场设备接入到平台边缘层。</li>
+<li>协议转换：一方面运用协议解析、中间件等技术兼容 ModBus、 OPC、CAN、Profibus 等各类工业通信协议和软件通信接口，实现数据格式转换和统一。另一方面利用 HTTP、MQTT 等方式从边缘侧将采集到的数据传输到云端，实现数据的远程接入。</li>
+<li>边缘数据处理：基于高性能计算芯片、实时操作系统、边缘分析算法等技术支撑，在靠近设备或数据源头的网络边缘侧进行数据预处理、存储以及智能分析应用，提升操作响应灵敏度、消除网络堵塞，并与云端分析形成协同。</li>
+</ol>
+</li>
+<li>IaaS 技术 <ol>
+<li>基于虚拟化、分布式存储、并行计算、负载调度等技术，实现网络、计算、存储等计算机资源的池化管理，根据需求进行弹性分配，并确保资源使用的安全与隔离，为用户提供完善的云基础设施服务。 </li>
+</ol>
+</li>
+<li>平台使能技术<ol>
+<li>资源调度：通过实时监控云端应用的业务量动态变化，结合相应的调度算法为应用程序分配相应的底层资源，从而使云端应用可以自动适应业务量的变化。</li>
+<li> 多租户管理：通过虚拟化、数据库隔离、容器等技术实现不同租户应用和服务的隔离，保护其隐私与安全。</li>
+</ol>
+</li>
+<li>数据管理技术 <ol>
+<li>数据处理框架：借助 Hadoop、Spark、Storm 等分布式处理架构，满足海量数据的批处理和流处理计算需求。 </li>
+<li>数据预处理：运用数据冗余剔除、异常检测、归一化等方法对原始数据进行清洗，为后续存储、管理与分析提供高质量数据来源。 </li>
+<li>数据存储与管理：通过分布式文件系统、NoSQL 数据库、关系数据库、时序数据库等不同的数据管理引擎实现海量工业数据的分区选择、存储、编目与索引等。</li>
+</ol>
+</li>
+<li>应用开发和微服务技术 <ol>
+<li>多语言与工具支持：支持 Java,Ruby 和 PHP 等多种语言编译环境，并提供 Eclipse integration，JBoss Developer Studio、 git 和 Jenkins 等各类开发工具，构建高效便捷的集成开发环 境。 </li>
+<li>微服务架构：提供涵盖服务注册、发现、通信、调用的管理 机制和运行环境，支撑基于微型服务单元集成的“松耦合”应用 开发和部署。 </li>
+<li>图形化编程：通过类似 Labview 的图形化编程工具，简化开 发流程，支持用户采用拖拽方式进行应用创建、测试、扩展等。 </li>
+</ol>
+</li>
+<li>工业数据建模与分析技术<ol>
+<li> 数据分析算法：运用数学统计、机器学习及最新的人工智能 算法实现面向历史数据、实时数据、时序数据的聚类、关联和预 测分析。 </li>
+<li>机理建模：利用机械、电子、物理、化学等领域专业知识，10 结合工业生产实践经验，基于已知工业机理构建各类模型，实现分析应用。 </li>
+</ol>
+</li>
+<li>安全技术数据<ol>
+<li>接入安全：通过工业防火墙技术、工业网闸技术、加密 隧道传输技术，防止数据泄漏、被侦听或篡改，保障数据在源头和传输过程中安全。 </li>
+<li>平台安全：通过平台入侵实时检测、网络安全防御系统、恶意代码防护、网站威胁防护、网页防篡改等技术实现工业互联网 平台的代码安全、应用安全、数据安全、网站安全。</li>
+<li> 访问安全：通过建立统一的访问机制，限制用户的访问权限 和所能使用的计算资源和网络资源实现对云平台重要资源的访 问控制和管理, 防止非法访问。</li>
+</ol>
+</li>
+</ol>
+<img src="/2021/05/14/%E5%B7%A5%E4%B8%9A%E5%A4%A7%E6%95%B0%E6%8D%AE/%E5%B7%A5%E4%B8%9A%E4%BA%92%E8%81%94%E7%BD%91%E5%B9%B3%E5%8F%B0%E6%8A%80%E6%9C%AF%E6%9E%B6%E6%9E%84.png" class="" title="工业互联网平台技术架构">
+
+
+
+<p>下面是从服务商角度来做技术体系划分：</p>
+<ol>
+<li>边缘层，包括各种设备、生产系统</li>
+<li>网络层，包括工厂车间内部的网络通信、工厂数据与大数据中心的网络通信</li>
+<li>数据层，主要是提供基础计算、存储、网络资源，可以看做IaaS层</li>
+<li>平台层，提供支持工业数据的存储 、建模、分析等，可以看做PaaS层（下图有点不太准）</li>
+<li>应用层，工业相关的应用软件，可以看做SaaS层，涉及到不同行业不同生产阶段的功能需求</li>
+<li>安全层，提供多种安全机制，保障数据安全</li>
+</ol>
+<img src="/2021/05/14/%E5%B7%A5%E4%B8%9A%E5%A4%A7%E6%95%B0%E6%8D%AE/%E4%BC%81%E4%B8%9A%E5%BE%AE%E4%BF%A1%E6%88%AA%E5%9B%BE_16211553432886.png" class="" title="img">
+
+<p><strong>下面是按不同层次的服务提供商划分，下图比上图要准确一些。</strong></p>
+<img src="/2021/05/14/%E5%B7%A5%E4%B8%9A%E5%A4%A7%E6%95%B0%E6%8D%AE/%E4%BC%81%E4%B8%9A%E5%BE%AE%E4%BF%A1%E6%88%AA%E5%9B%BE_1621155029325.png" class="" title="img">
+
+
+
+<h3 id="3-3-3-数据采集"><a href="#3-3-3-数据采集" class="headerlink" title="3.3.3 数据采集"></a>3.3.3 数据采集</h3><h4 id="按数据类型分类"><a href="#按数据类型分类" class="headerlink" title="按数据类型分类"></a>按数据类型分类</h4><ol>
+<li>海量的Key-Value数据。在传感器技术飞速发展的今天，包括光电、热敏、气敏、力敏、磁敏、声敏、湿敏等不同类别的工业传感器在现场得到了大量应用，而且很多时候机器设备的数据大概要到ms的精度才能分析海量的工业数据，因此，这部分数据的特点是每条数据内容很少，但是频率极高。</li>
+<li>文档数据。包括工程图纸、仿真数据、设计的CAD图纸等，还有大量的传统工程文档。</li>
+<li>信息化数据。由工业信息系统产生的数据，一般是通过数据库形式存储的，这部分数据是最好采集的。</li>
+<li>接口数据。由已经建成的工业自动化或信息系统提供的接口类型的数据，包括txt格式、JSON格式、XML格式等。</li>
+<li>视频数据。工业现场会有大量的视频监控设备，这些设备会产生大量的视频数据。</li>
+<li>图像数据。包括工业现场各类图像设备拍摄的图片（例如，巡检人员用手持设备拍摄的设备、环境信息图片）。</li>
+<li>音频数据。包括语音及声音信息（例如，操作人员的通话、设备运转的音量等）。</li>
+<li>其他数据。例如遥感遥测信息、三维高程信息等等。</li>
+</ol>
+<h4 id="难点"><a href="#难点" class="headerlink" title="难点"></a>难点</h4><ol>
+<li>数据量巨大。工业大数据量大，并且大量的工业数据是“脏”数据，直接存储无法用于分析，在存储之前，必须进行处理，对海量的数据进行处理，从技术上又提高了难度。</li>
+<li>工业数据的协议不标准。互联网数据采集一般都是我们常见的HTTP等协议，但在工业领域，会出现ModBus、OPC、CAN、ControlNet、DeviceNet、Profibus、Zigbee等等各类型的工业协议，而且各个自动化设备生产及集成商还会自己开发各种私有的工业协议，导致在工业协议的互联互通上，出现了极大地难度。</li>
+<li>视频传输所需带宽巨大，大量视频数据上公有云带宽非常大</li>
+<li>对原有系统的采集难度大。采集的是已经完成部属的自动化系统上位机数据，这些自动化系统在部署时厂商水平参差不齐，大部分系统是没有数据接口的，文档也大量缺失，大量的现场系统没有点表等基础设置数据，使得对于这部分数据采集的难度极大。</li>
+<li>安全性考虑不足。原先的工业系统都是运行在局域网中，安全问题不是突出考虑的重点。一旦需要通过云端调度工业之中最为核心的生产能力，又没有对安全的充分考虑，造成损失，是难以弥补的。</li>
+</ol>
+<h3 id="3-3-4-数据存储管理和计算能力"><a href="#3-3-4-数据存储管理和计算能力" class="headerlink" title="3.3.4 数据存储管理和计算能力"></a>3.3.4 数据存储管理和计算能力</h3><h4 id="存储管理"><a href="#存储管理" class="headerlink" title="存储管理"></a>存储管理</h4><table>
+<thead>
+<tr>
+<th>类型</th>
+<th>典型系统</th>
+<th>试用场景</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>海量低成本存储</td>
+<td>对象存储、云盘</td>
+<td>海量历史数据的归档和备份</td>
+</tr>
+<tr>
+<td>分布式文件系统</td>
+<td>HDFS</td>
+<td>海量数据的离线存储</td>
+</tr>
+<tr>
+<td>数据仓库</td>
+<td>MPP、Hive</td>
+<td>报表综合分析、多维随机分析</td>
+</tr>
+<tr>
+<td>NoSQL数据库</td>
+<td>HBase、MongoDB</td>
+<td>各类报表文档，使用于简单对点查询及交互式查询场景</td>
+</tr>
+<tr>
+<td>关系型数据库</td>
+<td>MySQL、PostgreSQL、Oracle</td>
+<td>适用于交互式查询分析</td>
+</tr>
+<tr>
+<td>时序数据库</td>
+<td>InfluxDB、Apache IoTDB、KDB+</td>
+<td>依据时间顺序分析历史趋势、周期规律、异常性等场景</td>
+</tr>
+<tr>
+<td>内存数据库</td>
+<td>Redis、Memcached</td>
+<td>数据量不大且要求快速实时查询场景</td>
+</tr>
+<tr>
+<td>图数据库</td>
+<td>Neo4j、HugeGraph</td>
+<td>分析关联关系及具有明显点、边分析的场景</td>
+</tr>
+<tr>
+<td>文本数据索引</td>
+<td>Solr、Elasticsearch</td>
+<td>文本/全文检索</td>
+</tr>
+</tbody></table>
+<h4 id="计算能力"><a href="#计算能力" class="headerlink" title="计算能力"></a>计算能力</h4><table>
+<thead>
+<tr>
+<th>类型</th>
+<th>典型系统</th>
+<th>适用场景</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>实时计算引擎</td>
+<td>Storm、Flink、Spark Streaming</td>
+<td>设备监控、实时诊断等对时效性要求较高的场景</td>
+</tr>
+<tr>
+<td>离线计算引擎</td>
+<td>MapReduce、Spark、Hive</td>
+<td>适用于大数据量的，周期性的数据分析，例如阶段性的营销分析，或生产能耗分析等</td>
+</tr>
+<tr>
+<td>图计算引擎</td>
+<td>GraphLab、GraphX</td>
+<td>适用于事件及人之间的关联分析，比如建立用户画像进行个性化定制或营销</td>
+</tr>
+<tr>
+<td>数据综合分析OLAP</td>
+<td>MPP</td>
+<td>产线或销售环节的综合报表分析</td>
+</tr>
+<tr>
+<td>业务交互查询OLTP</td>
+<td>MySQL、PostgreSQL、Oracle</td>
+<td>交互式查询分析</td>
+</tr>
+<tr>
+<td>分布式数据库中间件</td>
+<td>Cobar、TTDL、MyCAT</td>
+<td>海量数据搞并发时的弹性扩容解决方案</td>
+</tr>
+<tr>
+<td>数据挖掘能力</td>
+<td>Spark、TensorFlow</td>
+<td>需要迭代优化的数据挖掘场景，如故障预测、用户需求挖掘等</td>
+</tr>
+</tbody></table>
+<h3 id="3-3-5-数据应用分析"><a href="#3-3-5-数据应用分析" class="headerlink" title="3.3.5 数据应用分析"></a>3.3.5 数据应用分析</h3><h4 id="时序模式分析技术"><a href="#时序模式分析技术" class="headerlink" title="时序模式分析技术"></a>时序模式分析技术</h4><p>传感器数据的很多重要信息是隐藏在时序模式结 构中，只有挖掘出背后的结构模式，才能构建一个效果稳定的数据模型。</p>
+<p>工时序数据的时间序列类算法主要分六个方面：</p>
+<ol>
+<li>时间序列的预测算法如 ARIMA，GARCH 等；</li>
+<li>时间序列的异常变动模式检测算法，包含基于统计的方法、 基于滑动窗窗口的方法等；</li>
+<li>时间序列的分类算法，包括 SAX 算法、基于相似度的 方法等；</li>
+<li>时间序列的分解算法，包括时间序列的趋势特征分解、季节特征分解、 周期性分解等；</li>
+<li>时间序列的频繁模式挖掘，典型时序模式智能匹配算法（精准匹 配、保形匹配、仿射匹配等），包括 MEON 算法、基于 motif 的挖掘方法等；</li>
+<li>时间序列的切片算法，包括 AutoPlait 算法、HOD-1D 算法等。</li>
+</ol>
+<p>工业大数据分析的一个重要应用方向是对机器设备的故障预警和故障诊断， 其中设备的振动分析是故障诊断的重要手段。设备的振动分析需要融合设备机理 模型和数据挖掘技术，针对旋转设备的振动分析类算法主要分成三类：</p>
+<ol>
+<li>振动数据的时域分析算法，主要提取设备振动的时域特征，如峭度、斜度、峰度系数等；</li>
+<li> 振动数据的频域分析算法，主要从频域的角度提取设备的振动特征，包括高阶谱 算法、全息谱算法、倒谱算法、相干谱算法、特征模式分解等；</li>
+<li>振动数据的时频分析算法，综合时域信息和频域信息一种分析手段，对设备的故障模型有较好的 提取效果，主要有短时傅里叶变换、小波分析等</li>
+</ol>
+<h4 id="工业知识图谱技术"><a href="#工业知识图谱技术" class="headerlink" title="工业知识图谱技术"></a>工业知识图谱技术</h4><p>工业生产过程中会积累大量的日志文本，如维修工单、工艺流程文件、故障记录等，此类非结构化数据中蕴含着丰富的专家经验，利用文本分析的技术能够 实现事件实体和类型提取（故障类型抽取）、事件线索抽取（故障现象、征兆、 排查路线、结果分析），通过专家知识的沉淀实现专家知识库（故障排查知识库、 运维检修知识库、设备操作知识库）。 针对文本这类的非结构化数据，数据分析领域已经形成了成熟的通用文本挖 掘类算法，包括分词算法（POS tagging、实体识别）、关键词提取算法（TD-IDF)、 词向量转换算法、词性标注算法（CLAWS、VOLSUNGA）、主题模型算法（如 LDA） 等。但在工业场景中，这些通用的文本分析算法，由于缺乏行业专有名词（专业 术语、厂商、产品型号、量纲等）、语境上下文（包括典型工况描述、故障现象 等），分析效果欠佳。这就需要构建特定领域的行业知识图谱（即工业知识图谱）， 并将工业知识图谱与结构化数据图语义模型融合，实现更加灵活的查询和一定程度上的推理。</p>
+<h4 id="多源数据融合分析技术"><a href="#多源数据融合分析技术" class="headerlink" title="多源数据融合分析技术"></a>多源数据融合分析技术</h4><p>在企业生产经营、营销推广、采购运输等环节中，会有大量的管理经营数据， 其中包含着众多不同来源的结构化和非结构化数据，例如来源于企业内部信息系 统（CRM、MES、ERP、SEM）的生产数据、管理数据、销售数据等，来源于企业外 部的物流数据、行业数据、政府数据等。利用这些数据可实现市场洞察、价格预测、供应链协同、精准销售、市场调度、产品追溯、能力分析、质量管控等等。 通过对这些数据的分析，能够极大的提高企业的生产加工能力、质量监控能力、 企业运营能力、市场营销能力、风险感知能力等。</p>
+<p>但多源数据也带来一定的技术挑战，不同数据源的数据质量和可信度存在差异，并且在不同业务场景下的表征 能力不同。这就需要一些技术手段去有效融合多源数据。 </p>
+<p>针对多源数据分析的技术主要包括：统计分析算法、深度学习算法、回归算法、分类算法、聚类算法、关联规则等。可以通过不同的算法对不同的数据源进行独立的分析，并通过对多个分析结果的统计决策或人工辅助决策，实现多源融合分析。也可以从分析方法上实现融合，例如通过非结构化文本数据语义融合构 建具有制造语义的知识图谱，完成其他类型数据的实体和语义标注，通过图模型 从语义标注中找出跨领域本体相互间的关联性，可以用于识别和发现工业时序数 据中时间序列片段对应的文本数据（维修报告）上的故障信息，实现对时间序列 的分类决策</p>
+<h1 id="4-总结"><a href="#4-总结" class="headerlink" title="4. 总结"></a>4. 总结</h1><ol>
+<li>工业大数据大有可为，而且时间跨度会很长，影响接下来的可能跨越数十年的工业化发展。</li>
+<li>考虑到当前很多制造业企业甚至连数据中心都没有，而且又不想把数据放入到公有云环境中。因此如果自己搭建一套工业大数据平台，可以对上述的技术架构进行裁减。将大数据平台划分为以下5层：<ol>
+<li>边缘层，工厂各种设备的数据采集 ，这里一般需要涉及到对不同传感器、生产系统的数据读取或订阅操作，并将采集数据通过网络协议上传到大数据平台中</li>
+<li>平台层，直接物理部署的大数据平台<ol>
+<li>通过消息队列来统一接入不同设备、不同协议的数据</li>
+<li>针对不同类型的数据采用不同的数据存储技术，将数据管理起来，并提供多种大数据计算能力给应用层</li>
+</ol>
+</li>
+<li>建模分析层，使用平台层的数据和计算能力，提供数据建模、数据分析、数据可视化、知识库能力、统计分析、规则引擎等数据分析工具。</li>
+<li>应用层，基于数据分析结果，生成描述、诊断、预测、决策、控制等不同应用，对生产系统做各种优化（例如供应链优化、设备预测检修等）</li>
+<li>安全层，提供访问控制安全，数据安全等能力</li>
+</ol>
+</li>
+<li>工业大数据的技术链路很长，想要获得好的发展，对接好上下游的生态非常重要。</li>
+</ol>
+<h1 id="5-参考"><a href="#5-参考" class="headerlink" title="5. 参考"></a>5. 参考</h1><ol>
+<li>[1]李金华. 德国”工业4.0”与”中国制造2025”的比较及启示[J]. 中国地质大学学报:社会科学版, 2015, 015(005):71-79.</li>
+<li>[1]郑树泉, 覃海焕, 王倩. 工业大数据技术与架构[J]. 大数据, 2017, 003(004):67-80.</li>
+<li>《工业4.0:即将来袭的第四次工业革命》</li>
+<li><a target="_blank" rel="noopener" href="https://zhuanlan.zhihu.com/p/62589639">【管理4.0 】第四次工业革命与工业4.0 - 知乎 (zhihu.com)</a></li>
+<li><a target="_blank" rel="noopener" href="http://xkzj.mofcom.gov.cn/article/myszh/szhzx/202012/8589.html">中华人民共和国商务部配额许可证事务局 (mofcom.gov.cn)</a></li>
+<li><a target="_blank" rel="noopener" href="http://qccdata.qichacha.com/ReportData/PDF/fce27a1408c9b71ddb0bfea0528f10c5.pdf">2020年中国工业大数据行业概览</a></li>
+<li><a target="_blank" rel="noopener" href="http://www.cesi.cn/images/editor/20190401/20190401145953698.pdf">工业大数据白皮书</a></li>
+<li><a target="_blank" rel="noopener" href="http://www.todayim.cn/download/%E5%B7%A5%E4%B8%9A%E4%BA%92%E8%81%94%E7%BD%91%E4%BA%A7%E4%B8%9A%E5%8F%91%E5%B1%95%E8%81%94%E7%9B%9F%EF%BC%88AII%EF%BC%89/%E5%B7%A5%E4%B8%9A%E5%A4%A7%E6%95%B0%E6%8D%AE%E6%8A%80%E6%9C%AF%E6%9E%B6%E6%9E%84%E7%99%BD%E7%9A%AE%E4%B9%A6.pdf">工业大数据技术架构白皮书.pdf (todayim.cn)</a></li>
+<li><a target="_blank" rel="noopener" href="https://pdf.dfcfw.com/pdf/H3_AP202011101427888212_1.pdf?1605000779000.pdf">亿欧智库-2020工业互联网行业产业研究报告：服务商案例集-201109.pdf (dfcfw.com)</a></li>
+</ol>
+
+      
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+        <div class="post-eof"></div>
+      
+    </footer>
+  </article>
+</div>
+
+
+
+
+    
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="http://example.com/2021/02/07/OpenTSDB%E5%85%A5%E9%97%A8/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="Jason Chao">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="我住8楼">
+    </span>
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">
+          <a href="/2021/02/07/OpenTSDB%E5%85%A5%E9%97%A8/" class="post-title-link" itemprop="url">OpenTSDB入门</a>
+        </h2>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">发表于</span>
+
+      <time title="创建时间：2021-02-07 15:17:11" itemprop="dateCreated datePublished" datetime="2021-02-07T15:17:11+08:00">2021-02-07</time>
+    </span>
+      <span class="post-meta-item">
+        <span class="post-meta-item-icon">
+          <i class="far fa-calendar-check"></i>
+        </span>
+        <span class="post-meta-item-text">更新于</span>
+        <time title="修改时间：2021-04-19 11:21:59" itemprop="dateModified" datetime="2021-04-19T11:21:59+08:00">2021-04-19</time>
+      </span>
+
+  
+</div>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+          <h1 id="介绍"><a href="#介绍" class="headerlink" title="介绍"></a>介绍</h1><p>以下是官网介绍。</p>
+<blockquote>
+<p>OpenTSDB是一个基于HBase的分布式的、可伸缩的时间序列数据库（TSDB）。OpenTSDB是为了监控而生，例如对从大规模集群（包括网络设备、操作系统、应用程序等）采集到的监控数据进行存储，并使这些数据易于访问并且容易图形化的。</p>
+<p>由于HBase的可伸缩性，OpenTSDB允许收集来自上万台主机和应用程序的成千上万的高频率数据（每隔几秒钟）。OpenTSDB永远不会删除或减少采样数据，并且可以轻松存储数千亿个数据点。</p>
+</blockquote>
+<h1 id="术语"><a href="#术语" class="headerlink" title="术语"></a>术语</h1><p><strong>TSD</strong></p>
+<p>时间序列守护进程，负责和HBase交互进行数据存储和查询。</p>
+<p><strong>Epoch</strong></p>
+<p>时间戳的数值表示，有两种格式：</p>
+<ol>
+<li>10位数字表示的，从1970年1月1日起经过的秒数</li>
+<li>13位数字表示的，从1970年1月1日起经过的毫秒数</li>
+</ol>
+<p><strong>Metric</strong></p>
+<p>指标，或者说监控项，例如监控一个人的心跳速率，那么心跳速率就是metric；而监控一个公司的股票，股票价格就是metric。</p>
+<p><strong>Tags</strong></p>
+<p>tag可以理解为时序数据点的注释。一个tag描述的是一个metric的某个属性。Tags是key-value对，每个数据点可以有多个tag。例如监控一个病人的心率，患者的姓名成为tag，区分每个患者的数据。这里，“心率”是metic，“姓名”是tag，“托马斯”是患者的姓名，是标签的值。其他标签可以是“年龄”、“性别”。标签值用于在查询时过滤/聚合数据。</p>
+<p><strong>降采样DownSampling</strong></p>
+<p>降采样是降低数据采样率或分辨率的过程。如果查询的数据持续时间较长，则接收到的点数将很高，这将导致查询吞吐量较慢。例如，如果数据每秒存储一次而我们查询一周的数据，我们将得到604800个数据点。如果我们对数据进行下采样成每隔一分钟存储一次，就得到10080个数据。这减少了查询时间、网络延迟和系统的总体负载。</p>
+<p><strong>集合Aggregation</strong></p>
+<p>聚合是多个数据的集合。OpenTSDB被设计成在查询执行期间有效地组合多个不同的时间序列。例如，如果我们希望看到所有男性患者的平均心率，那么我们使用平均值函数作为聚合函数来聚合男性患者的所有时间序列数据。这将给我们一组点，显示所有男性患者的平均心率。</p>
+<p><strong>插值Interpolation</strong></p>
+<p>为了使聚合工作，我们需要为查询的时间范围提供数据。如果我们以分钟级别聚合数据，则每分钟需要60个数据点。但在现实世界中，数据很有可能存在丢失。OpenTSDB使用插值来填补这些空白。例如，对于“zimsum”类型的聚合，OpenTSDB通过为所有缺失值填充0进行插值，然后通过对数据求和进行聚合。</p>
+<p><strong>Cardinality</strong></p>
+<p>基数，在数学中定义为一个集合中的一些元素，在数据库中定义为一个索引的一些唯一元素，在OpenTSDB定义为：</p>
+<ul>
+<li>一个给定指标的一些唯一时间序列</li>
+<li>和一个标签名称相关联的一些唯一标签值</li>
+</ul>
+<p><strong>Compaction</strong></p>
+<p>在OpenTSDB中，会将多列合并到一列之中以减少磁盘占用空间，这和hbase中的Compaction不一样。这个过程会在TSD写数据或者查询过程中不定期的发生。</p>
+<p><strong>Data Point</strong></p>
+<p>每一个指标可以被记录为某一个时间点的一个数值。Data Point包括以下部分：</p>
+<ul>
+<li>一个指标：metric</li>
+<li>一个数值</li>
+<li>这个数值被记录的时间戳</li>
+<li>多个标签</li>
+</ul>
+<p><strong>Time Series</strong></p>
+<p>一个metric的带有多个tag的data point集合。</p>
+<p><strong>UID</strong></p>
+<p>在OpenTSDB中，每一个metric、tagk或者tagv在创建的时候被分配一个唯一标识叫做UID，他们组合在一起可以创建一个序列的UID或者<code>TSUID</code>。在OpenTSDB的存储中，对于每一个metric、tagk或者tagv都存在从0开始的计数器，每来一个新的metric、tagk或者tagv，对应的计数器就会加1。当data point写到TSD时，UID是自动分配的。你也可以手动分配UID，前提是<code>auto metric</code>被设置为true。默认地，UID被编码为3Bytes，每一种UID类型最多可以有16,777,215个UID。你也可以修改源代码改为4Bytes。UID的展示有几种方式，最常见的方式是通过http api访问时，3 bytes的UID被编码为16进制的字符串。例如，UID为1的写为二进制的形式为<code>000000000000000000000001</code>，如果表示为一个无符号的byte数组，其可以表示为<code>[0,0,1]</code>，编码为16进制字符串为<code>000001</code>,其中每一位左边都被补上0,如果其不足两位。故，UID为255的会显示为<code>[0,0,255]</code>和<code>0000FF</code>。</p>
+<p><strong>TSUID</strong></p>
+<p>当一个data point被写到OpenTSDB时，其row key格式为：<code>&lt;metric_UID&gt;&lt;timestamp&gt;&lt;tagk1_UID&gt;&lt;tagv1_UID&gt;[...&lt;tagkN_UID&gt;&lt;tagvN_UID&gt;]</code>，不考虑时间戳的话，将其余部分都转换为UID，然后拼在一起，就可以组成为TSUID。</p>
+<p><strong>Metadata</strong></p>
+<p>主要用于记录data point的一些附加的信息，方便搜索和跟踪，分为UIDMeta和TSMeta。</p>
+<p>每一个UID都有一个metadata记录保存在<code>tsdb-uid</code>表中，每一个UID包括一些不可变的字段，如<code>uid</code>、<code>type</code>、<code>name</code>和<code>created</code>字段表示什么时候被创建，还可以有一些额外字段，如<code>description</code>、<code>notes</code>、<code>displayName</code>和一些<code>custom</code> key/value对，详细信息，可以查看<a target="_blank" rel="noopener" href="http://opentsdb.net/docs/build/html/api_http/uid/uidmeta.html"> /api/uid/uidmeta</a></p>
+<p>同样，每一个TSUID可以对应一个TSMeta，记录在<code>tsdb-uid</code>中，其包括的字段有<code>tsuid</code>、<code>metric</code>、<code>tags</code>、<code>lastReceived</code>和<code>created</code>，可选的字段有<code>description</code>, <code>notes</code>，详细信息，可以查看<a target="_blank" rel="noopener" href="http://opentsdb.net/docs/build/html/api_http/uid/tsmeta.html">/api/uid/tsmeta</a></p>
+<h1 id="架构"><a href="#架构" class="headerlink" title="架构"></a>架构</h1><p>OpenTSDB的架构图如下所示：</p>
+<ol>
+<li>Servers是采集层，部署了OpenTSDB的采集agent。</li>
+<li>TSD是OpenTSDB的核心模块，OpenTSDB是由一系列TSD（Time Series Daemon）组成。每个TSD都是独立的，没有master，没有共享状态</li>
+<li>HBase是OpenTSDB的底层存储模块</li>
+</ol>
+<p>TSD对外提供三种交互接口：</p>
+<ol>
+<li>类似telnet的协议</li>
+<li>HTTP API</li>
+<li>内置的GUI</li>
+</ol>
+<img src="/2021/02/07/OpenTSDB%E5%85%A5%E9%97%A8/tsdb-architecture.png" class="" title="OpenTSDB architecture">
+
+<p>OpenTSDB在HBase里共创建了4张表：</p>
+<ol>
+<li><p>UID_TABLE</p>
+<ol>
+<li><p>用来存储UID映射，包括正向的和反向的。存在两列族，一列族叫做name用来将一个UID映射到一个字符串，另一个列族叫做id，用来将字符串映射到UID。列族的每一行都至少有以下三列中的一个：</p>
+<ul>
+<li>metrics 将metric的名称映射到UID</li>
+<li>tagk 将tag名称映射到UID</li>
+<li>tagv 将tag的值映射到UID</li>
+</ul>
+<p>如果配置了metadata，则name列族还可以包括额外的metatata列。</p>
+</li>
+</ol>
+</li>
+<li><p>TSDB_TABLE</p>
+<ol>
+<li>时间点数据就保存在此表中，只有一个列簇t</li>
+</ol>
+</li>
+<li><p>TREE_TABLE</p>
+<ol>
+<li>索引表，用于展示树状结构的，类似文件系统，以方便其他系统使用</li>
+</ol>
+</li>
+<li><p>META_TABLE</p>
+<ol>
+<li>是不同时间序列的一个索引，可以用来存储一些额外的信息，该表只有一个列族name，两个列，分别为ts_meta、ts_ctr。这个表里面的数据是可以根据配置项配置来控制是否生成与否，生成几个列。</li>
+</ol>
+</li>
+</ol>
+<h1 id="存储结构"><a href="#存储结构" class="headerlink" title="存储结构"></a>存储结构</h1><blockquote>
+<p>摘自参考4</p>
+</blockquote>
+<p>在解析OpenTSDB的表结构设计前，我们需要先对其底层的HBase的存储模型有一个理解。</p>
+<h2 id="表分区"><a href="#表分区" class="headerlink" title="表分区"></a>表分区</h2><p>HBase会按Rowkey的范围，将一张大表切成多个region，每个region会由一个region server加载并提供服务。Rowkey的切分与表格存储的分区类似，一个良好设计的表，需要保证读写压力能够均匀的分散到表的各个region，这样才能充分发挥分布式集群的能力。</p>
+<h2 id="存储结构-1"><a href="#存储结构-1" class="headerlink" title="存储结构"></a>存储结构</h2><img src="/2021/02/07/OpenTSDB%E5%85%A5%E9%97%A8/05224f4c4a40c93dcddc983a7a717ff7a047de50.png" class="" title="05224f4c4a40c93dcddc983a7a717ff7a047de50">
+
+<p>如图所示为表结构以及对应的存储结构示例，在HBase或表格存储这类底层采用LSM-tree的数据库中，表数据会按列存储。每行中的每一列在存储文件中都会以Key-value的形式存在于文件中。其中Key的结构为：行主键 + 列名，Value为列的值。该种存储结构的特点是：</p>
+<p>​    a. 每行主键会重复存储，取决于列的个数</p>
+<p>​    b. 列名会重复存储，每一列的存储都会携带列名</p>
+<p>​    c. 存储数据按row-key排序，相邻的row-key会存储在相邻的块中</p>
+<h2 id="OpenTSDB的基本概念"><a href="#OpenTSDB的基本概念" class="headerlink" title="OpenTSDB的基本概念"></a>OpenTSDB的基本概念</h2><p>OpenTSDB定义每个时间序列数据需要包含以下属性：</p>
+<ol>
+<li><p>指标名称（metric name）</p>
+</li>
+<li><p>时间戳（UNIX timestamp，毫秒或者秒精度）</p>
+</li>
+<li><p>值（64位整数或者单精度浮点数）</p>
+</li>
+<li><p>一组标签（tags，用于描述数据属性，至少包含一个或多个标签，每个标签由tagKey和tagValue组成，tagKey和tagValue均为字符串）</p>
+</li>
+</ol>
+<p>举个例子，在监控场景中，我们可以这样定义一个监控指标：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">指标名称：</span><br><span class="line">    sys.cpu.user</span><br><span class="line">标签：</span><br><span class="line">    host = <span class="number">10.101</span><span class="number">.168</span><span class="number">.111</span></span><br><span class="line">    cpu = <span class="number">0</span></span><br><span class="line">指标值：</span><br><span class="line">    <span class="number">0.5</span></span><br></pre></td></tr></table></figure>
+<p>指标名称代表这个监控指标是对用户态CPU的使用监控，引入了两个标签，分别标识该监控位于哪台机器的哪个核。</p>
+<p>OpenTSDB支持的查询场景为：指定指标名称和时间范围，给定一个或多个标签名称和标签的值作为条件，查询出所有的数据。</p>
+<p>以上面那个例子举例，我们可以查询：</p>
+<p>  a. sys.cpu.user (host=<em>,cpu=</em>)(1465920000 &lt;= timestamp &lt; 1465923600)：查询凌晨0点到1点之间，所有机器的所有CPU核上的用户态CPU消耗。</p>
+<p>  b. sys.cpu.user (host=10.101.168.111,cpu=*)(1465920000 &lt;= timestamp &lt; 1465923600)：查询凌晨0点到1点之间，某台机器的所有CPU核上的用户态CPU消耗。</p>
+<p>  c. sys.cpu.user (host=10.101.168.111,cpu=0)(1465920000 &lt;= timestamp &lt; 1465923600)：查询凌晨0点到1点之间，某台机器的第0个CPU核上的用户态CPU消耗。</p>
+<h2 id="OpenTSDB的存储优化"><a href="#OpenTSDB的存储优化" class="headerlink" title="OpenTSDB的存储优化"></a>OpenTSDB的存储优化</h2><p>了解了OpenTSDB的基本概念后，我们来尝试设计一下表结构。</p>
+<img src="/2021/02/07/OpenTSDB%E5%85%A5%E9%97%A8/f77d814e298bca40cdefcea04892fe702ba232c7.png" class="" title="f77d814e298bca40cdefcea04892fe702ba232c7">
+
+<p>如上图是一个简单的表结构设计，rowkey采用metric name + timestamp + tags的组合，因为这几个元素才能唯一确定一个指标值。</p>
+<p>这张表已经能满足我们的写入和查询的业务需求，但是OpenTSDB采用的表结构设计远没有这么简单，我们接下来一项一项看它对表结构做的一些优化。</p>
+<h3 id="优化一：缩短row-key"><a href="#优化一：缩短row-key" class="headerlink" title="优化一：缩短row key"></a>优化一：缩短row key</h3><p>观察这张表内存储的数据，在rowkey的组成部分内，其实有很大一部分的重复数据，重复的指标名称，重复的标签。以上图为例，如果每秒采集一次监控指标，cpu为2核，host规模为100台，则一天时间内sys.cpu.user这个监控指标就会产生17280000行数据，而这些行中，监控指标名称均是重复的。如果能将这部分重复数据的长度尽可能的缩短，则能带来非常大的存储空间的节省。</p>
+<p>OpenTSDB采用的策略是，为每个metric、tag key和tag value都分配一个UID，UID为固定长度三个字节。</p>
+<img src="/2021/02/07/OpenTSDB%E5%85%A5%E9%97%A8/e1e766e7defcf059535c9c184a0659b499221c38.png" class="" title="e1e766e7defcf059535c9c184a0659b499221c38">
+
+<p>上图为优化后的存储结构，可以看出，rowkey的长度大大的缩短了。rowkey的缩短，带来了很多好处：</p>
+<p>  a. 节省存储空间</p>
+<p>  b. 提高查询效率：减少key匹配查找的时间</p>
+<p>  c. 提高传输效率：不光节省了从文件系统读取的带宽，也节省了数据返回占用的带宽，提高了数据写入和读取的速度。</p>
+<p>  d. 缓解Java程序内存压力：Java程序，GC是老大难的问题，能节省内存的地方尽量节省。原先用String存储的metric name、tag key或tag value，现在均可以用3个字节的byte array替换，大大节省了内存占用。</p>
+<h3 id="优化二：减少Key-Value数"><a href="#优化二：减少Key-Value数" class="headerlink" title="优化二：减少Key-Value数"></a>优化二：减少Key-Value数</h3><p>优化一是OpenTSDB做的最核心的一个优化，很直观的可以看到存储的数据量被大大的节省了。原理也很简单，将长的变短。但是是否还可以进一步优化呢？</p>
+<p>在上面的存储模型章节中，我们了解到。HBase在底层存储结构中，每一列都会以Key-Value的形式存储，每一列都会包含一个rowkey。如果要进一步缩短存储量，那就得想办法减少Key-Value的个数。</p>
+<p>OpenTSDB分了几个步骤来减少Key-Value的个数：</p>
+<ol>
+<li><p>将多行合并为一行，多行单列变为单行多列。</p>
+</li>
+<li><p>将多列合并为一列，单行多列变为单行单列。</p>
+</li>
+</ol>
+<h4 id="多行单列合并为单行单列"><a href="#多行单列合并为单行单列" class="headerlink" title="多行单列合并为单行单列"></a>多行单列合并为单行单列</h4><img src="/2021/02/07/OpenTSDB%E5%85%A5%E9%97%A8/6106c668b7104312859391a26994029372a8f9de.png" class="" title="6106c668b7104312859391a26994029372a8f9de">
+
+<p>OpenTSDB将同属于一个时间周期内的具有相同TSUID（相同的metric name，以及相同的tags）的数据合并为一行存储。OpenTSDB内默认的时间周期是一个小时，也就是说同属于这一个小时的所有数据点，会合并到一行内存储，如图上所示。合并为一行后，该行的rowkey中的timestamp会指定为该小时的起始时间（所属时间周期的base时间），而每一列的列名，则记录真实数据点的时间戳与该时间周期起始时间（base）的差值。</p>
+<p>这里列名采用差值而不是真实值也是一个有特殊考虑的设计，如存储模型章节所述，列名也是会存在于每个Key-Value中，占用一定的存储空间。如果是秒精度的时间戳，需要4个字节，如果是毫秒精度的时间戳，则需要8个字节。但是如果列名只存差值且时间周期为一个小时的话，则如果是秒精度，则差值取值范围是0-3600，只需要2个字节；如果是毫秒精度，则差值取值范围是0-360000，只需要4个字节；所以相比存真实时间戳，这个设计是能节省不少空间的。</p>
+<h4 id="单行多列合并为单行单列"><a href="#单行多列合并为单行单列" class="headerlink" title="单行多列合并为单行单列"></a>单行多列合并为单行单列</h4><p>多行合并为单行后，并不能真实的减少Key-Value个数，因为总的列数并没有减少。所以要达到真实的节省存储的目的，还需要将一行的列变少，才能真正的将Key-Value数变少。</p>
+<p>OpenTSDB采取的做法是，会在后台定期的将一行的多列合并为一列，称之为『compaction』，合并完之后效果如下。</p>
+<img src="/2021/02/07/OpenTSDB%E5%85%A5%E9%97%A8/e85374ccb1823e8829afc5407d32ea14ae2a9078.png" class="" title="e85374ccb1823e8829afc5407d32ea14ae2a9078">
+
+<p>同一行中的所有列被合并为一列，如果是秒精度的数据，则一行中的3600列会合并为1列，Key-Value数从3600个降低到只有1个。</p>
+<h3 id="优化三：并发写优化"><a href="#优化三：并发写优化" class="headerlink" title="优化三：并发写优化"></a>优化三：并发写优化</h3><p>上面两个优化主要是OpenTSDB对存储的优化，存储量下降以及Key-Value个数下降后，除了直观的存储量上的缩减，对读和写的效率都是有一定提升的。</p>
+<p>时间序列数据的写入，有一个不可规避的问题是写热点问题，当某一个metric下数据点很多时，则该metric很容易造成写入热点。OpenTSDB采取了和这篇<a target="_blank" rel="noopener" href="https://yq.aliyun.com/articles/54644">文章</a>中介绍的一样的方法，允许将metric预分桶，可通过『<strong>tsd.storage.salt.buckets</strong>』配置项来配置。</p>
+<img src="/2021/02/07/OpenTSDB%E5%85%A5%E9%97%A8/7fab2b13b9c2e05508de947ca887962f211fc351.png" class="" title="7fab2b13b9c2e05508de947ca887962f211fc351">
+
+<p>如上图所示，预分桶后的变化就是在rowkey前会拼上一个桶编号（bucket index）。预分桶后，可将某个热点metric的写压力分散到多个桶中，避免了写热点的产生。</p>
+<h1 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h1><p>OpenTSDB属于第二代时序数据库了，基于通用存储系统而发展来的。获得了通用存储系统的扩展性，高可用特性，但是因为无法做一些针对时序数据的特定优化，会有一些限制。例如数据压缩针对性优化，查询针对性的优化。</p>
+<p>具有以下缺点：</p>
+<ol>
+<li><p><strong>数据类型单一</strong>：HBase中数据都是字符串，没有其他类型</p>
+</li>
+<li><p><strong>压缩效果差</strong>：数据冗余大，压缩效果一般</p>
+</li>
+<li><p><strong>自身不支持复杂条件过滤</strong>：监控场景里，存在大量过滤条件，都只能在业务逻辑里实现，构成rowkey后查询，不能直接由hbase处理好，返回给应用；因此数据都是预聚合的。</p>
+</li>
+<li><p><strong>部署和运维难度大</strong>：依赖于zookeeper，比较重，需要专业的人员进行运维。</p>
+</li>
+</ol>
+<h1 id="参考"><a href="#参考" class="headerlink" title="参考"></a>参考</h1><ol>
+<li><p><a target="_blank" rel="noopener" href="http://opentsdb.net/overview.html">OpenTSDB官网</a></p>
+</li>
+<li><p><a target="_blank" rel="noopener" href="https://medium.com/analytics-vidhya/understanding-opentsdb-a-distributed-and-scalable-time-series-database-e4efc7a3dbb7">Understanding OpenTSDB — A distributed and scalable Time Series Database</a></p>
+</li>
+<li><p><a target="_blank" rel="noopener" href="https://developer.aliyun.com/article/25847">All Things OpenTSDB</a></p>
+</li>
+<li><p><a target="_blank" rel="noopener" href="https://developer.aliyun.com/article/54785">解密OpenTSDB的表存储优化</a></p>
+</li>
+<li><p><a target="_blank" rel="noopener" href="https://www.jianshu.com/p/fea98d05ec04">NoSQL-Hbase-Hbase作为OpenTSDB的优缺点分析</a></p>
+</li>
+</ol>
+
+      
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+        <div class="post-eof"></div>
+      
+    </footer>
+  </article>
+</div>
+
+
+
+
+    
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="http://example.com/2021/02/07/RRD-Graphite%E6%97%B6%E5%BA%8F%E6%95%B0%E6%8D%AE%E5%BA%93%E7%AE%80%E8%BF%B0/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="Jason Chao">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="我住8楼">
+    </span>
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">
+          <a href="/2021/02/07/RRD-Graphite%E6%97%B6%E5%BA%8F%E6%95%B0%E6%8D%AE%E5%BA%93%E7%AE%80%E8%BF%B0/" class="post-title-link" itemprop="url">RRD-Graphite时序数据库简述</a>
+        </h2>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">发表于</span>
+      
+
+      <time title="创建时间：2021-02-07 15:01:32 / 修改时间：17:09:41" itemprop="dateCreated datePublished" datetime="2021-02-07T15:01:32+08:00">2021-02-07</time>
+    </span>
+
+  
+</div>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+          <h1 id="RDD简介"><a href="#RDD简介" class="headerlink" title="RDD简介"></a>RDD简介</h1><p>RRD （Round Robin Database）数据库是一个环形的数据库，你可以把它想象成圆盘，中心处有一个指针，随着时间的变化，指针也在变，当指针指到 12 点处，也就是这个记录要被擦除覆盖的时刻。因为它是圆形的，无始无终，可以一直往里写数据，只是历史数据会被覆盖掉，所以，有时它又被叫做时序结构数据库。</p>
+<p>RRD诞生于1999年，前身是MRTG，MRTG主要用来自动采集系统的一些统计指标并进行绘图，实现对系统的监控。RRD主要是为了解决MRTG的一些问题而诞生的，主要面向的也是监控场景数据。</p>
+<p>虽然通用关系数据库可以存储时序数据，但是由于缺乏针对时间的特殊优化，比如按时间间隔存储和检索数据等等，因此在处理这些数据时效率相对不高。</p>
+<p>RRD属于第一代时序数据库，数据也典型来源于监控领域，直接基于平板文件的简单存储工具成为这类数据的首先存储方式。</p>
+<img src="/2021/02/07/RRD-Graphite%E6%97%B6%E5%BA%8F%E6%95%B0%E6%8D%AE%E5%BA%93%E7%AE%80%E8%BF%B0/rrd%E7%8E%AF%E5%BD%A2%E7%BB%93%E6%9E%84.jpg" class="" title="rrd环形结构">
+
+<h2 id="RRDTool"><a href="#RRDTool" class="headerlink" title="RRDTool"></a>RRDTool</h2><p>RRDTool是RRD数据库配套的一个工具，它可以安装在Unix或者Windows系统上，RRDTool提供了一系列的命令集来对RRD进行不同的操作。</p>
+<p>RRDTool既是后端工具，又是前端工具；之所以这么说，是因为作为数据库，首先RRDTool可以存储数据，此外，RRDTool也提供了一个根据数据库数据进行绘图的功能，这让它具备了前端的特性。</p>
+<h2 id="基本使用语法"><a href="#基本使用语法" class="headerlink" title="基本使用语法"></a>基本使用语法</h2><h3 id="创建数据库"><a href="#创建数据库" class="headerlink" title="创建数据库"></a>创建数据库</h3><figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line">rrdtool create filename  </span><br><span class="line"><span class="meta">#</span><span class="bash"> 建一个名为 filename 的数据库文件，通常 RRD 数据库文件的后缀为 .rrd ，但是你随便使用文件名也不会有影响</span></span><br><span class="line">[--start|-b start time]</span><br><span class="line"><span class="meta">#</span><span class="bash"> 这个选项表示 RRD 数据库的起始 (start/begin) 时间点为 start-time，这是一个从 1970-01-01 00:00:00 开始计时，以秒为间隔的一个整数值。</span></span><br><span class="line">[--step|-s step]</span><br><span class="line"><span class="meta">#</span><span class="bash"> 这个选项表示监测的时间间隔，即多久时间去获取一次被监测对象的数值，默认值为5分钟(300秒)。</span></span><br><span class="line">[--template|-t template-file]</span><br><span class="line">[--source|-r source-file] </span><br><span class="line">[--no-overwrite|-O] </span><br><span class="line">[--daemon|-d address] </span><br><span class="line">[DS:ds-name[=mapped-ds-name[[source-index]]]:DST:dst arguments] </span><br><span class="line"><span class="meta">#</span><span class="bash"> 这个选项用来定义数据源(Data Source)属性，包括数据源名称 ds-name，比如我们可以给监测内存使用率的数据源命名为 memory-rate。</span></span><br><span class="line"><span class="meta">#</span><span class="bash"> DST(Data Source Type)数据源类型</span></span><br><span class="line">[RRA:CF:cf arguments]</span><br><span class="line"><span class="meta">#</span><span class="bash"> RRA (Round Robin Archive) 是用来定义 RRD 数据库归档模型，RRDTool 绘图展示监测情况的时候就从 RRA 中获取数据。CF (Consolidation Function)是用来处理原始数据的函数</span></span><br></pre></td></tr></table></figure>
+
+
+<h4 id="概念"><a href="#概念" class="headerlink" title="概念"></a>概念</h4><h5 id="DST"><a href="#DST" class="headerlink" title="DST"></a>DST</h5><p>DST七种类型：</p>
+<ol>
+<li>GAUGE<ol>
+<li>实测值</li>
+</ol>
+</li>
+<li>COUNTER<ol>
+<li>计数器，只增不减，RRD收到值后，会计算变化率，而不是存储原始值</li>
+</ol>
+</li>
+<li>DCOUNTER<ol>
+<li>也是计数器，但是是double类型的，并且可以递减或递增</li>
+</ol>
+</li>
+<li>DERIVE<ol>
+<li>存储的也是变化率，和 COUNTER 类型不同的是，监测值可以增长也可以下降</li>
+</ol>
+</li>
+<li>DDERIVE<ol>
+<li>也是计数器，但是是double类型的，并且可以递减或递增</li>
+</ol>
+</li>
+<li>ABSOLUTE<ol>
+<li>类似counter，存储的也是变化率，但是每次读取时会重置counter为0</li>
+</ol>
+</li>
+<li>COMPUTE<ol>
+<li>对测量值进行计算后的值</li>
+</ol>
+</li>
+</ol>
+<h5 id="CF"><a href="#CF" class="headerlink" title="CF"></a>CF</h5><p>也有几种函数；</p>
+<ol>
+<li>AVERAGE</li>
+<li>MIN</li>
+<li>MAX</li>
+<li>LAST</li>
+</ol>
+<h5 id="数据点类型"><a href="#数据点类型" class="headerlink" title="数据点类型"></a>数据点类型</h5><p>RAR（round robin archives）数据存储格式，包含很多CDP。我们可以把一个RRA 看成一个表，各保存不同 interval 的统计结果。RRA的作用就是定义更新的数据是如何记录的。</p>
+<p>PDP (Primary Data Point) 原始数据点</p>
+<p>CDP (Consolidation Data Point) 归档数据点</p>
+<p>一个 CDP 由多个 PDP 经过归档函数计算得到。</p>
+<p>如下图所示：</p>
+<img src="/2021/02/07/RRD-Graphite%E6%97%B6%E5%BA%8F%E6%95%B0%E6%8D%AE%E5%BA%93%E7%AE%80%E8%BF%B0/rrd-cdp-pdp.jpg" class="" title="rrd-cdp-pdp">
+
+<h3 id="更新"><a href="#更新" class="headerlink" title="更新"></a>更新</h3><p>实际上是插入数据</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">rrdtool &#123;update | updatev&#125; filename</span><br><span class="line">[--template|-t ds-name[:ds-name]...] </span><br><span class="line">[--skip-past-updates|-s] </span><br><span class="line">[--daemon|-d address]</span><br><span class="line">[--] N:value[:value]... timestamp:value[:value]... at-timestamp@value[:value]...</span><br></pre></td></tr></table></figure>
+<h3 id="查询"><a href="#查询" class="headerlink" title="查询"></a>查询</h3><p>查询数据</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">rrdtool fetch filename CF </span><br><span class="line">[--resolution|-r resolution] </span><br><span class="line">[--start|-s start] </span><br><span class="line">[--end|-e end] </span><br><span class="line">[--align-start|-a] </span><br><span class="line">[--daemon|-d address]</span><br></pre></td></tr></table></figure>
+<p>CF只支持四种：</p>
+<ol>
+<li>AVERAGE</li>
+<li>MIN</li>
+<li>MAX</li>
+<li>LAST</li>
+</ol>
+<h3 id="画图"><a href="#画图" class="headerlink" title="画图"></a>画图</h3><p>根据RRD数据库中的数据绘制图形，生成图片。</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">rrdtool graph|graphv filename </span><br><span class="line">[option ...] </span><br><span class="line">[data definition ...] </span><br><span class="line">[data calculation ...] </span><br><span class="line">[variable definition ...]</span><br><span class="line">[graph element ...]</span><br><span class="line">[print element ...]</span><br></pre></td></tr></table></figure>
+
+
+<h1 id="Graphite简介"><a href="#Graphite简介" class="headerlink" title="Graphite简介"></a>Graphite简介</h1><p>Graphite是一种企业级监控工具，在廉价的硬件或云基础设施上同样运行良好。团队使用Graphite来跟踪他们的网站、应用程序、业务服务和网络服务器的性能。它标志着新一代监控工具的开始，使得存储、检索、共享和可视化时间序列数据比以往任何时候都更容易。</p>
+<p>Graphite是一个开源实时的、显示时间序列度量数据的图形系统。Graphite并不收集度量数据本身，而是像一个数据库，通过其后端接收度量数据，然后以实时方式查询、转换、组合这些度量数据。Graphite支持内建的Web界面，它允许用户浏览度量数据和图。</p>
+<p>Graphite有三个主要组件组成：</p>
+<ul>
+<li>1）Graphite-Web<br>这是一个基于Django的Web应用，可以呈现图形和仪表板，图形库基于Cairo</li>
+<li>2）Carbon<br>这是基于Twisted的守护进程，用于接收时序数据</li>
+<li>3）Whisper<br>这是一个时序数据库，类似RRD</li>
+</ul>
+<img src="/2021/02/07/RRD-Graphite%E6%97%B6%E5%BA%8F%E6%95%B0%E6%8D%AE%E5%BA%93%E7%AE%80%E8%BF%B0/architecture_diagram.png" class="" title="architecture_diagram">
+
+<h2 id="模块介绍"><a href="#模块介绍" class="headerlink" title="模块介绍"></a>模块介绍</h2><h3 id="Carbon"><a href="#Carbon" class="headerlink" title="Carbon"></a>Carbon</h3><p>数据接收模块。</p>
+<h4 id="carbon-relay"><a href="#carbon-relay" class="headerlink" title="carbon-relay"></a>carbon-relay</h4><p>有两种不同的用途：</p>
+<ol>
+<li>将指标复制</li>
+<li>对指标分区</li>
+</ol>
+<p>当配置为复制时，relay可以把指标发给多个carbon-cache实例进行复制；当配置为分区时，relay会使用一个分区策略把指标发给多个carbon-cache实例。</p>
+<h4 id="carbon-aggregator"><a href="#carbon-aggregator" class="headerlink" title="carbon-aggregator"></a>carbon-aggregator</h4><p>可以放到carbon-cache前面，在将度量报告到whisper之前，将度量缓冲一段时间。这在不需要细粒度报告时非常有用，而且由于保留数据少，因此有助于减少I/O负载和文件大小。目前只支持avg和sum两种函数对数据进行聚合计算。</p>
+<h4 id="carbon-cache"><a href="#carbon-cache" class="headerlink" title="carbon-cache"></a>carbon-cache</h4><p>接受通过各种协议传输来的指标项数据并以尽可能高的效率将它们写入磁盘；在接收到指标项时，将指标项值缓存在 RAM 中，并用底层的 Whisper 库按照指定的时间间隔将这些值写入磁盘。</p>
+<h3 id="Whisper"><a href="#Whisper" class="headerlink" title="Whisper"></a>Whisper</h3><p>Whisper是一个固定大小的数据库，在设计和用途上与RRD（循环数据库）相似。随着时间的推移，它提供了快速、可靠的数字数据存储。Whisper允许最近数据的更高分辨率（每点秒数）降级为较低分辨率，以便长期保留历史数据。</p>
+<h4 id="归档：保留周期和精度"><a href="#归档：保留周期和精度" class="headerlink" title="归档：保留周期和精度"></a>归档：保留周期和精度</h4><p>Whisper数据库包含一个或多个存档（存储区），每个存档都具有特定的数据精度和保留周期（以点数或最大时间戳期限定义）。归档文件的顺序是从最高分辨率和最短保留期归档文件到最低分辨率和最长保留期归档文件。</p>
+<p>为了支持从高分辨率存档到低分辨率存档的精确聚合，较长保留期存档的精度必须可以除以下一个较低保留期存档的精度。例如，每60秒有一个数据点的归档文件后面可以有一个分辨率较低的归档文件，其分辨率为每300秒有一个数据点，因为300能被60整除。相比之下，180秒的精度（3分钟）不能跟在600秒的精度（10分钟）之后，因为从第一个存档传播到下一个存档的点的比率是10/3，而Whisper不会进行部分点插值。</p>
+<p>数据库的总保留时间由保留时间最高的存档决定，因为每个存档所覆盖的时间段是重叠的（请参见多存档存储和检索行为）。也就是说，一对保留期为1个月和1年的档案将无法提供13个月的数据存储时间。相反，它将提供1年的存储时间，相当于它最长的存档时间。</p>
+<h4 id="聚合函数"><a href="#聚合函数" class="headerlink" title="聚合函数"></a>聚合函数</h4><ul>
+<li>average</li>
+<li>sum</li>
+<li>last</li>
+<li>max</li>
+<li>min</li>
+</ul>
+<h4 id="多存档存储和检索行为"><a href="#多存档存储和检索行为" class="headerlink" title="多存档存储和检索行为"></a>多存档存储和检索行为</h4><p>当Whisper写入包含多个存档的数据库时，传入的数据点会同时写入所有存档。数据点将按原样写入最高分辨率的归档文件，并通过配置的聚合方法进行聚合，然后放入每个较高保留期的归档文件中。如果您需要最高分辨率点的聚合，请考虑使用carbon-aggregator。</p>
+<p>在检索数据时（按时间范围），将使用第一个可以满足整个时间段的存档。如果时间段与存档边界重叠，将使用低分辨率存档。这允许在检索数据时执行更简单的行为，因为数据的分辨率在整个返回序列中是一致的。</p>
+<h4 id="跟RRD对比"><a href="#跟RRD对比" class="headerlink" title="跟RRD对比"></a>跟RRD对比</h4><h5 id="RRD不能在最新更新之前对某个时隙进行更新"><a href="#RRD不能在最新更新之前对某个时隙进行更新" class="headerlink" title="RRD不能在最新更新之前对某个时隙进行更新"></a>RRD不能在最新更新之前对某个时隙进行更新</h5><p>这意味着没有办法在RRD序列中回填数据。Whisper没有这个限制，这使得将历史数据导入Graphite变得更加简单和容易</p>
+<h5 id="RRD的设计没有考虑到不定期的更新"><a href="#RRD的设计没有考虑到不定期的更新" class="headerlink" title="RRD的设计没有考虑到不定期的更新"></a>RRD的设计没有考虑到不定期的更新</h5><p>在许多情况下（取决于配置），如果对RRD时序进行了更新，但没有很快进行另一次更新，则原始更新将丢失。这使得它不太适合记录数据，例如操作度量（例如代码推送）</p>
+<h5 id="Whisper要求度量更新与最佳分辨率存储存档的间隔相同"><a href="#Whisper要求度量更新与最佳分辨率存储存档的间隔相同" class="headerlink" title="Whisper要求度量更新与最佳分辨率存储存档的间隔相同"></a>Whisper要求度量更新与最佳分辨率存储存档的间隔相同</h5><p>这就将聚合值的责任推给了用户，而不是数据库。这也意味着更新会立即写入到最精确的存档中，而不是像在RRD中那样先进行聚合，然后再写入（在随后的写入操作中）。</p>
+<h1 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h1><p>RRD和Graphite属于第一代时序数据库，存储结构简单，均是一个环缓存的结构，功能支持也有限，但是目前使用还是比较广泛的。了解它们的设计，也能了解下时序数据库的特点和发展历史。</p>
+<h1 id="参考"><a href="#参考" class="headerlink" title="参考"></a>参考</h1><ol>
+<li><a target="_blank" rel="noopener" href="https://developer.aliyun.com/article/54400">RRDTool原理简介</a></li>
+<li><a target="_blank" rel="noopener" href="http://bbs.chinaunix.net/thread-864861-1-1.html">RRDtool简体中文教程 v1.01</a></li>
+<li><a target="_blank" rel="noopener" href="https://developer.aliyun.com/article/711500">浅谈时序数据库那些事</a></li>
+<li><a target="_blank" rel="noopener" href="https://oss.oetiker.ch/rrdtool/doc/index.en.html">RRDtool Documentation</a></li>
+<li><a target="_blank" rel="noopener" href="http://graphiteapp.org/">graphite官网</a></li>
+<li><a target="_blank" rel="noopener" href="https://www.infoq.cn/article/graphite-intro/">DevOps 实战：Graphite 监控上手指南</a></li>
+</ol>
+
+      
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+        <div class="post-eof"></div>
+      
+    </footer>
+  </article>
+</div>
+
+
+
+
+    
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="http://example.com/2021/01/29/hello-world/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="Jason Chao">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="我住8楼">
+    </span>
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">
+          <a href="/2021/01/29/hello-world/" class="post-title-link" itemprop="url">Hello World</a>
+        </h2>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">发表于</span>
+      
+
+      <time title="创建时间：2021-01-29 17:13:28 / 修改时间：13:55:37" itemprop="dateCreated datePublished" datetime="2021-01-29T17:13:28+08:00">2021-01-29</time>
+    </span>
+
+  
+</div>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+          <p>Welcome to <a target="_blank" rel="noopener" href="https://hexo.io/">Hexo</a>! This is your very first post. Check <a target="_blank" rel="noopener" href="https://hexo.io/docs/">documentation</a> for more info. If you get any problems when using Hexo, you can find the answer in <a target="_blank" rel="noopener" href="https://hexo.io/docs/troubleshooting.html">troubleshooting</a> or you can ask me on <a target="_blank" rel="noopener" href="https://github.com/hexojs/hexo/issues">GitHub</a>.</p>
+<h2 id="Quick-Start"><a href="#Quick-Start" class="headerlink" title="Quick Start"></a>Quick Start</h2><h3 id="Create-a-new-post"><a href="#Create-a-new-post" class="headerlink" title="Create a new post"></a>Create a new post</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ hexo new <span class="string">&quot;My New Post&quot;</span></span><br></pre></td></tr></table></figure>
+<p>More info: <a target="_blank" rel="noopener" href="https://hexo.io/docs/writing.html">Writing</a></p>
+<h3 id="Run-server"><a href="#Run-server" class="headerlink" title="Run server"></a>Run server</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ hexo server</span><br></pre></td></tr></table></figure>
+<p>More info: <a target="_blank" rel="noopener" href="https://hexo.io/docs/server.html">Server</a></p>
+<h3 id="Generate-static-files"><a href="#Generate-static-files" class="headerlink" title="Generate static files"></a>Generate static files</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ hexo generate</span><br></pre></td></tr></table></figure>
+<p>More info: <a target="_blank" rel="noopener" href="https://hexo.io/docs/generating.html">Generating</a></p>
+<h3 id="Deploy-to-remote-sites"><a href="#Deploy-to-remote-sites" class="headerlink" title="Deploy to remote sites"></a>Deploy to remote sites</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ hexo deploy</span><br></pre></td></tr></table></figure>
+<p>More info: <a target="_blank" rel="noopener" href="https://hexo.io/docs/one-command-deployment.html">Deployment</a></p>
+
+      
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+        <div class="post-eof"></div>
+      
+    </footer>
+  </article>
+</div>
+
+
+
+
+    
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="http://example.com/2021/01/29/tsfile%E5%89%96%E6%9E%90-1/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="Jason Chao">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="我住8楼">
+    </span>
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">
+          <a href="/2021/01/29/tsfile%E5%89%96%E6%9E%90-1/" class="post-title-link" itemprop="url">tsfile剖析-1</a>
+        </h2>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">发表于</span>
+      
+
+      <time title="创建时间：2021-01-29 16:55:58 / 修改时间：16:57:39" itemprop="dateCreated datePublished" datetime="2021-01-29T16:55:58+08:00">2021-01-29</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-folder"></i>
+      </span>
+      <span class="post-meta-item-text">分类于</span>
+        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+          <a href="/categories/tsdb/" itemprop="url" rel="index"><span itemprop="name">tsdb</span></a>
+        </span>
+    </span>
+
+  
+</div>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+          <h1 id="起源"><a href="#起源" class="headerlink" title="起源"></a>起源</h1><h1 id="初步想法"><a href="#初步想法" class="headerlink" title="初步想法"></a>初步想法</h1><h1 id="问题和演化"><a href="#问题和演化" class="headerlink" title="问题和演化"></a>问题和演化</h1>
+      
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+        <div class="post-eof"></div>
+      
+    </footer>
+  </article>
+</div>
+
+
+
+
+    
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="http://example.com/2021/01/29/%E7%A8%8B%E5%BA%8F%E5%91%98%E7%9A%84%E8%87%AA%E6%88%91%E4%BF%AE%E5%85%BB%E8%AF%BB%E4%B9%A6%E7%AC%94%E8%AE%B0-2/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="Jason Chao">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="我住8楼">
+    </span>
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">
+          <a href="/2021/01/29/%E7%A8%8B%E5%BA%8F%E5%91%98%E7%9A%84%E8%87%AA%E6%88%91%E4%BF%AE%E5%85%BB%E8%AF%BB%E4%B9%A6%E7%AC%94%E8%AE%B0-2/" class="post-title-link" itemprop="url">程序员的自我修养读书笔记-2</a>
+        </h2>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">发表于</span>
+      
+
+      <time title="创建时间：2021-01-29 15:19:24 / 修改时间：15:19:40" itemprop="dateCreated datePublished" datetime="2021-01-29T15:19:24+08:00">2021-01-29</time>
+    </span>
+
+  
+</div>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+          <h1 id="静态链接"><a href="#静态链接" class="headerlink" title="静态链接"></a>静态链接</h1><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line">&#x2F;&#x2F; a.c</span><br><span class="line"></span><br><span class="line">extern int shared;</span><br><span class="line"></span><br><span class="line">int main() &#123;</span><br><span class="line">    int a &#x3D; 100;</span><br><span class="line">    swap(&amp;a, &amp;shared);</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">&#x2F;&#x2F; b.c </span><br><span class="line"></span><br><span class="line">int shared &#x3D; 1;</span><br><span class="line"></span><br><span class="line">void swap (int* a, int* b) &#123;</span><br><span class="line">    *a ^&#x3D; *b ^&#x3D; *a ^&#x3D; *b;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h2 id="空间与地址分配"><a href="#空间与地址分配" class="headerlink" title="空间与地址分配"></a>空间与地址分配</h2><p>多个不同目标文件链接到一起，多个段怎么拼接到一起：</p>
+<ol>
+<li>按序叠加：将输入的目标文件按照次序叠加起来，会导致输出文件中很多零散的段，段对齐后还会导致大量的内部碎片</li>
+<li>相似段合并：将相同性质的段合并到一起</li>
+</ol>
+<p>现在链接器一般采用第二种方法，这种链接器一般都采用一种叫两步链接的方法。</p>
+<ol>
+<li>空间与地址分配：合并所有段，并搜集所有符号放到一个全局符号表</li>
+<li>符号解析与重定位：符号解析与重定位、调整代码中的地址</li>
+</ol>
+<h2 id="符号解析与重定位"><a href="#符号解析与重定位" class="headerlink" title="符号解析与重定位"></a>符号解析与重定位</h2><p>链接器通过elf文件中的重定位表来获得需要被重定位的符号信息，然后根据不同符号类型，比如变量和函数，来决定使用地址修正方式。<br>x86架构上重定位有两种类型：</p>
+<table>
+<thead>
+<tr>
+<th align="left">宏定义</th>
+<th align="left">值</th>
+<th align="left">重定位修正方式</th>
+</tr>
+</thead>
+<tbody><tr>
+<td align="left">R_386_32</td>
+<td align="left">1</td>
+<td align="left">绝对寻址修正 S + A</td>
+</tr>
+<tr>
+<td align="left">R_386_PC32</td>
+<td align="left">2</td>
+<td align="left">相对寻址修正 S + A - P</td>
+</tr>
+</tbody></table>
+<p>A = 保存在被修正位置的值<br>P = 被修正的位置（相对于段开始的偏移量或者虚拟地址）<br>S = 符号的实际地址</p>
+<h2 id="common块"><a href="#common块" class="headerlink" title="common块"></a>common块</h2><p>解决多个符号定义的问题，将多个弱符号定义到一个共享地址中，以空间最大的为最终结果。</p>
+<h2 id="c-相关问题"><a href="#c-相关问题" class="headerlink" title="c++相关问题"></a>c++相关问题</h2><ol>
+<li><p>重复代码消除</p>
+<ol>
+<li>模板实例化被编译到一个段，这样多个编译单元可以共享</li>
+<li>虚函数，放到虚函数表中，多个实例共享该函数表</li>
+<li>外部内联函数、默认构造函数、默认拷贝构造函数和赋值操作符等都是类似处理</li>
+<li>函数级别链接，库中的函数都单独放到一个段里，这样只用链接需要用的函数，减少空间浪费</li>
+</ol>
+</li>
+<li><p>全局构造与析构</p>
+<ol>
+<li>linux系统的程序入口是_start,程序初始化完成一系列初始化过程之后，会调用main函数来执行程序主体</li>
+<li>elf文件中的两个段.init和.fini是main函数执行之前和结束后调用，构造和析构函数一般放在这两个段中实现</li>
+</ol>
+</li>
+<li><p>ABI</p>
+<p>二进制层面的接口，影响因素非常多，例如：</p>
+<ol>
+<li>内置类型</li>
+<li>组合类型</li>
+<li>外部符号</li>
+<li>函数调用方式</li>
+<li>堆栈的分布式方式</li>
+<li>寄存器使用约定</li>
+<li>…<br>c++的语法太复杂，其对ABI的影响非常多，因此二进制兼容性一直不好，除了不同编译器二进制代码之间无法相互兼容，还有编译器不同版本也不兼容。</li>
+</ol>
+</li>
+</ol>
+<h2 id="静态库链接"><a href="#静态库链接" class="headerlink" title="静态库链接"></a>静态库链接</h2><p>一组目标文件的集合，linux下是libc.a, 由ar压缩程序将各个不同函数目标文件压缩而成。</p>
+<h2 id="链接过程控制"><a href="#链接过程控制" class="headerlink" title="链接过程控制"></a>链接过程控制</h2><p>链接器提供多种方式控制链接过程：</p>
+<ol>
+<li>命令行给链接器指定参数</li>
+<li>将链接指令放到目标文件中</li>
+<li>使用链接控制脚本</li>
+</ol>
+<h2 id="BFD库"><a href="#BFD库" class="headerlink" title="BFD库"></a>BFD库</h2><p>抽象一种统一的接口来处理不同的目标文件格式，它把目标文件抽象成一个统一的模型，现在GCC都是通过BFD库来处理目标文件。如果需要支持新的目标文件格式，只需在BFD中添加一种格式就行。</p>
+<h2 id="小结"><a href="#小结" class="headerlink" title="小结"></a>小结</h2><p>本章主要是介绍了静态链接的第一个步骤，主要是各个目标文件的合并以及重定位。还介绍了一些静态链接过程中的几个典型问题：common块处理弱符号，链接脚本控制链接过程来定制化某些特殊需求等。</p>
+
+      
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+        <div class="post-eof"></div>
+      
+    </footer>
+  </article>
+</div>
+
+
+
+
+    
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="http://example.com/2021/01/29/%E7%A8%8B%E5%BA%8F%E5%91%98%E7%9A%84%E8%87%AA%E6%88%91%E4%BF%AE%E5%85%BB%E8%AF%BB%E4%B9%A6%E7%AC%94%E8%AE%B0-1/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="Jason Chao">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="我住8楼">
+    </span>
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">
+          <a href="/2021/01/29/%E7%A8%8B%E5%BA%8F%E5%91%98%E7%9A%84%E8%87%AA%E6%88%91%E4%BF%AE%E5%85%BB%E8%AF%BB%E4%B9%A6%E7%AC%94%E8%AE%B0-1/" class="post-title-link" itemprop="url">程序员的自我修养读书笔记-1</a>
+        </h2>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">发表于</span>
+      
+
+      <time title="创建时间：2021-01-29 15:18:28 / 修改时间：16:26:06" itemprop="dateCreated datePublished" datetime="2021-01-29T15:18:28+08:00">2021-01-29</time>
+    </span>
+
+  
+</div>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+          <h1 id="温故而知新"><a href="#温故而知新" class="headerlink" title="温故而知新"></a>温故而知新</h1><h2 id="硬件和操作系统历史"><a href="#硬件和操作系统历史" class="headerlink" title="硬件和操作系统历史"></a>硬件和操作系统历史</h2><h3 id="计算机硬件历史"><a href="#计算机硬件历史" class="headerlink" title="计算机硬件历史"></a>计算机硬件历史</h3><p>计算机中最重要的是三个部件：cpu，内存，io控制芯片<br>历史：</p>
+<ol>
+<li>早期cpu和内存以及io控制器是链接在一条总线上的</li>
+<li>后来cpu频率上升，并且图形芯片与内存和cpu交互变多，设计北桥芯片处理这种高速数据交互；对于低速的io设备，设计南桥来总领慢速io设备与北桥通信</li>
+<li>单核cpu频率到瓶颈，转向多核架构；最常见的就是SMP(对称多处理器),多个处理器对等，通过总线通信。（多核处理器是SMP的简化版，它将多个核心打包，共享昂贵的缓存组件以单个处理器的方式售卖)</li>
+</ol>
+<h3 id="操作系统历史"><a href="#操作系统历史" class="headerlink" title="操作系统历史"></a>操作系统历史</h3><p>操作系统两个功能：</p>
+<ol>
+<li>提供一个抽象的接口</li>
+<li>管理硬件资源</li>
+</ol>
+<p>CPU资源利用历史：</p>
+<ol>
+<li>多道程序：可以多个程序流水线执行，不用一个程序等待上一个程序完全处理完成（比如程序最后是写磁盘，但是依然不让下一个程序开始用闲下来的CPU资源）</li>
+<li>分时系统：每个程序运行一段时间，主动放弃cpu</li>
+<li>多任务系统：操作系统接管所有硬件资源，各任务以进程方式运行，cpu轮流调度不同进程；如果cpu会强行打断任务执行，根据优先级将cpu资源分配给别的进程，那么这就是抢占式任务调度方式。</li>
+</ol>
+<p>设备驱动：</p>
+<ol>
+<li>面向硬件接口编程</li>
+<li>统一抽象，交给硬件驱动程序来处理</li>
+</ol>
+<p>内存：</p>
+<ol>
+<li>直接操作硬件RAM<ol>
+<li>地址空间不隔离</li>
+<li>内存使用率低，整块连续内存不停换入换出</li>
+<li>程序运行的地址不确定</li>
+</ol>
+</li>
+<li>分段技术：整段内存空间映射到虚拟地址空间<ol>
+<li>解决了第一和第三个问题，但是第二问题还没有解决，映射粒度太大，空间不够时，可能小粒度的空间和等于需要的空间，但是不连续，无法映射</li>
+</ol>
+</li>
+<li>分页技术：将内存按页4K来划分，换入换出以页为单位，粒度小，利用效率高</li>
+</ol>
+<h2 id="现代操作系统CPU抽象-线程"><a href="#现代操作系统CPU抽象-线程" class="headerlink" title="现代操作系统CPU抽象-线程"></a>现代操作系统CPU抽象-线程</h2><ol>
+<li>线程基础<ol>
+<li>线程有自己的私有存储空间：局部变量，函数的参数，TLS（线程局部存储）数据</li>
+<li>线程共享存储（进程所有）：全局变量，堆上的数据，函数里的静态变量，程序代码，打开的文件</li>
+<li>状态：运行、就绪、等待</li>
+</ol>
+</li>
+<li>线程安全<ol>
+<li>同步与锁<ol>
+<li>二元信号量：任意线程获取和释放</li>
+<li>互斥量：哪个线程获取，哪个线程释放</li>
+<li>临界区：仅限本进程，信号量和互斥量在任何进程都可见</li>
+<li>读写锁：分独占和共享方式获取</li>
+<li>条件变量：类似栅栏，等待和唤醒</li>
+<li>可重入：并发安全的保障</li>
+</ol>
+</li>
+</ol>
+</li>
+<li>线程模型<ol>
+<li>一对一模型：一个用户线程对应一个内核线程</li>
+<li>多对一模型：多个用户线程对应一个内核线程，用不线程切换由用户代码执行，如果一个用户线程阻塞，会阻塞所有其他同核的用户线程</li>
+<li>多对多模型：多个用户线程对应多个内核线程，性能提升没有一对一高，资源利用率最高了</li>
+</ol>
+</li>
+</ol>
+<h1 id="编译和链接"><a href="#编译和链接" class="headerlink" title="编译和链接"></a>编译和链接</h1><h2 id="构建过程"><a href="#构建过程" class="headerlink" title="构建过程"></a>构建过程</h2><ol>
+<li>预编译<ol>
+<li>将#define删除，并展开所有宏定义</li>
+<li>处理所有条件预编译命令</li>
+<li>处理#include预编译命令，将被包含的文件插入到对应位置</li>
+<li>删除注释</li>
+<li>添加文件行号和文件名标识</li>
+<li>保留所有#pragma命令</li>
+</ol>
+</li>
+<li>编译<ol>
+<li>词法分析，语法分析，语义分析，生成汇编文件</li>
+</ol>
+</li>
+<li>汇编<ol>
+<li>将汇编代码转变为机器可执行指令</li>
+</ol>
+</li>
+<li>链接<ol>
+<li>将最终程序所需的所有文件都链接起来</li>
+</ol>
+</li>
+</ol>
+<h2 id="编译过程"><a href="#编译过程" class="headerlink" title="编译过程"></a>编译过程</h2><ol>
+<li>词法分析<ol>
+<li>执行类似有限状态机的算法来将字符序列分割成一系列的记号</li>
+<li>将记号分类为：关键字，标识符，字面量（包含数字，字符串等），特殊符号（加减号之类的）</li>
+</ol>
+</li>
+<li>语法分析<ol>
+<li>采用上下文无关语法来生成语法树，节点是表达式</li>
+</ol>
+</li>
+<li>语义分析<ol>
+<li>静态语义分析<ol>
+<li>声明与类型的匹配</li>
+<li>类型的转换</li>
+<li>将语法树的每个节点标识了类型</li>
+</ol>
+</li>
+</ol>
+</li>
+<li>中间语言生成<ol>
+<li>将语法树转换为三地址码（x = y op z）</li>
+<li>中间语言将编译器分割成前端和后端，前端将源码翻译成机器无关的中间代码，后端将中间代码转换为机器代码</li>
+</ol>
+</li>
+<li>目标代码生成与优化<ol>
+<li>属于编译器后端，包括代码生成器和目标代码优化器</li>
+</ol>
+</li>
+</ol>
+<h2 id="链接过程"><a href="#链接过程" class="headerlink" title="链接过程"></a>链接过程</h2><p>就是各个目标文件链接起来拼成最终目标文件。</p>
+<h3 id="静态链接"><a href="#静态链接" class="headerlink" title="静态链接"></a>静态链接</h3><ol>
+<li>地址和空间分配</li>
+<li>符号决议（符号绑定）<ol>
+<li>当编译器遇到一个不是本模块定义的符号时，会假设该函数由其它模块定义，并生成一个链接器符号表条目，交由链接器处理。如果链接器在它的任何输入模块都没有找到该符号，会给出一个类似undefined reference to ‘xxx’的链接错误。而如果链接器在输入模块中找到了一个以上的外部符号定义，这个时候就需要链接器进行符号决议，链接器对多个外部符号定义可能并不报错甚至警告，而是按照它的规则去选择其中一个符号定义。</li>
+</ol>
+</li>
+<li>重定位<ol>
+<li>计算各个目标地址的过程叫重定位</li>
+</ol>
+</li>
+</ol>
+<h1 id="目标文件里有什么"><a href="#目标文件里有什么" class="headerlink" title="目标文件里有什么"></a>目标文件里有什么</h1><h2 id="目标文件中的组成成分"><a href="#目标文件中的组成成分" class="headerlink" title="目标文件中的组成成分"></a>目标文件中的组成成分</h2><ol>
+<li>代码段.text</li>
+<li>数据段.data</li>
+<li>未初始化数据段.bss: 只是为未初始化的全局变量和局部静态变量预留位置而已</li>
+<li>只读数据段.rodata</li>
+<li>调试信息段.debug</li>
+<li>编译器版本信息段.comment</li>
+<li>动态链接信息段.dynamic</li>
+<li>字符串表.strtab, 存放各种字符串</li>
+<li>符号表.symtab</li>
+<li>段名表.shstrtab</li>
+<li>初始化和终结代码段.init/.fini</li>
+<li>动态链接的跳转表和全局入口表.plt/.got</li>
+</ol>
+<h2 id="ELF文件结构描述"><a href="#ELF文件结构描述" class="headerlink" title="ELF文件结构描述"></a>ELF文件结构描述</h2><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">|    ELF Header      |</span><br><span class="line">|     .text          |</span><br><span class="line">|     .data          |</span><br><span class="line">|     .bss           |</span><br><span class="line">|  other sections    |</span><br><span class="line">|section header table|</span><br><span class="line">|  string tables     |</span><br><span class="line">|  symbol tables     |</span><br><span class="line">|      ...           |</span><br></pre></td></tr></table></figure>
+<h3 id="ELF-Header"><a href="#ELF-Header" class="headerlink" title="ELF Header"></a>ELF Header</h3><p>包含ELF魔数、文件机器字节长度、数据存储个方式、版本、运行平台、ABI 版本、ELF重定位类型、硬件平台、硬件平台版本、入口地址、程序头入口和长度、段表的位置和长度、段的数量。其结构及相关常数被定义在/usr/include/elf.h里。</p>
+<p>其中elf魔数的前16个字节被ELF标准规定用来标识ELF文件的平台属性，比如字长、字节序、elf文件版本信息等</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br></pre></td><td class="code"><pre><span class="line">&#x2F;&#x2F; simplesection.c </span><br><span class="line"></span><br><span class="line">int printf(const char* format, ...);</span><br><span class="line">int global_init_var &#x3D; 84;</span><br><span class="line">int global_uninit_var;</span><br><span class="line"></span><br><span class="line">void func1(int i) &#123;</span><br><span class="line">    printf(&quot;%d\n&quot;, i);</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">int main(void) &#123;</span><br><span class="line">    static int static_var &#x3D; 85;</span><br><span class="line">    static int static_var2;</span><br><span class="line"></span><br><span class="line">    int a &#x3D; 1;</span><br><span class="line">    int b;</span><br><span class="line"></span><br><span class="line">    func1(static_var + static_var2 + a + b);</span><br><span class="line"></span><br><span class="line">    return a;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">&#x2F;&#x2F; $ readelf -h simplesection.o</span><br><span class="line"></span><br><span class="line">ELF Header:</span><br><span class="line">  Magic:   7f 45 4c 46 02 01 01 00 00 00 00 00 00 00 00 00</span><br><span class="line">  Class:                             ELF64</span><br><span class="line">  Data:                              2&#39;s complement, little endian</span><br><span class="line">  Version:                           1 (current)</span><br><span class="line">  OS&#x2F;ABI:                            UNIX - System V</span><br><span class="line">  ABI Version:                       0</span><br><span class="line">  Type:                              REL (Relocatable file)</span><br><span class="line">  Machine:                           Advanced Micro Devices X86-64</span><br><span class="line">  Version:                           0x1</span><br><span class="line">  Entry point address:               0x0</span><br><span class="line">  Start of program headers:          0 (bytes into file)</span><br><span class="line">  Start of section headers:          376 (bytes into file)</span><br><span class="line">  Flags:                             0x0</span><br><span class="line">  Size of this header:               64 (bytes)</span><br><span class="line">  Size of program headers:           0 (bytes)</span><br><span class="line">  Number of program headers:         0</span><br><span class="line">  Size of section headers:           64 (bytes)</span><br><span class="line">  Number of section headers:         13</span><br><span class="line">  Section header string table index: 10</span><br></pre></td></tr></table></figure>
+
+
+<h3 id="段表"><a href="#段表" class="headerlink" title="段表"></a>段表</h3><p>段表是保存elf文件中各种各样的段基本属性的结构。描述了elf的各个段的信息，比如每个段的段名、段的长度、在文件中的偏移、读写权限及段的其他属性。编译器、链接器、装载器都是依靠段表来定位和访问各个段的属性的。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br></pre></td><td class="code"><pre><span class="line">&#x2F;&#x2F; $ readelf -S a.o</span><br><span class="line"></span><br><span class="line">There are 13 section headers, starting at offset 0x178:</span><br><span class="line"></span><br><span class="line">Section Headers:</span><br><span class="line">  [Nr] Name              Type             Address           Offset</span><br><span class="line">       Size              EntSize          Flags  Link  Info  Align</span><br><span class="line">  [ 0]                   NULL             0000000000000000  00000000</span><br><span class="line">       0000000000000000  0000000000000000           0     0     0</span><br><span class="line">  [ 1] .text             PROGBITS         0000000000000000  00000040</span><br><span class="line">       0000000000000054  0000000000000000  AX       0     0     4</span><br><span class="line">  [ 2] .rela.text        RELA             0000000000000000  000006a0</span><br><span class="line">       0000000000000078  0000000000000018          11     1     8</span><br><span class="line">  [ 3] .data             PROGBITS         0000000000000000  00000094</span><br><span class="line">       0000000000000008  0000000000000000  WA       0     0     4</span><br><span class="line">  [ 4] .bss              NOBITS           0000000000000000  0000009c</span><br><span class="line">       0000000000000004  0000000000000000  WA       0     0     4</span><br><span class="line">  [ 5] .rodata           PROGBITS         0000000000000000  0000009c</span><br><span class="line">       0000000000000004  0000000000000000   A       0     0     1</span><br><span class="line">  [ 6] .comment          PROGBITS         0000000000000000  000000a0</span><br><span class="line">       0000000000000012  0000000000000001  MS       0     0     1</span><br><span class="line">  [ 7] .note.GNU-stack   PROGBITS         0000000000000000  000000b2</span><br><span class="line">       0000000000000000  0000000000000000           0     0     1</span><br><span class="line">  [ 8] .eh_frame         PROGBITS         0000000000000000  000000b8</span><br><span class="line">       0000000000000058  0000000000000000   A       0     0     8</span><br><span class="line">  [ 9] .rela.eh_frame    RELA             0000000000000000  00000718</span><br><span class="line">       0000000000000030  0000000000000018          11     8     8</span><br><span class="line">  [10] .shstrtab         STRTAB           0000000000000000  00000110</span><br><span class="line">       0000000000000061  0000000000000000           0     0     1</span><br><span class="line">  [11] .symtab           SYMTAB           0000000000000000  000004b8</span><br><span class="line">       0000000000000180  0000000000000018          12    11     8</span><br><span class="line">  [12] .strtab           STRTAB           0000000000000000  00000638</span><br><span class="line">       0000000000000066  0000000000000000           0     0     1</span><br><span class="line">Key to Flags:</span><br><span class="line">  W (write), A (alloc), X (execute), M (merge), S (strings), l (large)</span><br><span class="line">  I (info), L (link order), G (group), T (TLS), E (exclude), x (unknown)</span><br><span class="line">  O (extra OS processing required) o (OS specific), p (processor specific)</span><br></pre></td></tr></table></figure>
+
+
+<h3 id="重定位表"><a href="#重定位表" class="headerlink" title="重定位表"></a>重定位表</h3><p>.rela.text段，重定位表，记录代码段和数据段对绝对地址的引用的位置。</p>
+<h3 id="字符串表"><a href="#字符串表" class="headerlink" title="字符串表"></a>字符串表</h3><p>因为elf文件中用到了很多字符串，比如段名、变量名等，因为字符串的长度往往是不确定的，所以用固定的结构来表示它比较困难。一种很常见的做法是把字符串集中起来存放到一个表，然后使用字符串在表中的偏移来引用字符串。</p>
+<p>字符串表.strtab,用来存放普通的字符串，比如符号名字； 段表字符串表.shstrtab用来保持段表中用到的字符串，最常见的就是段名。</p>
+<h2 id="链接的接口-符号"><a href="#链接的接口-符号" class="headerlink" title="链接的接口-符号"></a>链接的接口-符号</h2><p>最值得关注的是全局符号，因为链接过程只关心全局符号的相互“粘合”，局部符号、段名、行号等都是次要的，它们对于其他的目标文件来说是不可见的，在链接过程中无关紧要。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">&#x2F;&#x2F; $ nm simplesection.o</span><br><span class="line"></span><br><span class="line">0000000000000000 T func1</span><br><span class="line">0000000000000000 D global_init_var</span><br><span class="line">0000000000000004 C global_uninit_var</span><br><span class="line">0000000000000021 T main</span><br><span class="line">                 U printf</span><br><span class="line">0000000000000004 d static_var.1731</span><br><span class="line">0000000000000000 b static_var2.1732</span><br></pre></td></tr></table></figure>
+
+
+<h3 id="elf符号表结构"><a href="#elf符号表结构" class="headerlink" title="elf符号表结构"></a>elf符号表结构</h3><p>elf文件中的一个段，段名叫.symtab。包含符号的信息：符号名、符号值（地址或绝对值）、符号大小、符号类型（数据对象、函数、段等）和绑定信息（局部，全局，弱引用）、符号所在的段</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br></pre></td><td class="code"><pre><span class="line">&#x2F;&#x2F; $ readelf -s simplesection.o</span><br><span class="line"></span><br><span class="line">Symbol table &#39;.symtab&#39; contains 16 entries:</span><br><span class="line">   Num:    Value          Size Type    Bind   Vis      Ndx Name</span><br><span class="line">     0: 0000000000000000     0 NOTYPE  LOCAL  DEFAULT  UND</span><br><span class="line">     1: 0000000000000000     0 FILE    LOCAL  DEFAULT  ABS simplesection.c</span><br><span class="line">     2: 0000000000000000     0 SECTION LOCAL  DEFAULT    1</span><br><span class="line">     3: 0000000000000000     0 SECTION LOCAL  DEFAULT    3</span><br><span class="line">     4: 0000000000000000     0 SECTION LOCAL  DEFAULT    4</span><br><span class="line">     5: 0000000000000000     0 SECTION LOCAL  DEFAULT    5</span><br><span class="line">     6: 0000000000000004     4 OBJECT  LOCAL  DEFAULT    3 static_var.1731</span><br><span class="line">     7: 0000000000000000     4 OBJECT  LOCAL  DEFAULT    4 static_var2.1732</span><br><span class="line">     8: 0000000000000000     0 SECTION LOCAL  DEFAULT    7</span><br><span class="line">     9: 0000000000000000     0 SECTION LOCAL  DEFAULT    8</span><br><span class="line">    10: 0000000000000000     0 SECTION LOCAL  DEFAULT    6</span><br><span class="line">    11: 0000000000000000     4 OBJECT  GLOBAL DEFAULT    3 global_init_var</span><br><span class="line">    12: 0000000000000004     4 OBJECT  GLOBAL DEFAULT  COM global_uninit_var</span><br><span class="line">    13: 0000000000000000    33 FUNC    GLOBAL DEFAULT    1 func1</span><br><span class="line">    14: 0000000000000000     0 NOTYPE  GLOBAL DEFAULT  UND printf</span><br><span class="line">    15: 0000000000000021    51 FUNC    GLOBAL DEFAULT    1 main</span><br></pre></td></tr></table></figure>
+
+
+<h3 id="特殊符号"><a href="#特殊符号" class="headerlink" title="特殊符号"></a>特殊符号</h3><p>链接器会定义很多特殊的符号，比如程序起始地址、结束地址等，可以在程序中使用它们。</p>
+<h3 id="符号修饰与函数签名"><a href="#符号修饰与函数签名" class="headerlink" title="符号修饰与函数签名"></a>符号修饰与函数签名</h3><p>符号修饰是为了统一符号名，以免冲突。</p>
+<p>C++符号修饰</p>
+<ol>
+<li>函数签名，包含了一个函数的信息，包括函数名、它的参数类型、它所在的类和名称空间及其他信息。用于识别不同的函数（比如重载的函数）。通常是用名称修饰的方式来做签名。</li>
+<li>符号修饰也可以用来防止静态变量的名字冲突。</li>
+</ol>
+<h3 id="extern-“C”"><a href="#extern-“C”" class="headerlink" title="extern “C”"></a>extern “C”</h3><p>避免c++符号修饰导致不识别c函数</p>
+<h3 id="弱符号与强符号"><a href="#弱符号与强符号" class="headerlink" title="弱符号与强符号"></a>弱符号与强符号</h3><p>强符号是函数和初始化了的全局变量；弱符号是未初始化的全局变量。<br>链接器处理强符号、弱符号的规则</p>
+<ol>
+<li>不允许强符号被多次定义</li>
+<li>如果有一个强符号，多个弱符号，选择强符号</li>
+<li>如果都是弱符号，选择占用空间最大的一个</li>
+</ol>
+<p>强引用和弱引用<br>对外部目标文件定义的符号在目标文件最终被链接时，如果找不到该符号的定义，报未定义错误，这种被称为强引用。如果有定义，则引用该定义，如果没有，也不报错，就是弱引用。</p>
+<h2 id="调试信息"><a href="#调试信息" class="headerlink" title="调试信息"></a>调试信息</h2><p>elf采用一种称为DWARF（Debug with arbitrary record format）格式的调试信息格式。</p>
+
+      
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+        <div class="post-eof"></div>
+      
+    </footer>
+  </article>
+</div>
+
+
+
 
     
 
@@ -446,1374 +1991,8 @@
 
 
 
-    
-
-
-<div class="post-block">
-  
-  
-
-  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="zh-CN">
-    <link itemprop="mainEntityOfPage" href="http://example.com/2021/01/29/stl%E6%BA%90%E7%A0%81%E5%89%96%E6%9E%90-allocator%E7%A9%BA%E9%97%B4%E5%88%86%E9%85%8D%E5%99%A8/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="image" content="/images/avatar.gif">
-      <meta itemprop="name" content="Jason Chao">
-      <meta itemprop="description" content="">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="我住8楼">
-    </span>
-      <header class="post-header">
-        <h2 class="post-title" itemprop="name headline">
-          <a href="/2021/01/29/stl%E6%BA%90%E7%A0%81%E5%89%96%E6%9E%90-allocator%E7%A9%BA%E9%97%B4%E5%88%86%E9%85%8D%E5%99%A8/" class="post-title-link" itemprop="url">stl源码剖析-allocator空间分配器</a>
-        </h2>
-
-        <div class="post-meta-container">
-          <div class="post-meta">
-    <span class="post-meta-item">
-      <span class="post-meta-item-icon">
-        <i class="far fa-calendar"></i>
-      </span>
-      <span class="post-meta-item-text">发表于</span>
-      
-
-      <time title="创建时间：2021-01-29 15:14:27 / 修改时间：16:40:04" itemprop="dateCreated datePublished" datetime="2021-01-29T15:14:27+08:00">2021-01-29</time>
-    </span>
-    <span class="post-meta-item">
-      <span class="post-meta-item-icon">
-        <i class="far fa-folder"></i>
-      </span>
-      <span class="post-meta-item-text">分类于</span>
-        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-          <a href="/categories/stl/" itemprop="url" rel="index"><span itemprop="name">stl</span></a>
-        </span>
-    </span>
-
-  
-</div>
-
-        </div>
-      </header>
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-          <h1 id="一二级分配器"><a href="#一二级分配器" class="headerlink" title="一二级分配器"></a>一二级分配器</h1><p>sgi stl为了内存分配效率，采用了两级分配器。</p>
-<h2 id="第一级分配器"><a href="#第一级分配器" class="headerlink" title="第一级分配器"></a>第一级分配器</h2><p>template<br>class __malloc_alloc_template {…};<br>其中：</p>
-<ol>
-<li>allocate()直接使用malloc(), deallocate()直接使用free()。</li>
-<li>模拟c++的set_new_handler()以处理内存不足的情况</li>
-</ol>
-<h2 id="第二级分配器"><a href="#第二级分配器" class="headerlink" title="第二级分配器"></a>第二级分配器</h2><p>template<br>class __default_alloc_template {…};<br>其中：</p>
-<ol>
-<li>维护16个自由链表（free lists），负责16种小型区块的次配置能力。内存池以malloc配置而得，如果内存不足，转调用第一级分配器（那里有处理程序）。</li>
-<li>如果需求的区块大于128 bytes, 就转调用第一级分配器。</li>
-</ol>
-<h2 id="内存管理小技巧"><a href="#内存管理小技巧" class="headerlink" title="内存管理小技巧"></a>内存管理小技巧</h2><p>第二级分配器管理的16个自由链表的时候，对于每个块，采用了如下所示数据结构</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">union obj &#123;</span><br><span class="line">    union obj* free_list_link;</span><br><span class="line">    char client_data[1];</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-
-<ol>
-<li>当分配出去时，用户看到的是client_data部分，丝毫不浪费空间</li>
-<li>当空闲时，可以设置free_list_link将各个空闲块链接起来</li>
-</ol>
-
-      
-    </div>
-
-    
-    
-    
-
-    <footer class="post-footer">
-        <div class="post-eof"></div>
-      
-    </footer>
-  </article>
-</div>
-
-
-
-
-    
-
-
-<div class="post-block">
-  
-  
-
-  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="zh-CN">
-    <link itemprop="mainEntityOfPage" href="http://example.com/2021/01/29/%E6%8A%95%E8%B5%84%E5%AD%A6%E8%AE%B0%E5%BD%95/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="image" content="/images/avatar.gif">
-      <meta itemprop="name" content="Jason Chao">
-      <meta itemprop="description" content="">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="我住8楼">
-    </span>
-      <header class="post-header">
-        <h2 class="post-title" itemprop="name headline">
-          <a href="/2021/01/29/%E6%8A%95%E8%B5%84%E5%AD%A6%E8%AE%B0%E5%BD%95/" class="post-title-link" itemprop="url">投资学记录</a>
-        </h2>
-
-        <div class="post-meta-container">
-          <div class="post-meta">
-    <span class="post-meta-item">
-      <span class="post-meta-item-icon">
-        <i class="far fa-calendar"></i>
-      </span>
-      <span class="post-meta-item-text">发表于</span>
-
-      <time title="创建时间：2021-01-29 15:12:51" itemprop="dateCreated datePublished" datetime="2021-01-29T15:12:51+08:00">2021-01-29</time>
-    </span>
-      <span class="post-meta-item">
-        <span class="post-meta-item-icon">
-          <i class="far fa-calendar-check"></i>
-        </span>
-        <span class="post-meta-item-text">更新于</span>
-        <time title="修改时间：2021-02-07 17:35:36" itemprop="dateModified" datetime="2021-02-07T17:35:36+08:00">2021-02-07</time>
-      </span>
-
-  
-</div>
-
-        </div>
-      </header>
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-          <blockquote>
-<p>读《手把手教你读财报》—唐朝</p>
-</blockquote>
-<p>术语解释：</p>
-<ol>
-<li>少数股东权益<ul>
-<li>子公司里占点股份的股东，他们股份对应的资产</li>
-</ul>
-</li>
-<li>少数股东损益<ul>
-<li>占点股份的股东对应的股份的利润或亏损，在利润表里就叫“少数股东损益</li>
-</ul>
-</li>
-<li>归属于母公司所有者的净利润<ul>
-<li>从净利润里去掉了它（少数股东损益），剩下部分，便是报告期内上市公司股东拥有的净利润</li>
-</ul>
-</li>
-<li>每股收益<ul>
-<li>归属于母公司所有者的净利润除以公司总股本，就得出研究机构和股评人士最喜欢讨论的“每股收益”</li>
-</ul>
-</li>
-<li>PE，即市盈率，股票价格/每股收益</li>
-<li>盈余公积金<ul>
-<li>盈余公积金是法律不让公司分配的利润。中国的《公司法》规定，一个公司盈利后，必须留存至少10%作为盈余公积。这是一个具有“中国特色”的科目，是政府强制公司进行扩大再生产的手段。按法律规定，盈余公积累计超过注册资金的50%后，由董事会自行决定是否继续计提。盈余公积一旦计提，用途就受限制了，只能用于弥补经营亏损，或派送红股。后者还要保证送股后，盈余公积仍然大于注册资本的25%。</li>
-</ul>
-</li>
-<li>一般风险准备<ul>
-<li>一般风险准备，是专门要求金融企业提取的款项，用于弥补未来“莫须有（可能有）”的亏损。</li>
-</ul>
-</li>
-<li>未分配利润<ul>
-<li>是从历年净利润总和中，去掉计提盈余公积和分红后的剩余。</li>
-</ul>
-</li>
-<li>现金及现金等价物<ul>
-<li>现金及现金等价物包括库存现金、银行存款、其他货币资金、存放中央银行可随时支取的备付金、存放同业款项、拆放同业款项、同业间买入返售证券，以及企业持有的期限短（一般指从购买日起三个月内到期）、流动性强、易于转换为已知金额现金、价值变动风险很小的投资。</li>
-</ul>
-</li>
-<li>增值税<ul>
-<li>增值税是中国第一大税种，它的75%归中央政府所有，25%归地方政府所有;对上市公司而言，增值税率主要有17%、13%和0三档。增值税是流转税，无论是否盈利，只要涉及商品生产、批发、零售和进口活动，都要缴纳增值税。</li>
-</ul>
-</li>
-<li>贴现<ul>
-<li>贴现：指持票人在汇票到期前，为了取得资金，贴付一定利息将票据收款权转让给银行的行为。贴现是银行出借资金的方式之一。</li>
-<li>转贴现：指银行在资金临时不足时，将已经贴现但仍未到期的票据，交给其他银行或贴现机构获取资金的行为。</li>
-<li>再贴现：指中央银行通过买进银行持有的已贴现但尚未到期的票据，向银行提供资金支持的行为。</li>
-<li>贴现率：在人民银行现行的再贴现利率的基础上上浮。贴现率是一种市场价格，由双方协商确定，一般不会超过现行贷款利率。</li>
-</ul>
-</li>
-<li>融资租凭<ul>
-<li>就是公司买个大件（如挖掘机、大货车、厂房、机床等）租给需要用这个东西的企业A，双方约定A每年或每月支付多少租金，N年或N月后，按照某价格把旧设备或厂房卖给A。租金加上旧货成交价之和大于最初买价的部分，相当于是A为这笔借款支付的利息。</li>
-</ul>
-</li>
-<li>递延方式分期收款<ul>
-<li>理解为公司卖了货（或提供了劳务）给企业A，收到全部款项后，又把这笔款子借给A用，然后A按约定利率付息。</li>
-</ul>
-</li>
-<li>市净率PB（股价/净资产）</li>
-<li>所有者权益<ul>
-<li>由公司总资产减去总负债得出。所有者权益主要由四部分组成，即实收资本、资本公积、盈余公积和未分配利润。</li>
-</ul>
-</li>
-<li>资本公积<ul>
-<li>股东投入的超过股本的部分，不是由企业利润形成的。</li>
-</ul>
-</li>
-<li>营业成本<ul>
-<li>就是报表期内公司为了销售，而从资产负债表存货科目里搬走存货的价值。</li>
-</ul>
-</li>
-<li>营业收入<ul>
-<li>主业经营所得。</li>
-</ul>
-</li>
-<li>净资产收益率, ROE<ul>
-<li>净利润÷平均净资产</li>
-</ul>
-</li>
-<li>自由现金流<ul>
-<li>是企业经营活动流入现金净额，减去维持现有生意运转必需的现金投入。实践中一般用财报“经营现金流入净额-投资活动现金流出”来毛估。</li>
-</ul>
-</li>
-</ol>
-<h1 id="必须要学会读财报"><a href="#必须要学会读财报" class="headerlink" title="必须要学会读财报"></a>必须要学会读财报</h1><p>财报是了解一个公司最基本的信息来源，需要通过这个来对公司现状有个清楚的认识。财报是分析公司的起点，投资者应深刻认识行业及企业的特性，再结合财报数据，才可能做出正确的决定。而认识行业和企业，阅读财报是必经之路，大量阅读行业内重要企业的财报，是取得投资比较优势的重要途径。</p>
-<blockquote>
-<p>按规定，年报要求年度结束后4个月内披露；半年报要求在上半年结束后2个月内披露；第一季度、第三季度季报，要求在季度结束后1个月内披露。因此，年报准备时间最充分，信息披露最详细，可信度最高。半年报次之。至于一季报、三季报，相对简单，仅供投资者了解基本数据。</p>
-</blockquote>
-<p>财报最重要的内容：</p>
-<ol>
-<li>财务会计报告</li>
-<li>董事会报告</li>
-<li>重要事项</li>
-</ol>
-<p>考虑到财报可能造假，详细读之前需要判断下财报真实可信度：</p>
-<table>
-<thead>
-<tr>
-<th align="left">会计师出具意见</th>
-<th align="left">真实意思</th>
-</tr>
-</thead>
-<tbody><tr>
-<td align="left">标准无保留意见的审计报告</td>
-<td align="left">造假迹象未被本人发现</td>
-</tr>
-<tr>
-<td align="left">附带说明的标准无保留意见的审计报告</td>
-<td align="left">黑锅有人背，本人大胆拿钱</td>
-</tr>
-<tr>
-<td align="left">保留意见的审计报告</td>
-<td align="left">假报表，别看了</td>
-</tr>
-<tr>
-<td align="left">无法出具意见审计报告</td>
-<td align="left">本人拒绝和挫劣的骗子合作</td>
-</tr>
-<tr>
-<td align="left">否定意见审计报告</td>
-<td align="left">本人举报诈骗犯</td>
-</tr>
-</tbody></table>
-<h1 id="资产负债表"><a href="#资产负债表" class="headerlink" title="资产负债表"></a>资产负债表</h1><h2 id="资产"><a href="#资产" class="headerlink" title="资产"></a>资产</h2><h3 id="货币资金"><a href="#货币资金" class="headerlink" title="货币资金"></a>货币资金</h3><p>货币资金包括：现金及现金等价物，以及使用受限制的资金</p>
-<p>对公司而言，通常有三种途径可以产生货币资金。</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">1. 发售股票或举债；</span><br><span class="line">2. 出售资产或业务部门；</span><br><span class="line">3. 经营活动的现金流入持续大于现金流出。</span><br></pre></td></tr></table></figure>
-<p>符合第三种情况的公司，通常都具有某种持续性竞争优势。</p>
-<p><strong>注意点</strong>：</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">货币资金需要与短期债务及经营需要相匹配。与短期债务的匹配情况，代表企业的偿债能力。与经营需要的匹配情况，代表企业的资金运用能力。</span><br></pre></td></tr></table></figure>
-<blockquote>
-<p>实践中投资者要注意以下四种情况：</p>
-<ol>
-<li>货币资金余额比短期负债小很多；</li>
-<li>货币资金充裕，却借了很多有息甚至高息负债；</li>
-<li>定期存款很多，其他货币资金很多，流动资金却严重缺乏；</li>
-<li>其他货币资金数额巨大，但没有合理解释。</li>
-</ol>
-<p>正所谓“事有反常必为妖”。以上状态中，情形（1）可能代表公司有短期偿债危机，情形（2）（3）（4）则意味着貌似充裕的货币资金，可能存在虚构、冻结，或者早就被大股东占用，只是在报表日前几天回到公司账上，过后又会消失。这几条，都是老唐排除公司的重要准则。</p>
-</blockquote>
-<h3 id="经营相关资产"><a href="#经营相关资产" class="headerlink" title="经营相关资产"></a>经营相关资产</h3><ol>
-<li><p>应收票据</p>
-<ol>
-<li><p>应收票据全部由银行承兑汇票组成，证明企业地位强势，产品抢手；</p>
-</li>
-<li><p>有大量的商业承兑汇票，则说明企业采用相对宽松的销售政策；</p>
-</li>
-<li><p>银行承兑汇票 &gt; 商业承兑汇票</p>
-<p><strong>注意</strong>：</p>
-<p>如果一家非金融企业报表里有与正常经营规模不匹配的应收票据，那么，这家公司很可能是在票据市场当炒家，也算是不务正业，投资者需要对其提高警惕。</p>
-</li>
-</ol>
-</li>
-<li><p>应收账款（白条子，即欠条）</p>
-<ol>
-<li><p>总体来说，就公司经营稳健度和产品竞争力而言，从优到劣，可以排序为现金、银行承兑汇票、商业承兑汇票、应收账款。</p>
-</li>
-<li><p>计提坏账准备（账龄分析法，余额百分比法，摊余成本估算法）</p>
-<p><strong>注意</strong>：</p>
-<ol>
-<li>如果一家企业应收账款大幅增长，增长幅度超过同期收入增长，应收账款回款速度（应收账款/平均每日销售收入）低于行业平均水平，或呈现明显下降趋势，往往预示着两种可能：公司临时放宽了信用政策，加大赊销力度；或公司提前确认收入甚至虚构收入。</li>
-<li>另外，如果公司应收账款占收入的比例比较大，且有很大部分（如超过三成）是一年以上应收款，此种情况下，投资者就需要警惕公司收入的真实性。</li>
-<li>若是产品名不见经传，市场竞争激烈，同类替代产品多如牛毛，居然也没有应收款。那会是什么情况？收入造假！</li>
-<li>以客户名义打进来一笔钱将应收款收回，然后以别的名义将钱转出去</li>
-</ol>
-</li>
-</ol>
-</li>
-<li><p>预付账款</p>
-<ol>
-<li><p>如果过大，就是在商业生态链地位低或者信用不好</p>
-<p><strong>注意</strong>：</p>
-<ol>
-<li>投资者需要持续关注公司历年预付款占营业收入或营业成本的比例。如果该比例发生大幅波动，就需要寻找合理解释。无法找到合理解释的，投资者就要考虑防假、防雷措施。</li>
-</ol>
-</li>
-</ol>
-</li>
-<li><p>应收利息和应收股息</p>
-</li>
-<li><p>其他应收款</p>
-<ol>
-<li>与主业务无关的应收款</li>
-<li>越少越好</li>
-</ol>
-</li>
-<li><p>长期应收款</p>
-<ol>
-<li>指企业融资租赁产生的应收款项和采用递延方式分期收款</li>
-</ol>
-</li>
-<li><p>存货</p>
-<ol>
-<li><p>存货的计价方式：先进先出法、后进先出法、加权平均法和个别计价法。</p>
-<p><strong>注意</strong>：</p>
-<ol>
-<li>是通过虚构商品采购流出资金，再将资金流回企业、虚增利润；这种造假，往往伴随存货增长大幅超过同期营业成本增长幅度，且所备存货与企业销售速度相比，显著高于同行业水平。</li>
-<li>是通过加大生产，降低单位产品的成本，从而欺诈性地提升毛利率，虚增本期利润。</li>
-</ol>
-</li>
-</ol>
-</li>
-<li><p>生物资产</p>
-<ol>
-<li>造假高发区</li>
-</ol>
-</li>
-</ol>
-<table>
-<thead>
-<tr>
-<th align="left">科目</th>
-<th align="left">重点关注</th>
-</tr>
-</thead>
-<tbody><tr>
-<td align="left">应收票据</td>
-<td align="left">银行承兑票据&gt;商业承兑票据</td>
-</tr>
-<tr>
-<td align="left">应收账款</td>
-<td align="left">增长幅度和坏账准备计提政策</td>
-</tr>
-<tr>
-<td align="left">其他应收款</td>
-<td align="left">越少越好</td>
-</tr>
-<tr>
-<td align="left">存货</td>
-<td align="left">存货和营业成本的合理比例</td>
-</tr>
-</tbody></table>
-<h3 id="生产相关资产"><a href="#生产相关资产" class="headerlink" title="生产相关资产"></a>生产相关资产</h3><ol>
-<li><p>固定资产</p>
-<ol>
-<li>固定资产要计提折旧。</li>
-<li>除了折旧，固定资产年末（或季度末）还需要进行减值测试（比如原来的产品降价，导致按原有价格折旧后价格还比降价后的高，就得减去这个差值）。</li>
-<li>折旧政策有好几种（年限平均法、工作量法、双倍余额递减法和年数总和法等），公司使用哪种，对投资者而言，无须深究。</li>
-<li>因为折旧算费用，需要从利润表里扣除，会减少当期利润，从而减少当期所得税，所以，优秀的公司一般倾向于使用快速折旧的方法，以增加前期费用，减少前期利润。</li>
-<li>折旧并不意味着资产真的产生损失了。</li>
-</ol>
-</li>
-<li><p>在建工程和工程物资</p>
-<p><strong>注意</strong>：</p>
-<p>在建工程不需要计提折旧，因此，如果一家公司在建工程数目巨大，迟迟不转入固定资产科目，投资者一般就需要对其持怀疑态度。出现此种情况存在两种可能性：</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">1. 工程已经完工并投入使用了，但公司为了避免折旧，美化当期利润，而不将其转入固定资产。</span><br><span class="line">2. 有些公司，通过在建工程将公司的钱支付给虚构或关联的供应商，然后再以采购公司商品或服务的名义，变成收入流回公司。这种在建工程，最后往往通过大比例折旧或者以意外损毁等名义，计提高额减值损失，光明正大地“毁尸灭迹”。</span><br></pre></td></tr></table></figure></li>
-<li><p>无形资产</p>
-<ol>
-<li>包括专利权、商标权、著作权、土地使用权、特许权、版权和非专利技术等。也进行折旧，术语为摊销。</li>
-</ol>
-</li>
-<li><p>商誉</p>
-<ol>
-<li>若一家企业的获利能力超过可辨认净资产的正常获利能力，超出的部分，一定是另外一种资产带来的，这个资产就被叫作“商誉”</li>
-<li>商誉不用摊销，改为做减值测试，一旦减值处理，以后不能再转回来</li>
-</ol>
-</li>
-<li><p>长期待摊费用</p>
-<ol>
-<li>企业已经支出的但功效持续一年以上的费用，常见的主要是对固定资产的改良费用。</li>
-<li>将费用算成长期待摊费用，假装它是一笔资产，公司资产质量差</li>
-</ol>
-</li>
-<li><p>递延所得税资产和负债</p>
-<ol>
-<li><p>递延所得税资产（税务局算的公司利润大于公司计算的利润，税比公司算的高）</p>
-<ol>
-<li>有些费用，虽然公司实际支出或提列了，但税务局根据政策法规不认可。</li>
-<li>有些公司本期一次性支出的费用，但按照税务局的规定，只能在以后分批扣除，如坏账准备、修理和保修费用、超过年度营收15%的广告费等；而有些收入，被税务局认定为本期收入，但按照公司财务政策，需要在下期才报告</li>
-<li>内部公司之间销售的影响。</li>
-<li>公允价值波动损益产生的所得税差异</li>
-</ol>
-</li>
-<li><p>递延所得税负债</p>
-<ol>
-<li>有些费用（例如研发费用），按照公司会计政策分摊在多年里，但根据税务制度，却可以在当年全额税前抵扣；也有些费用，按照政策可以多算，如企业雇佣残疾人，残疾人的工资可以双倍算进费用里。</li>
-<li>某些被公司计入本期的收入，而税务局认为应该分几期纳税。</li>
-<li>政府有时为了鼓励某些行业，允许某些行业的某些资产，采用加速折旧法折旧，而公司报表上可能是按照直线折旧法折的。由此，税务局认定的费用就可能比公司算的大。</li>
-<li>公允价值波动损益产生的所得税差异。</li>
-</ol>
-<p><strong>注意</strong>：</p>
-<ol>
-<li>我国所得税率，现在基本上统一为25%了。只有很少一部分高新技术企业享受15%的所得税率。</li>
-<li>按税法及相关规定计算的当期所得税”数字除以25%，大致可以推算出税务局认定的当年企业税前利润。长期看，这个数据应该和公司净利润保持相对稳定的比例。如果相差较大，就需要投资者警惕公司是否存在大幅调节利润的情况。</li>
-</ol>
-</li>
-</ol>
-</li>
-<li><p>其他流动资产和非流动资产</p>
-<ol>
-<li>周转期不超过一年的资产，归入其他流动资产；超过一年的，就放入其他非流动资产</li>
-</ol>
-</li>
-</ol>
-<table>
-<thead>
-<tr>
-<th align="left">科目</th>
-<th align="left">重点关注</th>
-</tr>
-</thead>
-<tbody><tr>
-<td align="left">固定资产</td>
-<td align="left">年年折旧，折旧算费用</td>
-</tr>
-<tr>
-<td align="left">在建工程</td>
-<td align="left">迟迟不转为资产，肯定有鬼</td>
-</tr>
-<tr>
-<td align="left">无形资产</td>
-<td align="left">研发费用，可能是机会也可能是陷阱</td>
-</tr>
-<tr>
-<td align="left">商誉</td>
-<td align="left">没有数字不代表没有商誉</td>
-</tr>
-<tr>
-<td align="left">长期待摊费用</td>
-<td align="left">越小越好</td>
-</tr>
-<tr>
-<td align="left">递延所得税资产</td>
-<td align="left">税务局收的税&gt;公司算的税</td>
-</tr>
-<tr>
-<td align="left">递延所得税负债</td>
-<td align="left">税务局收的税&lt;公司算的税</td>
-</tr>
-</tbody></table>
-<h3 id="投资相关资产"><a href="#投资相关资产" class="headerlink" title="投资相关资产"></a>投资相关资产</h3><ol>
-<li><p>交易性金融资产</p>
-<ol>
-<li>债券、股票、基金、权证等金融资产</li>
-</ol>
-</li>
-<li><p>持有至到期投资</p>
-<p><strong>注意</strong>：</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">1. 进行大额减值。当发现持有的投资有确定证据发生减值时，对其计提减值是一种谨慎的态度。但也非常有可能是公司首先虚构了收入和利润，然后购入掺水的持有至到期投资，再通过减值“毁尸灭迹”。2. 是减值的转回。债权类的减值，当减值迹象消失后，是可以转回的。对以往减值的转回，可能真是减值测试错误估计了形势，也可能代表企业对当期利润的操纵意图。</span><br><span class="line">3. 是重分类。持有至到期投资，可以和可供出售金融资产相互重分类。当持有至到期投资被企业改变为可供出售金融资产后，将从摊余成本计量变为公允价值计量。重分类日的公允价值和账面价值的差额，计入资产负债表的资本公积科目。</span><br></pre></td></tr></table></figure></li>
-<li><p>可供出售金融资产</p>
-<ol>
-<li>跟交易性金融资产非常类似，采用公允价值计量。但不一样的是，可供出售金融资产的公允价值变动不计入企业当期利润，而是计入权益科目下的资本公积的变动，其影响净资产，不影响利润。因为不进入利润表，所以也不涉及纳税问题。等卖出时，卖价与最初的买价的差额计入当期利润表，同时从资本公积项目里去掉该项资产历年累积的资本公积。</li>
-</ol>
-</li>
-<li><p>长期股权投资</p>
-<ol>
-<li>上市公司持有子公司的股权，按照成本法核算，体现于母公司报表里。制作合并报表时，需要全部转换成权益法核算。因而子公司的经营情况，是合并报表利润及资产负债变化的重要组成。然而，对母公司报表的影响，则仅限于宣布的分红额。</li>
-<li>同样的一笔股权买卖，如果是同一控制下的交易，不会影响利润。而不同控制下的，则会影响利润。</li>
-</ol>
-</li>
-</ol>
-<table>
-<thead>
-<tr>
-<th align="left">关系</th>
-<th align="left">持股比例</th>
-<th align="left">核算方法</th>
-<th align="left">所持股权对利润表的影响</th>
-</tr>
-</thead>
-<tbody><tr>
-<td align="left">控制</td>
-<td align="left">50%以上</td>
-<td align="left">成本法</td>
-<td align="left">宣布的分红，进入利润表</td>
-</tr>
-<tr>
-<td align="left">合营</td>
-<td align="left">合同约定</td>
-<td align="left">权益法</td>
-<td align="left">按持股比例确认持股对象的经营盈亏</td>
-</tr>
-<tr>
-<td align="left">联营</td>
-<td align="left">20%~50%</td>
-<td align="left">权益法</td>
-<td align="left">按持股比例确认持股对象的经营盈亏</td>
-</tr>
-<tr>
-<td align="left">其他</td>
-<td align="left"></td>
-<td align="left"></td>
-<td align="left">按照可供出售或交易性资产对待</td>
-</tr>
-</tbody></table>
-<ol>
-<li><p>买入返售金融资产</p>
-<ol>
-<li>抵押贷款</li>
-</ol>
-</li>
-<li><p>投资性房地产</p>
-<ol>
-<li><p>投资性房地产，可以选择用成本模式计量，也可以选择用公允价值模式（简单理解为市价）计量；一般来说，会计规则建议企业采用成本模式计量投资性房地产。</p>
-<p><strong>注意</strong>：</p>
-<ol>
-<li>对某些同行业公司之间（尤其是房地产公司）进行比较的时候，如果简单比较市盈率、市净率，很可能踩进一口巨大的陷阱里。某些看上去市盈率、市净率很低的企业，是因为采用公允价值模式计量其拥有的大量投资性房地产，从而使每年房价的涨幅，体现在当年的净利润和净资产里，“显”得获利能力很强、净资产很高而已。</li>
-</ol>
-</li>
-</ol>
-</li>
-</ol>
-<table>
-<thead>
-<tr>
-<th align="left">科目</th>
-<th align="left">重点关注</th>
-</tr>
-</thead>
-<tbody><tr>
-<td align="left">交易性金融资产</td>
-<td align="left">公允价值变动记入利润表</td>
-</tr>
-<tr>
-<td align="left">持有至到期投资</td>
-<td align="left">实际利率与摊余成本决定实际投资收益</td>
-</tr>
-<tr>
-<td align="left">可供出售金融资产</td>
-<td align="left">公允价值变动加入净资本</td>
-</tr>
-<tr>
-<td align="left">长期股权投资</td>
-<td align="left">分红影响利润（成本法），或经营盈亏影响利润（权益法）</td>
-</tr>
-<tr>
-<td align="left">买入返售金融资产</td>
-<td align="left">一种用以规避监管的抵押贷款</td>
-</tr>
-<tr>
-<td align="left">投资性房地产</td>
-<td align="left">公允价值模式对利润和净资产影响巨大</td>
-</tr>
-</tbody></table>
-<h2 id="负债"><a href="#负债" class="headerlink" title="负债"></a>负债</h2><ol>
-<li>负债</li>
-<li>所有者权益</li>
-</ol>
-<table>
-<thead>
-<tr>
-<th align="left">科目</th>
-<th align="left">重点关注</th>
-</tr>
-</thead>
-<tbody><tr>
-<td align="left">负债</td>
-<td align="left">关注有息负债与现金及等价物及总资产的比例</td>
-</tr>
-<tr>
-<td align="left">股本和资本公积</td>
-<td align="left">面值算股本，股东投入超过面值的部分算资本公积</td>
-</tr>
-<tr>
-<td align="left">盈余公积</td>
-<td align="left">法定及自愿留下来用于扩产的钱</td>
-</tr>
-<tr>
-<td align="left">未分配利润</td>
-<td align="left">资金支配自由度高。有利润不等于有现金可分</td>
-</tr>
-</tbody></table>
-<h2 id="阅读资产负债表注意点"><a href="#阅读资产负债表注意点" class="headerlink" title="阅读资产负债表注意点"></a>阅读资产负债表注意点</h2><ol>
-<li>负债和所有者权益优先看<ol>
-<li>有价值的负债率计算应该使用“有息负债/总资产”。</li>
-</ol>
-</li>
-<li>资产项目<ol>
-<li>生产资产÷总资产；<ol>
-<li>轻资产公司优于重资产公司</li>
-<li>”当年税前利润总额/生产资产”，得出的比值如果显著高于社会平均资本回报率（按银行贷款标准利率的两倍毛估），则属于轻公司，反之则属于重公司</li>
-</ol>
-</li>
-<li>应收÷总资产；<ol>
-<li>应收=“应收”两个字的科目数字总和，减去“应收票据”里银行承兑汇票金额</li>
-<li>看是否过大</li>
-<li>是否有巨变</li>
-<li>是否有异常</li>
-</ol>
-</li>
-<li>货币资金÷有息负债；<ol>
-<li>衡量公司是否有债务危机</li>
-</ol>
-</li>
-<li>非主业资产÷总资产<ol>
-<li>一个公司是否将注意力放在自己擅长的领域</li>
-</ol>
-</li>
-</ol>
-</li>
-</ol>
-<table>
-<thead>
-<tr>
-<th align="left">科目</th>
-<th align="left">重点关注</th>
-</tr>
-</thead>
-<tbody><tr>
-<td align="left">负债和权益</td>
-<td align="left">看有息负债的占比、期限、利率</td>
-</tr>
-<tr>
-<td align="left">资产</td>
-<td align="left">生产资产÷总资产；应收÷总资产；货币资金÷有息负债；非主业资产÷总资产</td>
-</tr>
-</tbody></table>
-<h1 id="利润表"><a href="#利润表" class="headerlink" title="利润表"></a>利润表</h1><blockquote>
-<p>市场之所以如此重视利润表，是因为股价由市盈率和每股收益的乘积决定，即<br>P（股价）=PE（市盈率）×E（每股收益）<br>因为PE=股价÷每股收益，所以这个公式是个永不会错的套套逻辑（Tautology：同义反复）。但它提供了一个看问题的角度，引导意图获取股票价差的投资人永远关心两个数字：市盈率和每股收益。<br>对这两个数字的不同侧重，产生两种不同的投资体系：一种体系追逐市场参与者心理变化，捕捉市盈率从低到高或从高到更高的股价变动；另一种体系分享企业成长，寻找每股收益从低到高或从高到更高的收益。当然，也有集大成者，追求市盈率和每股收益双增长的“戴维斯双击”。</p>
-</blockquote>
-<h2 id="利润表重点"><a href="#利润表重点" class="headerlink" title="利润表重点"></a>利润表重点</h2><ol>
-<li>从营业收入到营业利润的过程；</li>
-<li>从营业利润到净利润的变化。</li>
-</ol>
-<h2 id="创造利润的过程"><a href="#创造利润的过程" class="headerlink" title="创造利润的过程"></a>创造利润的过程</h2><ol>
-<li>营业总收入<ol>
-<li>营业收入 + 利息收入 + 已赚保费 + 手续费及佣金收入</li>
-<li>注意营业收入的确认原则</li>
-</ol>
-</li>
-<li>毛利率<ol>
-<li>营业收入-营业成本</li>
-<li>企业最终利润的高低由三个因素决定，即毛利率高低、周转率快慢或经营杠杆大小。老唐分别叫它们为“茅台模式”“沃尔玛模式”和“银行模式”，这三种情况分别代表产品竞争力强弱、管理层运营能力的高低、企业承担的风险大小。</li>
-</ol>
-</li>
-<li>营业总成本<ol>
-<li>营业成本</li>
-<li>营业税金及附加<ul>
-<li>营业过程中无论是否盈利都需要缴纳的税费，包括营业税、消费税、城市维护建设税、资源税、教育费附加以及其他的搭车收费。</li>
-</ul>
-</li>
-<li>营业费用<ul>
-<li>销售费用</li>
-<li>管理费用：企业管理环节有关的费用</li>
-<li>财务费用：自有资金利息收入；债务的利息支出；在银行等金融机构办业务支出的手续费。</li>
-</ul>
-</li>
-<li>资产减值损失</li>
-</ol>
-</li>
-<li>营业利润<ol>
-<li>营业总收入-营业总成本+（公允价值变动收益、投资收益、汇兑收益）</li>
-</ol>
-</li>
-<li>净利润<ol>
-<li>营业利润+营业外收支净额 - 所得税</li>
-</ol>
-</li>
-</ol>
-<h2 id="读利润表重点"><a href="#读利润表重点" class="headerlink" title="读利润表重点"></a>读利润表重点</h2><ol>
-<li><p>营业收入</p>
-<p><strong>注意</strong>：</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">1. 潜在需求的增长，在行业内不会产生受损者（仅受益程度不同），不会遭遇反击，增长的可靠性最高；</span><br><span class="line">2. 份额的扩大，是以竞争对手受损为代价的，势必遭受竞争对手的反击，因而要评估竞争对手的反击力度及反击下增长的可持续性；</span><br><span class="line">3. 价格的提升，是以客户付出更多为代价，可能迫使客户减少消费或寻找替代品，需要评估的是消费的替代性强弱。</span><br></pre></td></tr></table></figure></li>
-<li><p>毛利率</p>
-<ol>
-<li>A股中毛利率比较高的行业有信息技术、医药生物、食品饮料、餐饮旅游、文化传播、房地产等</li>
-<li>高每股收益与低市盈率的组合，完全有可能不如低每股收益与高市盈率的组合</li>
-</ol>
-</li>
-<li><p>费用率</p>
-<ol>
-<li>三费/营业总收入</li>
-<li>如果费用（销售费用、管理费用及正的财务费用之和）能够控制在毛利润的30%以内，就算是优秀的企业了；在30%～70%区域，仍然是具有一定竞争优势的企业；如果费用超过毛利润的70%，通常而言，关注价值不大。</li>
-<li>研发费用高的公司估值（可能失败可能成功，风险高）：使用凯利公式来合理管理资金</li>
-</ol>
-</li>
-<li><p>营业利润率</p>
-<ol>
-<li>营业利润÷营业总收入</li>
-</ol>
-</li>
-<li><p>确认净利润是否变成现金回到公司账户</p>
-<ol>
-<li>经营现金流净额/净利润</li>
-</ol>
-</li>
-</ol>
-<h1 id="现金流量表"><a href="#现金流量表" class="headerlink" title="现金流量表"></a>现金流量表</h1><blockquote>
-<p>现金流量表就是负责展示企业现金来龙去脉信息的一张表。<br>最终企业的现金活动通过三大板块展示，即筹资活动现金流、投资活动现金流和经营活动现金流。<br>现金流量表并不是统计公司现金流水的结果，现金流量表是从利润表和资产负债表里推导出来的，是资产负债表和利润表的补充说明。</p>
-</blockquote>
-<h2 id="现金流量表拆解"><a href="#现金流量表拆解" class="headerlink" title="现金流量表拆解"></a>现金流量表拆解</h2><blockquote>
-<p>从净利润数字反推出经营活动现金收入净额，所以要经过以下三步:<br>第1步，凡是从净利润里扣除的费用，但实际本期没有支出现金的科目，一律加回去，如资产减值准备、折旧摊销、资产报废损失。<br>第2步，把净利润里跟经营活动无关的收入一律减去，如投资收益，募集资金在专户的利息收入（表中的财务费用，财报第85页有介绍）。<br>第3步，把经营活动中没有包含在成本里的现金支出减去，如多交了税（递延所得税资产）、增加了存货、增加了应收、支付了应付。</p>
-</blockquote>
-<ol>
-<li>经营活动现金流的关键数字<ol>
-<li>经营活动现金流量净额<ol>
-<li>经营活动现金流净额÷净利润持续大于等于1的公司，是“印钞机”的概率比较大</li>
-</ol>
-</li>
-<li>销售商品、提供劳务收到的现金<ol>
-<li>一般是营业收入的1.17倍，比值大于1就说明企业销售的绝大部分款项都已经收到了</li>
-</ol>
-</li>
-</ol>
-</li>
-<li>投资活动现金流及筹资活动现金流<ol>
-<li>投资活动现金净流量为负数，表明企业处于花钱扩张的阶段。反之，如果投资活动现金净流量为正数，一般表明企业正在收缩，或者至少是扩张速度放缓了。所以，通过投资活动现金流量的正负可以判断企业目前发展的趋势，即收缩还是扩张。</li>
-<li>筹资活动：<ol>
-<li>权益性筹资：反映市场对企业价值及成长性的估计，可以作为自己对企业估值的参考。</li>
-<li>债务性筹资：反映市场对企业信用的评价，可以帮助投资人评价该企业的安全性。</li>
-</ol>
-</li>
-</ol>
-</li>
-</ol>
-<blockquote>
-<p>所谓自由现金流，指企业经营活动赚来的钱里，去掉那些为了维持企业盈利能力而必须再投下去的钱。它是股东在不伤及企业获利能力的前提下，可以从企业拿走的回报，是企业*<em>唯一真实的价值</em>。只要是涉及企业价值的评估，几乎都会用到这个概念。简单起见，投资人一般会直接用经营活动现金流净额减去投资活动现金流出净额来作为自由现金流数值。但如果企业的投资活动现金流主要用于扩大规模而非维持现有规模，这样的计算方法，存在对自由现金流的低估。</p>
-</blockquote>
-<h2 id="企业的现金流肖像"><a href="#企业的现金流肖像" class="headerlink" title="企业的现金流肖像"></a>企业的现金流肖像</h2><p>+代表流入，-代表流出</p>
-<table>
-<thead>
-<tr>
-<th align="left">类型</th>
-<th align="left">经营活动现金流净额</th>
-<th align="left">投资活动现金流净额</th>
-<th align="left">筹资活动现金流净额</th>
-<th align="left">企业类型</th>
-<th align="left">关注要点</th>
-</tr>
-</thead>
-<tbody><tr>
-<td align="left">1</td>
-<td align="left">+</td>
-<td align="left">+</td>
-<td align="left">+</td>
-<td align="left">妖精型：筹资活动，可能是投资，也可能是套钱，看是否有投资来区分</td>
-<td align="left">计划投资项目情况</td>
-</tr>
-<tr>
-<td align="left">2</td>
-<td align="left">+</td>
-<td align="left">+</td>
-<td align="left">-</td>
-<td align="left">老母鸡型：如果投资现金不是变卖家当所得，且经营现金流入和投资现金流入足以覆盖筹资现金流出，近似一只稳定产生现金的债券</td>
-<td align="left">低PE，高股息率</td>
-</tr>
-<tr>
-<td align="left">3</td>
-<td align="left">+</td>
-<td align="left">-</td>
-<td align="left">+</td>
-<td align="left">蛮牛型：扩张，但是投资项目是否成功需要考虑</td>
-<td align="left">项目前景，资金支持</td>
-</tr>
-<tr>
-<td align="left">4</td>
-<td align="left">+</td>
-<td align="left">-</td>
-<td align="left">-</td>
-<td align="left">奶牛型：经营现金流入要大于投资现金流出和筹资现金流出的总和</td>
-<td align="left">可持续性</td>
-</tr>
-<tr>
-<td align="left">5</td>
-<td align="left">-</td>
-<td align="left">+</td>
-<td align="left">+</td>
-<td align="left">骗吃骗喝型：跟类型6一样，略好于6</td>
-<td align="left">不建议投资</td>
-</tr>
-<tr>
-<td align="left">6</td>
-<td align="left">-</td>
-<td align="left">+</td>
-<td align="left">-</td>
-<td align="left">整容老母鸡型：看投资现金流是否足以支撑两个出血点的现金流失，否就是混吃等死型的</td>
-<td align="left">不建议投资</td>
-</tr>
-<tr>
-<td align="left">7</td>
-<td align="left">-</td>
-<td align="left">-</td>
-<td align="left">+</td>
-<td align="left">赌徒型：看投资项目的前景，还看这个赌徒的个人品性和赌运</td>
-<td align="left">项目前景和管理层品性</td>
-</tr>
-<tr>
-<td align="left">8</td>
-<td align="left">-</td>
-<td align="left">-</td>
-<td align="left">-</td>
-<td align="left">大出血型：马上要退市</td>
-<td align="left">拒绝参与</td>
-</tr>
-</tbody></table>
-<h2 id="读现金流量表重点"><a href="#读现金流量表重点" class="headerlink" title="读现金流量表重点"></a>读现金流量表重点</h2><ol>
-<li>陷阱<ol>
-<li>一是控股股东或管理层期间挪用上市公司现金，报表节点归还；</li>
-<li>二是借用一次性行为美化当期现金流；</li>
-<li>三是抓住投资者更关注经营活动现金流量净额的特性，将投资活动和筹资活动产生的现金流入化妆成经营活动现金流入，或者将经营活动现金流出化妆成投资和筹资活动现金流出。</li>
-</ol>
-</li>
-<li>异常<ol>
-<li>经营现金活动现金流量中的异常现象主要有：<ol>
-<li>持续的经营活动现金流净额为负。</li>
-<li>虽然经营活动现金流量表净额为正，但主要是因为应付账款和应付票据的增加。应付账款和应付票据的大量增加，可能意味着企业拖欠供应商货款，是企业资金链断裂前的一种异常征兆。</li>
-<li>经营活动现金流净额远低于净利润，这一迹象在提示投资者需要注意企业利润造假的可能。</li>
-</ol>
-</li>
-<li>投资现金活动现金流量中的异常现象<ol>
-<li>购买固定资产、无形资产等的支出，持续高于经营活动现金流量净额，说明企业持续借钱维持投资行为。出现这种情况，要么是某项目给了管理层无敌的信心，要么就是某种特殊原因造成企业必须流出现金。若投资者找不到无敌信心的来源，可能就要选择后者的假设，这通常是营业收入造假和利润造假的资金源头。</li>
-<li>投资活动现金流入里面，有大量现金是因出售固定资产或其他长期资产而获得的。这可能是企业经营能力衰败的标志，是企业经营业绩进入下滑跑道的信号灯。</li>
-</ol>
-</li>
-<li>筹资现金活动现金流量中的异常现象<ol>
-<li>企业取得借款收到的现金，远小于归还借款支付的现金。这可能透露银行降低了对该企业的贷款意愿，使用了“骗”回贷款的手段（银行常用手法：“唐老板，请你先找笔钱还了到期贷款，我们要应付上面的检查，上面没意见，我才好安排新贷款给你呀。放心啦，你我好兄弟讲义气，所有的关系和手续都已经搞定了，一周时间给你批下来。”唐老板借了一笔高利贷还了银行贷款，然后银行就遇到一堆“意外情况”，之后就没有下文了）。春江水暖鸭先知，这种“骗贷”行为可能意味着企业出现某种圈内人士才知道的危机。</li>
-<li>企业为筹资支付了显然高于正常水平的利息或中间费用——体现在“分配股利、利润或偿付利息支付的现金”和“支付其他与筹资活动有关的现金”两个科目的明细里。当然，这也可能意味着企业遇到必须江湖救急的生存危机。</li>
-</ol>
-</li>
-</ol>
-</li>
-<li>你如果是想寻找优质企业，关注以下5组数据：<ol>
-<li>经营活动产生的现金流量净额＞净利润＞0；</li>
-<li>销售商品、提供劳务收到的现金≥营业收入；</li>
-<li>投资活动产生的现金流量净额＜0，且主要是投入新项目，而非用于维持原有生产能力；</li>
-<li>现金及现金等价物净增加额＞0，可放宽为排除分红因素，该科目＞0；</li>
-<li>期末现金及现金等价物余额≥有息负债，可放宽为期末现金及现金等价物+应收票据中的银行承兑汇票＞有息负债。</li>
-</ol>
-</li>
-<li>阅读现金流量表的时候，我们至少应该制作这样三张图进行观察<ol>
-<li>净利润，经营现金流净额</li>
-<li>销售收现，营业收入</li>
-<li>现金余额，投资支出，现金分红，有息负债</li>
-</ol>
-</li>
-</ol>
-<h1 id="财报的综合阅读及分析"><a href="#财报的综合阅读及分析" class="headerlink" title="财报的综合阅读及分析"></a>财报的综合阅读及分析</h1><h2 id="财务分析"><a href="#财务分析" class="headerlink" title="财务分析"></a>财务分析</h2><ol>
-<li><p>企业财务分析四步走</p>
-<ol>
-<li><p>浏览资产负债表和利润表各科目，关注有无异常</p>
-<ol>
-<li>看某科目出现明显过大比例的变动</li>
-</ol>
-</li>
-<li><p>进行财务指标的历史分析</p>
-</li>
-<li><p>对比企业利润和现金流量变化的趋势</p>
-<ol>
-<li>企业的净利润总量与经营活动现金流量净额总量，应该保持一个大致稳定的比例，且最好是经营活动现金流净额大于净利润</li>
-</ol>
-</li>
-<li><p>将企业与竞争对手比较</p>
-<ol>
-<li><p>一方面是比较资产负债结构，看行业内人士对资源的运用方向是否观点一致，对未来发展是有共识还是分歧；</p>
-</li>
-<li><p>另一方面是比较利润表指标，通过利润产生过程中的各项收入和费用的比较，观察管理层是否称职，是否有效地运用了股东提供的资源。</p>
-<h2 id="财务指标分析"><a href="#财务指标分析" class="headerlink" title="财务指标分析"></a>财务指标分析</h2></li>
-</ol>
-</li>
-</ol>
-</li>
-<li><p>安全性分析</p>
-</li>
-</ol>
-<blockquote>
-<p>企业在一年内或一个营业周期内需要偿付的债务, 流动负债。<br>企业能够用以偿还流动债务的资产是流动资产。<br>安全性分析主要是观察流动资产与流动负债之间的关系，常见指标有两种，即流动比率和速动比率。</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">流动比率&#x3D;流动资产÷流动负债</span><br></pre></td></tr></table></figure>
-</blockquote>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">速动比率&#x3D;速动资产÷流动负债</span><br></pre></td></tr></table></figure>
-<blockquote>
-<p>教科书一般认为流动比率在2左右，速动比率在1左右，属于企业比较理想的状态。比率过高，说明流动资产未能有效利用，太低说明企业有短期偿债风险。速动资产的定义是流动资产里去除存货后的剩余部分。</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">速动比率&#x3D;（流动资产-存货）÷流动负债</span><br></pre></td></tr></table></figure>
-
-<p>安全性指标只需一个就够了（自己用的，没名字），即</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">现金及现金等价物÷有息负债≥1</span><br></pre></td></tr></table></figure>
-
-<p>或适度放宽为：</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">（货币资金+金融资产净值）÷有息负债≥1</span><br></pre></td></tr></table></figure>
-</blockquote>
-<ol>
-<li>盈利能力分析</li>
-</ol>
-<blockquote>
-<p>从收入角度看盈利能力，投资者要关注营业利润率、毛利率和净利率。其中尤以营业利润率最为重要。</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">营业利润率&#x3D;（营业收入-营业成本-三费）÷营业收入</span><br><span class="line"></span><br><span class="line">毛利率&#x3D;（营业收入-营业成本）÷营业收入</span><br><span class="line"></span><br><span class="line"> 净利率&#x3D;净利润÷营业收入</span><br></pre></td></tr></table></figure>
-
-<p>毛利率显示企业产品的竞争力；营业利润率和净利率，则附加了费用信息。</p>
-<p>从资产角度看，投资者要关注净资产收益率和总资产收益率。</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">净资产收益率&#x3D;净利润÷平均净资产</span><br><span class="line"></span><br><span class="line">总资产收益率&#x3D;净利润÷平均总资产</span><br></pre></td></tr></table></figure>
-
-<p>平均净资产或平均总资产，可以简单地用期末值与期初值之和除以2得出。<br>平均总资产，考虑了杠杆因素，净资产收益率相等，总资产收益率越高，说明盈利水平越高</p>
-</blockquote>
-<ol>
-<li>成长性分析</li>
-</ol>
-<blockquote>
-<p>从收入角度看，重点看营业收入增长率和营业利润增长率；从资产角度看，重点看总资产增长率和净资产增长率。</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">营业收入增长率&#x3D;（本期营业收入-上期营业收入）÷上期营业收入</span><br><span class="line"></span><br><span class="line">营业利润增长率&#x3D;（本期营业利润-上期营业利润）÷上期营业利润</span><br><span class="line"></span><br><span class="line">总资产增长率&#x3D;（本期总资产-上期总资产）÷上期总资产</span><br><span class="line"></span><br><span class="line">净资产增长率&#x3D;（本期净资产-上期净资产）÷上期净资产 </span><br></pre></td></tr></table></figure>
-</blockquote>
-<ol>
-<li>管理能力分析</li>
-</ol>
-<blockquote>
-<p>管理层能力的主要观察指标包括应收账款周转率、存货周转率、固定资产周转率、总资产周转率等</p>
-<ol>
-<li><p>周转率高说明应收账款在一个年度里转化为现金的次数越多，每次拖欠的应收账款回收速度更快</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">应收账款周转率&#x3D;营业收入÷平均应收账款</span><br><span class="line"></span><br><span class="line">平均应收账款&#x3D;（期初应收账款总额+期末应收账款总额）&#x2F; 2</span><br></pre></td></tr></table></figure>
-</li>
-<li><p>存货周转率越高，存货占用的资金越少。</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"> 存货周转率&#x3D;营业成本÷存货平均余额</span><br><span class="line"></span><br><span class="line">存货平均余额&#x3D;（期初存货总额+期末存货总额）&#x2F; 2</span><br></pre></td></tr></table></figure>
-</li>
-<li><p>反映企业属于“轻资产企业”还是“重资产企业”</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">固定资产周转率&#x3D;营业收入÷固定资产净值</span><br></pre></td></tr></table></figure>
-</li>
-<li><p>综合评价企业全部资产经营质量和利用效率的重要指标。总资产周转率越大，证明同样数量的资产，产生更多的销售收入；或者同样的销售收入，占用更少的企业资源。总资产周转率越大，反映企业管理层资产运用能力越强。</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">总资产周转率&#x3D;营业收入÷平均总资产</span><br></pre></td></tr></table></figure>
-</li>
-</ol>
-</blockquote>
-<ol>
-<li>总体分析<ol>
-<li>杜邦分析法<ol>
-<li>净资产收益率=净利润/销售收入 X 销售收入/平均总资产 X 平均总资产/净资产</li>
-<li>净资产收益率=产品净利润率（净利润÷销售收入）X 总资产周转率（销售收入÷平均总资产） X 杠杆系数（平均总资产÷净资产）</li>
-</ol>
-</li>
-</ol>
-</li>
-</ol>
-<h2 id="使用财务数据估值"><a href="#使用财务数据估值" class="headerlink" title="使用财务数据估值"></a>使用财务数据估值</h2><ol>
-<li>现金流折现法评估企业价值<ol>
-<li>决定未来各期，通常是5年或10年的自由现金流</li>
-<li>决定贴现率</li>
-<li>用初始自由现金流x（1+贴现率）^年 算出每年的自由现金流</li>
-<li>算永续价值：永久价值=[第5年或第10年的现金流x(1+预期增长率)] / (贴现率-预期增长率)</li>
-<li>算当前折现后企业价值：第3，4步总和加总 / (1+贴现率)^(5或10)</li>
-<li>内在企业价值=折现后的企业价值，内在价值/股票数，就是每股内在企业价值</li>
-</ol>
-</li>
-<li>清算价值估值法</li>
-<li>股市价值法</li>
-</ol>
-<h1 id="所有者权益变动表和财报附注"><a href="#所有者权益变动表和财报附注" class="headerlink" title="所有者权益变动表和财报附注"></a>所有者权益变动表和财报附注</h1><h2 id="所有者权益变动表"><a href="#所有者权益变动表" class="headerlink" title="所有者权益变动表"></a>所有者权益变动表</h2><p>计入当期利润的利得和损失，包括：</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">1. 资产减值损失；</span><br><span class="line">2. 公允价值变动收益；</span><br><span class="line">3. 投资收益；</span><br><span class="line">4. 汇兑收益；</span><br><span class="line">5. 营业外收支。</span><br></pre></td></tr></table></figure>
-<p>不计入当期利润的利得和损失，指按照会计准则，计入“资本公积——其他资本公积”科目下的内容，包括：</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">1. 可供出售金融资产公允价值变动（不含减值损失和汇兑损益）；</span><br><span class="line">2. 金融资产重分类，重分类日公允价值与账面价值差额；</span><br><span class="line">3. 自用或存货房地产转换为公允价值模式核算的投资性房地产，转换日公允价值与原账面价值的差额；</span><br><span class="line">4. 采用权益法核算的长期股权投资，被投资单位除净利润以外的所有者权益变动，在持股比例不变的情况下，企业按照持股比例计算应享有的份额；</span><br><span class="line">5. 可转换债券所含权益对应的公允价值。</span><br></pre></td></tr></table></figure>
-<h2 id="财报附注"><a href="#财报附注" class="headerlink" title="财报附注"></a>财报附注</h2><blockquote>
-<p>对于投资者来说，财报附注应该细读，尤其是“合并报表项目解释”和“母公司财务报表主要项目解释”两部分。但财报附注毕竟是报表的补充说明材料，它并不适合独立阅读。最好的阅读方法是阅读三张大表时，不断地查找附注里的对应解释，当几张表阅读完毕后，再按顺序浏览一遍附注。当你对某公司财报熟悉之后，自然会发现关键数据的所在。</p>
-</blockquote>
-<h1 id="管理层的汇报"><a href="#管理层的汇报" class="headerlink" title="管理层的汇报"></a>管理层的汇报</h1><h2 id="会计数据和财务指标摘要"><a href="#会计数据和财务指标摘要" class="headerlink" title="会计数据和财务指标摘要"></a>会计数据和财务指标摘要</h2><h2 id="董事会报告"><a href="#董事会报告" class="headerlink" title="董事会报告"></a>董事会报告</h2><ol>
-<li>董事会关于公司报告期内经营情况的讨论与分析</li>
-<li>董事会关于公司未来发展的讨论与分析</li>
-</ol>
-<blockquote>
-<p>杜邦分析体系、波特五力模型、SWOT分析模型，几乎是所有企业分析都会用到的工具，都需要深入学习</p>
-</blockquote>
-<h2 id="重要事项"><a href="#重要事项" class="headerlink" title="重要事项"></a>重要事项</h2><h1 id="欺诈与反欺诈"><a href="#欺诈与反欺诈" class="headerlink" title="欺诈与反欺诈"></a>欺诈与反欺诈</h1><h2 id="常见的操纵财报手法"><a href="#常见的操纵财报手法" class="headerlink" title="常见的操纵财报手法"></a>常见的操纵财报手法</h2><ol>
-<li>操纵收入<ol>
-<li>虚构收入<ol>
-<li>虚假交易、虚增成交金额、将非营利性交易确认为收入、显失公平的关联交易等。</li>
-</ol>
-</li>
-<li>借助一次性行为夸大收入<ol>
-<li>将出售业务部门或资产所得转化为营业收入；</li>
-<li>将收购支出转化为营业收入；</li>
-<li>将亏损打包进一个公司或部门，然后出售掩盖亏损；进行互换贸易夸大收入</li>
-</ol>
-</li>
-<li>提前确认收入<ol>
-<li>确认尚未开始提供产品或服务的收入、在买家没有明确承担付款义务时确认收入以及确认超过完工百分比对应的收入。</li>
-</ol>
-</li>
-</ol>
-</li>
-<li>操纵费用<ol>
-<li>将本期费用推至未来<ol>
-<li>延长折旧摊销年限；</li>
-<li>漠视已经形成损失的坏账；</li>
-<li>不适当地使用费用资本化手段；</li>
-<li>不对受损资产或过时存货提取减值准备；</li>
-<li>将费用暂时挂在应收账款或预付账款科目；</li>
-<li>推迟在建工程转为固定资产，甚至将日常费用计入在建工程；</li>
-<li>通过临时资金冲抵，将长时间坏账化妆成刚形成的应收款，从而降低坏账计提比例等</li>
-</ol>
-</li>
-<li>掩盖成本或亏损<ol>
-<li>多计收入，少计原材料成本，少计财务费用，少计销、管费用等。</li>
-</ol>
-</li>
-<li>洗大澡：上市公司利用财务技巧，有意将公司经营及资产情况恶化。<ol>
-<li>注销资产或存货，以减低未来折旧或增加未来盘盈；</li>
-<li>大额计提应收账款或存货减值损失，以便于未来转回；将经常性费用归入一次性费用计提以减少未来费用等。其中又有两种动机：一种是为了“毁尸灭迹”，把以前虚增的利润冲掉；另一种是为了未来报表好看。</li>
-</ol>
-</li>
-</ol>
-</li>
-<li>操纵现金流<ol>
-<li>增加经营活动现金流入<ol>
-<li>投资活动现金流出，收购一家公司，获得收购对象的经营性现金流入。</li>
-<li>上市公司出售子公司或业务部门，作价的总款项分为首付款和未来的收入分账两部分。</li>
-<li>上市公司出售子公司或业务部门时，剥离并保留应收账款。</li>
-<li>上市公司套用买入返售金融资产的思路，将以存货抵押借款的行为，转化为先销售给出借方（如银行或财务公司）到期加价回购的行为，创造了本期经营活动现金流入。</li>
-</ol>
-</li>
-<li>减少经营活动现金流出<ol>
-<li>将某些经营活动现金支出，归入投资活动或筹资活动现金支出，减少经营性现金流出</li>
-<li>以承兑汇票采购，减少当期经营活动现金流出。</li>
-</ol>
-</li>
-<li>一次性行为美化经营活动现金流净额</li>
-</ol>
-</li>
-</ol>
-<h2 id="财报被操纵的痕迹"><a href="#财报被操纵的痕迹" class="headerlink" title="财报被操纵的痕迹"></a>财报被操纵的痕迹</h2><blockquote>
-<p>资本市场里，欺诈和反欺诈是永恒的话题。老唐请大家牢记“事反必妖”，无论是突然出奇得好，或者突然出奇得坏，都需要我们去探索背后的解释。如果没有可靠的解释，就必须从收入、费用以及现金流等角度，考虑是否存在欺诈的可能。如此，我们才能在市场里长久地避开陷阱。</p>
-</blockquote>
-
-      
-    </div>
-
-    
-    
-    
-
-    <footer class="post-footer">
-        <div class="post-eof"></div>
-      
-    </footer>
-  </article>
-</div>
-
-
-
-
-    
-
-
-<div class="post-block">
-  
-  
-
-  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="zh-CN">
-    <link itemprop="mainEntityOfPage" href="http://example.com/2021/01/29/Dynamo-Amazon-s-Highly-Available-Key-value-Store/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="image" content="/images/avatar.gif">
-      <meta itemprop="name" content="Jason Chao">
-      <meta itemprop="description" content="">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="我住8楼">
-    </span>
-      <header class="post-header">
-        <h2 class="post-title" itemprop="name headline">
-          <a href="/2021/01/29/Dynamo-Amazon-s-Highly-Available-Key-value-Store/" class="post-title-link" itemprop="url">Dynamo Amazon's Highly Available Key-value Store</a>
-        </h2>
-
-        <div class="post-meta-container">
-          <div class="post-meta">
-    <span class="post-meta-item">
-      <span class="post-meta-item-icon">
-        <i class="far fa-calendar"></i>
-      </span>
-      <span class="post-meta-item-text">发表于</span>
-      
-
-      <time title="创建时间：2021-01-29 15:00:59 / 修改时间：15:13:15" itemprop="dateCreated datePublished" datetime="2021-01-29T15:00:59+08:00">2021-01-29</time>
-    </span>
-
-  
-</div>
-
-        </div>
-      </header>
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-          <blockquote>
-<p>Abstract<br>介绍Dynamo，一个分布式的kv存储系统，具有非常高的可用性和可靠性</p>
-</blockquote>
-<h1 id="Introduction"><a href="#Introduction" class="headerlink" title="Introduction"></a>Introduction</h1><h2 id="主要目标："><a href="#主要目标：" class="headerlink" title="主要目标："></a>主要目标：</h2><ol>
-<li>Reliability</li>
-<li>Scalability</li>
-<li>提供key-value接口（最受欢迎清单，购物车，用户偏好等）</li>
-</ol>
-<h2 id="实现技术"><a href="#实现技术" class="headerlink" title="实现技术"></a>实现技术</h2><ol>
-<li>使用一致性哈希进行数据分区和备份</li>
-<li>使用对象版本信息来处理单个数据备份一致性问题</li>
-<li>多副本之间的一致性可以通过类似quorum的协议处理（NWR），以及一个去中心化的副本同步协议</li>
-<li>使用gossip分布式算法来实现错误发现和成员关系变更协议</li>
-</ol>
-<h1 id="BackGround"><a href="#BackGround" class="headerlink" title="BackGround"></a>BackGround</h1><ol>
-<li>RDBMS太重，不需要那么多复杂查询和管理函数；扩展性差，负载均衡效果差。</li>
-</ol>
-<h2 id="系统假设和要求"><a href="#系统假设和要求" class="headerlink" title="系统假设和要求"></a>系统假设和要求</h2><ul>
-<li>Query Model: 只需要key-value的操作，不需要关系模式（表格），没有跨多个数据（多列）的操作。</li>
-<li>ACID：只需要弱一致性，不用提供事务隔离机制。</li>
-<li>Efficiency：需要满足严格的SLA</li>
-<li>其他的假设：不需要认证，规模只用到几百</li>
-</ul>
-<h2 id="SLA"><a href="#SLA" class="headerlink" title="SLA"></a>SLA</h2><p>平均，中位数等指标不能很好的反映所有的用户获得很好的服务质量，它们只能反映大部分用户的服务质量，对于长尾延迟不能反映出来。<br>99.9% 延迟则可以反映所有的用户都有一个很好的服务质量。</p>
-<h2 id="设计考虑"><a href="#设计考虑" class="headerlink" title="设计考虑"></a>设计考虑</h2><ol>
-<li>支持强一致性的系统的可用性不高，为了提高可用性，一般使用弱一致性。弱一致性会导致副本冲突，而解决副本冲突需要两方面的考虑：<ol>
-<li>什么时候解决冲突</li>
-<li>谁来解决冲突</li>
-</ol>
-</li>
-<li>dynamo采用最终一致性模型。对于冲突解决，它有以下考虑：<ol>
-<li>许多模型采用写的时候解决冲突的方式，这样可以让读的逻辑保持比较简单，但是写容易失败。而dynamo相反，为了保证写可用性，让读来解决冲突</li>
-<li>dynamo采用用户来解决冲突的方式，而不是后端存储系统自己解决冲突。因为用户知道数据模式，它可以决定最适合的方式解决冲突。而后端存储系统可以采用的策略就比较有限，比如最后更新的是最终的结果这种方式。</li>
-</ol>
-</li>
-<li>增量扩展性：可以无缝扩展集群</li>
-<li>对称性：dynamo的所有node都是对等的</li>
-<li>去中心化：dynamo不是中心化结构而是端对端结构</li>
-<li>异构性：对于不同性能的机器，可以根据性能来分配任务</li>
-</ol>
-<h1 id="Related-Work"><a href="#Related-Work" class="headerlink" title="Related Work"></a>Related Work</h1><ol>
-<li>p2p系统</li>
-<li>分布式文件系统和数据库</li>
-<li>讨论<ol>
-<li>dynamo 的目标是总是可写</li>
-<li>dynamo 的机器都是可信的（不存在恶意机器）</li>
-<li>dynamo 不需要层次化的名字空间或者关系模式，只用扁平的模式</li>
-<li>dynamo 的性能指标是99.9%的延迟</li>
-</ol>
-</li>
-</ol>
-<h1 id="System-Architecture"><a href="#System-Architecture" class="headerlink" title="System Architecture"></a>System Architecture</h1><p>对于生产系统中一个存储系统需要考虑以下方面：</p>
-<ol>
-<li>负载均衡</li>
-<li>成员变动</li>
-<li>失败发现</li>
-<li>失败恢复</li>
-<li>副本同步</li>
-<li>超负荷处理</li>
-<li>状态转移</li>
-<li>并发和任务调度</li>
-<li>请求包装（序列化和反序列化）</li>
-<li>请求路由</li>
-<li>系统监控和报警</li>
-<li>配置管理</li>
-<li>持久化</li>
-<li>数据分区</li>
-<li>扩展性</li>
-</ol>
-<h2 id="dynamo接口"><a href="#dynamo接口" class="headerlink" title="dynamo接口"></a>dynamo接口</h2><ol>
-<li>get</li>
-<li>put</li>
-</ol>
-<h2 id="数据分区算法"><a href="#数据分区算法" class="headerlink" title="数据分区算法"></a>数据分区算法</h2><p>一致性哈希算法，如图所示：<br><a target="_blank" rel="noopener" href="https://mychaow.github.io/2018/02/03/dynamo-md/"><img src="https://mychaow.github.io/2018/02/03/dynamo-md/" alt="img"></a><br>基本的一致性哈希算法有以下问题：</p>
-<ol>
-<li>数据和负载分布不均衡</li>
-<li>对于不同机器体现不出异构性</li>
-</ol>
-<p>采用virtual nodes来解决这个问题，具体的就是每个节点映射多个虚拟节点，虚拟节点组成一个哈希环，有以下好处：</p>
-<ol>
-<li>一个节点失败了，它的负载会被剩下的所有节点平分</li>
-<li>当一个节点加入时，以前的所有节点会将一小部分负载分给它，非常快</li>
-<li>虚拟节点数可以反映一个机器的性能，当机器性能高时，可以多映射一点虚拟节点，这样就可以处理更多的负载</li>
-</ol>
-<h2 id="数据副本"><a href="#数据副本" class="headerlink" title="数据副本"></a>数据副本</h2><ol>
-<li>使用N备份，就是一个key落在哈希环上映射的第一个节点，顺时针的往下找N-1个节点作为备份节点。这N个节点称为preference list。</li>
-<li>这N个节点要保证是物理节点，防止都是同一个节点的虚拟节点，没有达到备份的效果</li>
-</ol>
-<h2 id="数据版本"><a href="#数据版本" class="headerlink" title="数据版本"></a>数据版本</h2><p>使用向量时钟来作为数据版本号，最终表示为一系列（node，counter）。</p>
-<ol>
-<li>当一个版本的对象的所有（node，counter）对都小于或等于另外一个版本的对象，则该对象是另外对象的祖先</li>
-<li>dynamo中当一个用户想要更新一个对象时，需要提供上一次读的操作的版本号，用来指定是对某个版本的对象实现更新操作</li>
-</ol>
-<p>向量时钟表示版本，有一点需要考虑的是：当多个节点并发更新后，（node, counter）对就会变得很多，合并起来占用空间，因此可以设置一个阈值，超过该阈值，从最旧的开始截断。现实中其实很少发现这种需要截断的情况。</p>
-<h2 id="get和put操作的执行"><a href="#get和put操作的执行" class="headerlink" title="get和put操作的执行"></a>get和put操作的执行</h2><ol>
-<li>用户感知存储节点<ol>
-<li>通过一个通用的负载均衡节点来路由选，好处是用户与存储节点解耦</li>
-<li>使用自带分区感知能力的client lib库来访问，好处是用户的延迟更低</li>
-</ol>
-</li>
-<li>数据副本一致性<ol>
-<li>R + W &gt; N</li>
-<li>前N个node作为preference node，选择其中一个作为coordinator来处理读写请求。</li>
-</ol>
-</li>
-</ol>
-<h2 id="处理失败"><a href="#处理失败" class="headerlink" title="处理失败"></a>处理失败</h2><p>考虑到严格的R+W&gt;N在网络分区，或临时坏的情况下还是影响可用性，因此可以除了N个preference节点外，对于每个机器设置备份节点<br>Hinted replica，当某个节点不可用时，就把数据发送给它的hinted replica。<br>Dynamo的节点是跨地域的，所以可以提供跨地域可用性。</p>
-<h2 id="处理持久化失败"><a href="#处理持久化失败" class="headerlink" title="处理持久化失败"></a>处理持久化失败</h2><p>当Hinted replica的节点也不可用时，数据的持久化就会有危险。为了达到数据写入的安全性，需要副本之间同步新的数据并互为备份。为了发现<br>不同的副本之间的不一致性。使用Merkle trees算法。这个算法就是将不同的key区间进行哈希，父节点是子节点的哈希值的哈希，这样每个<br>节点构造自己的Merkle trees，然后相互比较就能很快的知道哪里不一致了。</p>
-<h2 id="成员管理和失败发现"><a href="#成员管理和失败发现" class="headerlink" title="成员管理和失败发现"></a>成员管理和失败发现</h2><ol>
-<li>哈希环成员</li>
-</ol>
-<p>使用基于Gossip算法的协议来传播成员变更信息。</p>
-<ol>
-<li>外部发现</li>
-</ol>
-<p>为了防止逻辑分区，设置一些seed节点，让所有的节点与它们通信来获得最终的集群成员信息。</p>
-<ol>
-<li>错误发现</li>
-</ol>
-<p>每个节点使用基于Gossip算法来感知其他节点可不可达的信息。</p>
-<h2 id="添加和移除节点"><a href="#添加和移除节点" class="headerlink" title="添加和移除节点"></a>添加和移除节点</h2><p>每个节点加入哈希环时，相关节点向它发送key value。当移除时，该节点向映射的其他节点发送key value对。</p>
-<h1 id="实现"><a href="#实现" class="headerlink" title="实现"></a>实现</h1><ol>
-<li>请求协调者</li>
-<li>成员管理和失败发现</li>
-<li>本地持久化引擎</li>
-</ol>
-<h2 id="本地持久化引擎"><a href="#本地持久化引擎" class="headerlink" title="本地持久化引擎"></a>本地持久化引擎</h2><p>支持多种引擎，比如mysql，Berkeley DB</p>
-<h2 id="请求协调者"><a href="#请求协调者" class="headerlink" title="请求协调者"></a>请求协调者</h2><ol>
-<li>使用事件驱动的方式编写，即状态机。每个状态机处理一个用户请求。根据不同的阶段做对应的处理。</li>
-<li>put的时候，preference list top N个节点任意一个都可以处理。为了获得更好的一致性，一般写会挑上一次读的时候最快返回结果的节点，这样下次读还是有很大概率读到最新的值。</li>
-</ol>
-<h1 id="经验教训"><a href="#经验教训" class="headerlink" title="经验教训"></a>经验教训</h1><p>冲突解决方案：</p>
-<ol>
-<li>业务制定更新冲突解决方法</li>
-<li>基于时间序的冲突解决方法</li>
-<li>W=N, R=1解决高性能读要求</li>
-</ol>
-<h2 id="负载均衡性能和持久化性能"><a href="#负载均衡性能和持久化性能" class="headerlink" title="负载均衡性能和持久化性能"></a>负载均衡性能和持久化性能</h2><ol>
-<li>使用缓存写来提供系统的写性能</li>
-<li>写入的时候指定其中一个副本直接写入到磁盘中，其他的缓存写，这样提高系统数据安全性(持久化)</li>
-</ol>
-<h2 id="保证系统负载一致性分布"><a href="#保证系统负载一致性分布" class="headerlink" title="保证系统负载一致性分布"></a>保证系统负载一致性分布</h2><p>数据分区和节点映射策略</p>
-<ol>
-<li><p>每个节点T个随机token，数据分区也是按照token来划分</p>
-<p>缺点：</p>
-<ol>
-<li>新节点加入时，在线节点需要扫描自己的数据集来找到需要传输给新加入节点的数据，影响线上服务。<br>当不想影响线上服务时，降低扫描优先级，会导致新加入节点启动比较慢</li>
-<li>节点加入或离开时，许多节点的数据分区和Merkle tree需要重新计算，影响服务</li>
-<li>因为数据分区是不固定的，所以没法做snapshot来加快传输数据<br>这个策略不好的根本原因是数据分区和数据放置策略耦合太多</li>
-</ol>
-</li>
-<li><p>每个节点T个随机token，数据是大小固定的划分的</p>
-<ol>
-<li>哈希空间划分为固定Q个分区，每个节点还是随机分配T个token，其中Q&gt;&gt;N &amp; Q &gt;&gt; S*T S是节点数，N是副本数</li>
-<li>每个数据分区以末尾为key顺时针找到下一个token对应的Node<br>优点：</li>
-<li>数据放置和数据分区解耦</li>
-<li>可以在运行过程中改变数据放置</li>
-</ol>
-</li>
-<li><p>每个节点Q/S个token,数据是大小固定的划分的</p>
-<ol>
-<li>跟2策略一样，但是T=Q/S，当某个节点离开时，它的token被随机分给其他的节点，<br>当节点加入时，它从别的节点随机拉取token<br>优点：</li>
-<li>快速启动和恢复</li>
-<li>打包数据（快照）<br>缺点：</li>
-<li>改变node 成员关系需要许多节点协作来维持策略3的要求</li>
-</ol>
-</li>
-</ol>
-<h2 id="多版本"><a href="#多版本" class="headerlink" title="多版本"></a>多版本</h2><p>原因：</p>
-<ol>
-<li><p>系统出现节点失败和网络分区时</p>
-</li>
-<li><p>系统处理大量的并发写<br>数量：</p>
-</li>
-<li><p>数量非常少</p>
-<h2 id="客户端驱动或者服务端驱动定位"><a href="#客户端驱动或者服务端驱动定位" class="headerlink" title="客户端驱动或者服务端驱动定位"></a>客户端驱动或者服务端驱动定位</h2></li>
-<li><p>服务端驱动</p>
-<ol>
-<li>coordinator来执行读和写的协调操作</li>
-<li>需要负载均衡器来做请求转发和均衡</li>
-</ol>
-</li>
-<li><p>客户端驱动</p>
-<ol>
-<li>client定期随机向集群某个节点拉取整个集群的在线node 视图</li>
-<li>将读写请求发往指定的coordinator</li>
-<li>因为数据分区几乎公平的将数据分散到各个节点，所以不用做负载均衡操作</li>
-</ol>
-</li>
-</ol>
-<h2 id="前台和后台任务均衡"><a href="#前台和后台任务均衡" class="headerlink" title="前台和后台任务均衡"></a>前台和后台任务均衡</h2><p>后台任务都是低优先级的任务，为了不影响前台任务，需要控制其资源使用量。<br>dynamo使用一个反馈机制来做这种资源使用控制。</p>
-<h2 id="讨论"><a href="#讨论" class="headerlink" title="讨论"></a>讨论</h2><p>dynamo使用gossip来做全局在线node视图传播，只能达到几百台的规模。更大的规模需要做层次化扩展。</p>
-<p><em>总结</em></p>
-<p>dynamo这篇论文写的非常详细，比较重要的几点：</p>
-<ol>
-<li>采用99.9% 来衡量SLA</li>
-<li>采用一致性哈希模型的数据分区策略</li>
-<li>采用向量时钟来作为数据版本信息，并由业务逻辑来处理版本冲突</li>
-<li>采用基于gossip算法来处理集群视图的传播</li>
-<li>采用NWR算法来保证数据安全性</li>
-<li>采用Merkle trees来加快发现版本之间不一致性，从而快速备份数据</li>
-</ol>
-<table>
-<thead>
-<tr>
-<th align="left">Problem</th>
-<th align="left">Technique</th>
-<th align="left">Advantage</th>
-</tr>
-</thead>
-<tbody><tr>
-<td align="left">Partitioning</td>
-<td align="left">Consistent Hashing</td>
-<td align="left">Incremental Scalability</td>
-</tr>
-<tr>
-<td align="left">High Availablility for Writes</td>
-<td align="left">Vector clocks with reconsiliation during reads</td>
-<td align="left">version size decoupled from update rates</td>
-</tr>
-<tr>
-<td align="left">Handing temporary failures</td>
-<td align="left">Sloppy Quorum and hinted handoff</td>
-<td align="left">Provides high Availablility and durability guarantee when some fo the replicas are not available</td>
-</tr>
-<tr>
-<td align="left">Recovering from permanent failures</td>
-<td align="left">Anti-entropy using Merkle trees</td>
-<td align="left">Synchronizes divergent replicas in the BackGround</td>
-</tr>
-<tr>
-<td align="left">membership and failure detection</td>
-<td align="left">gossip-based membership protocol and failures detection</td>
-<td align="left">preserves symmetry and avoids having a centralized registry for Storing membership and node liveness information</td>
-</tr>
-</tbody></table>
-
-      
-    </div>
-
-    
-    
-    
-
-    <footer class="post-footer">
-        <div class="post-eof"></div>
-      
-    </footer>
-  </article>
-</div>
-
-
-
-
   <nav class="pagination">
-    <a class="extend prev" rel="prev" href="/"><i class="fa fa-angle-left" aria-label="上一页"></i></a><a class="page-number" href="/">1</a><span class="page-number current">2</span>
+    <a class="extend prev" rel="prev" href="/"><i class="fa fa-angle-left" aria-label="上一页"></i></a><a class="page-number" href="/">1</a><span class="page-number current">2</span><a class="page-number" href="/page/3/">3</a><a class="extend next" rel="next" href="/page/3/"><i class="fa fa-angle-right" aria-label="下一页"></i></a>
   </nav>
 
 

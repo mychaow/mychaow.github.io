@@ -1,0 +1,489 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 5.3.0">
+
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+
+<link rel="stylesheet" href="//cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@5.15.1/css/all.min.css">
+  <link rel="stylesheet" href="//cdn.jsdelivr.net/npm/animate.css@3.1.1/animate.min.css">
+
+<script class="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"example.com","root":"/","images":"/images","scheme":"Gemini","version":"8.2.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12},"copycode":false,"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"fadeInDown","post_body":"fadeInDown","coll_header":"fadeInLeft","sidebar":"fadeInUp"}},"prism":false,"i18n":{"placeholder":"搜索...","empty":"没有找到任何搜索结果：${query}","hits_time":"找到 ${hits} 个搜索结果（用时 ${time} 毫秒）","hits":"找到 ${hits} 个搜索结果"}};
+  </script>
+<meta name="description" content="背景DuckDB 是一款嵌入式列式数据库，主要用于嵌入其他程序执行快速的 SQL 分析查询，官方称其为“分析型数据库中的 SQLite”。DuckDB 易于安装和使用，没有外部依赖，同时提供了 C&#x2F;C++、Python 以及 R 的语言绑定。 DuckDB 由荷兰 Centrum Wiskunde &amp; Informatica 的数据库架构组开发，他们还开发了 MonetDB（一款开源的列式">
+<meta property="og:type" content="article">
+<meta property="og:title" content="duckDB内存管理">
+<meta property="og:url" content="http://example.com/2021/11/01/duckDB%E5%86%85%E5%AD%98%E7%AE%A1%E7%90%86/index.html">
+<meta property="og:site_name" content="我住8楼">
+<meta property="og:description" content="背景DuckDB 是一款嵌入式列式数据库，主要用于嵌入其他程序执行快速的 SQL 分析查询，官方称其为“分析型数据库中的 SQLite”。DuckDB 易于安装和使用，没有外部依赖，同时提供了 C&#x2F;C++、Python 以及 R 的语言绑定。 DuckDB 由荷兰 Centrum Wiskunde &amp; Informatica 的数据库架构组开发，他们还开发了 MonetDB（一款开源的列式">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="http://example.com/2021/11/01/duckDB%E5%86%85%E5%AD%98%E7%AE%A1%E7%90%86/buffer-16357560755913.png">
+<meta property="article:published_time" content="2021-11-01T06:03:29.000Z">
+<meta property="article:modified_time" content="2021-11-01T08:41:15.721Z">
+<meta property="article:author" content="Jason Chao">
+<meta property="article:tag" content="内存管理">
+<meta property="article:tag" content="DuckDB">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http://example.com/2021/11/01/duckDB%E5%86%85%E5%AD%98%E7%AE%A1%E7%90%86/buffer-16357560755913.png">
+
+
+<link rel="canonical" href="http://example.com/2021/11/01/duckDB%E5%86%85%E5%AD%98%E7%AE%A1%E7%90%86/">
+
+
+<script class="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'zh-CN'
+  };
+</script>
+<title>duckDB内存管理 | 我住8楼</title>
+  
+
+
+
+
+  <noscript>
+  <style>
+  body { margin-top: 2rem; }
+
+  .use-motion .menu-item,
+  .use-motion .sidebar,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header {
+    visibility: visible;
+  }
+
+  .use-motion .header,
+  .use-motion .site-brand-container .toggle,
+  .use-motion .footer { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle,
+  .use-motion .custom-logo-image {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line {
+    transform: scaleX(1);
+  }
+
+  .search-pop-overlay, .sidebar-nav { display: none; }
+  .sidebar-panel { display: block; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" class="use-motion">
+  <div class="headband"></div>
+
+  <main class="main">
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏" role="button">
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <i class="logo-line"></i>
+      <h1 class="site-title">我住8楼</h1>
+      <i class="logo-line"></i>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+    </div>
+  </div>
+</div>
+
+
+
+<nav class="site-nav">
+  <ul class="main-menu menu">
+        <li class="menu-item menu-item-home"><a href="/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a></li>
+        <li class="menu-item menu-item-tags"><a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>标签</a></li>
+        <li class="menu-item menu-item-categories"><a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>分类</a></li>
+        <li class="menu-item menu-item-archives"><a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档</a></li>
+  </ul>
+</nav>
+
+
+
+
+</div>
+        
+  
+  <div class="toggle sidebar-toggle" role="button">
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+  </div>
+
+  <aside class="sidebar">
+
+    <div class="sidebar-inner sidebar-nav-active sidebar-toc-active">
+      <ul class="sidebar-nav">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <div class="sidebar-panel-container">
+        <!--noindex-->
+        <div class="post-toc-wrap sidebar-panel">
+            <div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#%E8%83%8C%E6%99%AF"><span class="nav-number">1.</span> <span class="nav-text">背景</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E5%86%85%E5%AD%98%E7%AE%A1%E7%90%86"><span class="nav-number">2.</span> <span class="nav-text">内存管理</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E4%BD%BF%E7%94%A8%E5%86%85%E5%AD%98%E7%AE%A1%E7%90%86%E7%9A%84%E5%9C%B0%E6%96%B9"><span class="nav-number">2.1.</span> <span class="nav-text">使用内存管理的地方</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%86%85%E5%AD%98%E7%AE%A1%E7%90%86BufferManager%E7%9A%84%E6%8E%A5%E5%8F%A3"><span class="nav-number">2.2.</span> <span class="nav-text">内存管理BufferManager的接口</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#DuckDB%E6%96%87%E4%BB%B6%E5%9D%97%E7%BB%84%E7%BB%87%E6%96%B9%E5%BC%8F"><span class="nav-number">2.3.</span> <span class="nav-text">DuckDB文件块组织方式</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%95%B0%E6%8D%AE%E6%8C%81%E4%B9%85%E5%8C%96"><span class="nav-number">2.4.</span> <span class="nav-text">数据持久化</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#parquet%E6%96%87%E4%BB%B6%E5%8F%88%E6%98%AF%E6%80%8E%E4%B9%88%E6%94%AF%E6%8C%81%E7%9A%84%E5%91%A2%EF%BC%9F"><span class="nav-number">2.5.</span> <span class="nav-text">parquet文件又是怎么支持的呢？</span></a></li></ol></li></ol></div>
+        </div>
+        <!--/noindex-->
+
+        <div class="site-overview-wrap sidebar-panel">
+          <div class="site-author site-overview-item animated" itemprop="author" itemscope itemtype="http://schema.org/Person">
+  <p class="site-author-name" itemprop="name">Jason Chao</p>
+  <div class="site-description" itemprop="description"></div>
+</div>
+<div class="site-state-wrap site-overview-item animated">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">22</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+          
+        <span class="site-state-item-count">2</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+          
+        <span class="site-state-item-count">22</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+
+
+
+        </div>
+      </div>
+    </div>
+  </aside>
+  <div class="sidebar-dimmer"></div>
+
+
+    </header>
+
+    
+  <div class="back-to-top" role="button">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+<noscript>
+  <div class="noscript-warning">Theme NexT works best with JavaScript enabled</div>
+</noscript>
+
+
+    <div class="main-inner post posts-expand">
+
+
+  
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="http://example.com/2021/11/01/duckDB%E5%86%85%E5%AD%98%E7%AE%A1%E7%90%86/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="Jason Chao">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="我住8楼">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          duckDB内存管理
+        </h1>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">发表于</span>
+      
+
+      <time title="创建时间：2021-11-01 14:03:29 / 修改时间：16:41:15" itemprop="dateCreated datePublished" datetime="2021-11-01T14:03:29+08:00">2021-11-01</time>
+    </span>
+
+  
+</div>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+        <h1 id="背景"><a href="#背景" class="headerlink" title="背景"></a>背景</h1><p>DuckDB 是一款嵌入式列式数据库，主要用于嵌入其他程序执行快速的 SQL 分析查询，官方称其为“分析型数据库中的 SQLite”。DuckDB 易于安装和使用，没有外部依赖，同时提供了 C/C++、Python 以及 R 的语言绑定。</p>
+<p>DuckDB 由荷兰 Centrum Wiskunde &amp; Informatica 的数据库架构组开发，他们还开发了 MonetDB（一款开源的列式存储数据库）。DuckDB 采用 MIT 开源协议，并且在 GitHub 上开放了源代码。DuckDB 于 2019 年 6 月 27日首次发布了官方的 0.1 发布版。</p>
+<h1 id="内存管理"><a href="#内存管理" class="headerlink" title="内存管理"></a>内存管理</h1><p>duckDB有一套内存管理模式，基于自己的文件组织结构来做的。</p>
+<p>主要涉及的类有：</p>
+<ol>
+<li>BufferManager<ol>
+<li>内存池对外接口，提供内存管理的方法</li>
+</ol>
+</li>
+<li>BlockManager<ol>
+<li>块管理器，目前有一个实现是single_file_block_manager</li>
+<li>DuckDB的一个数据库就有一个BlockManager进行管理</li>
+</ol>
+</li>
+<li>Filebuffer<ol>
+<li>内存缓存块，不一定是固定大小</li>
+</ol>
+</li>
+<li>Block<ol>
+<li>继承FileBuffer，固定大小，是块抽象，默认256KB大小</li>
+<li>DuckDB认为磁盘sector大小是4KB</li>
+</ol>
+</li>
+</ol>
+<h2 id="使用内存管理的地方"><a href="#使用内存管理的地方" class="headerlink" title="使用内存管理的地方"></a>使用内存管理的地方</h2><ol>
+<li>多种hashTable<ol>
+<li>joinhashTable</li>
+<li>baseAggregateHashTable</li>
+<li>partitionableHashTable</li>
+<li>RadixPartitionedHashTable</li>
+</ol>
+</li>
+<li>排序算法<ol>
+<li>MergeSorter</li>
+<li>RadixSort</li>
+</ol>
+</li>
+<li>checkpoint<ol>
+<li>CheckPointManager<ol>
+<li>检查点</li>
+</ol>
+</li>
+</ol>
+</li>
+<li>MetaBlockReader<ol>
+<li>元数据reader</li>
+</ol>
+</li>
+<li>WriteOverflowStringsToDisk<ol>
+<li>string类型溢出块</li>
+</ol>
+</li>
+<li>ColumnSegment<ol>
+<li>数据列段</li>
+</ol>
+</li>
+</ol>
+<h2 id="内存管理BufferManager的接口"><a href="#内存管理BufferManager的接口" class="headerlink" title="内存管理BufferManager的接口"></a>内存管理BufferManager的接口</h2><ol>
+<li>RegisterBlock，注册一个block（一般是临时block才会调用这个）</li>
+<li>RegisterMemory，注册一个block（临时block），并在内存中分配一块内存关联到这个block</li>
+<li>ConvertToPersistent, 把一个block持久化到磁盘中，会用指定的block_id来进行存储数据。</li>
+<li>Allocate，（临时block分配）分配指定大小内存buffer，并pin在内存中，这里分配的内存不能小于BlockSize，可以大于一个BlockSize。<ol>
+<li>此时Block都是咋管理的？Block都不固定大小了，怎么映射到文件中呢？</li>
+<li>超过一个block大小的内存都是临时内存，不用管它跟磁盘的映射？</li>
+</ol>
+</li>
+<li>ReAllocate，扩容，在原有的buffer之上继续扩容，因此每个buffer的大小其实不固定，只是保证是sector的倍数，那也有可能会大于一个BlockSize？看起来也是针对临时内存的分配。</li>
+<li>Pin, 把磁盘中内容读取到内存中<ol>
+<li>临时内存是在临时文件读取的，每个临时内存都有一个临时文件，读取时直接读取该文件的内容，读完后会删除该文件（这是为啥？之后如果要持久化到内存，会重新申请block_id，这个block_id已经没用了）。（该文件第1~4个字节是内容的长度）</li>
+<li>正常内存是在数据文件里读取的，按block_id来计算位置</li>
+</ol>
+</li>
+<li>UnPin，不再对内存中的数据进行使用，可以释放该内存给别人用<ol>
+<li>该block引用计数减一</li>
+<li>如果该block引用计数为0，加入到弹出队列里</li>
+</ol>
+</li>
+<li>EvictBlock，清理内存<ol>
+<li>如果当前使用的内存+需要额外内存大于bufferManager的内存限制<ol>
+<li>如果弹出队列为空，表示没有可以释放的内存，那就返回失败了，此时不能再增加内存分配</li>
+<li>弹出一个buffer，进行释放到文件中，然后释放内存，指导不再大于bufferManager的内存限制</li>
+</ol>
+</li>
+</ol>
+</li>
+<li>PurgeQueue，清理弹出队列里被清理的BlockHandle引用</li>
+</ol>
+<blockquote>
+<p>临时Block和正常Block区别：</p>
+<ol>
+<li>临时Block没有大小限制，不固定，而且是每个Block都放在自己一个单独的临时文件中</li>
+<li>正常Block大小固定，是统一放在一个文件中进行管理的。</li>
+</ol>
+</blockquote>
+<h2 id="DuckDB文件块组织方式"><a href="#DuckDB文件块组织方式" class="headerlink" title="DuckDB文件块组织方式"></a>DuckDB文件块组织方式</h2><p>SingleFileBlockManager是把一个文件拆成多个block来进行管理。</p>
+<ol>
+<li>有三个头部数据块，第一个是MainHeader，主要记录版本和magicnumber，第二和第三个是DataBaseHeader（主要是记录数据相关信息，还有文件里的元数据block链表头，以及数据block链表），两个是为了做checkpoint</li>
+<li>MetaBlock，记录的是元数据，例如定义表结构等，还存放了其对应的表数据所在block id</li>
+<li>FreeList是记录的空闲列表<ol>
+<li>free list就是完全没有被使用的block</li>
+<li>modifiedBlock就是被标记删除的block<ol>
+<li>一般是自上次checkpoint以来，被删除的block，在本次checkpoint时，会将其加入到free list中，没有做checkpoint前，不会将其二次分配</li>
+<li>在每次checkpoint时，还被用来记录哪些block记录的是freeBlockList的元数据</li>
+</ol>
+</li>
+<li>multiUseBlock一般是被多个线程同时使用的block，并且也要被删除，只有最后一个使用者才能真正标记删除它</li>
+</ol>
+</li>
+</ol>
+<img src="/2021/11/01/duckDB%E5%86%85%E5%AD%98%E7%AE%A1%E7%90%86/buffer-16357560755913.png" class="" title="buffer">
+
+<p>如上图所示，文件列表结构如图中所示，meta_block指向的是元数据所在的block_id的列表。</p>
+<p>而元数据中有一部分是block_id会指向有正常数据的block列表。</p>
+<p>而free_block_id指向的是空闲列表。</p>
+<p>内存中数据怎么跟磁盘中block绑定起来的？</p>
+<ol>
+<li>每次申请一个block，并映射到内存中，如果没写完就插入部分未写完块队列，如果写完就直接刷写到磁盘中，并在内存中记录着block id。</li>
+</ol>
+<h2 id="数据持久化"><a href="#数据持久化" class="headerlink" title="数据持久化"></a>数据持久化</h2><p>CheckPointManager</p>
+<ol>
+<li>元数据落盘，包括表结构，以及表的数据所在的block id等信息（实际数据其实已经落盘）。</li>
+<li>部分未写完的block落盘（block空闲大于20%），这些数据是在内存中，等待后续进一步写入，这些block会被元数据记录。</li>
+</ol>
+<h2 id="parquet文件又是怎么支持的呢？"><a href="#parquet文件又是怎么支持的呢？" class="headerlink" title="parquet文件又是怎么支持的呢？"></a>parquet文件又是怎么支持的呢？</h2><ol>
+<li>没有走bufferManager这一套，走的是vector，但是vector的内存没有跟bufferManager一样管理起来</li>
+</ol>
+
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/%E5%86%85%E5%AD%98%E7%AE%A1%E7%90%86/" rel="tag"># 内存管理</a>
+              <a href="/tags/DuckDB/" rel="tag"># DuckDB</a>
+          </div>
+
+        
+
+          <div class="post-nav">
+            <div class="post-nav-item">
+                <a href="/2021/09/24/hive-%E6%90%AD%E5%BB%BA/" rel="prev" title="hive 测试环境搭建">
+                  <i class="fa fa-chevron-left"></i> hive 测试环境搭建
+                </a>
+            </div>
+            <div class="post-nav-item">
+            </div>
+          </div>
+    </footer>
+  </article>
+</div>
+
+
+
+
+
+
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      const activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      const commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+</div>
+  </main>
+
+  <footer class="footer">
+    <div class="footer-inner">
+
+
+<div class="copyright">
+  &copy; 
+  <span itemprop="copyrightYear">2021</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Jason Chao</span>
+</div>
+  <div class="powered-by">由 <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://theme-next.js.org/" class="theme-link" rel="noopener" target="_blank">NexT.Gemini</a> 强力驱动
+  </div>
+
+    </div>
+  </footer>
+
+  
+  <script src="//cdn.jsdelivr.net/npm/animejs@3.2.1/lib/anime.min.js"></script>
+<script src="/js/utils.js"></script><script src="/js/motion.js"></script><script src="/js/next-boot.js"></script>
+
+  
+
+
+
+
+
+
+  
+
+
+
+
+
+</body>
+</html>
