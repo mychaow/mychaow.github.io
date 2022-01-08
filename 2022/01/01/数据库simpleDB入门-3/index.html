@@ -23,19 +23,38 @@
     var NexT = window.NexT || {};
     var CONFIG = {"hostname":"example.com","root":"/","images":"/images","scheme":"Gemini","version":"8.2.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12},"copycode":false,"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"fadeInDown","post_body":"fadeInDown","coll_header":"fadeInLeft","sidebar":"fadeInUp"}},"prism":false,"i18n":{"placeholder":"搜索...","empty":"没有找到任何搜索结果：${query}","hits_time":"找到 ${hits} 个搜索结果（用时 ${time} 毫秒）","hits":"找到 ${hits} 个搜索结果"}};
   </script>
-<meta name="description" content="查询优化Lab3总结参考">
+<meta name="description" content="查询优化查询优化器是什么数据库主要由三部分组成，分别是解析器、优化器和执行引擎，如下图所示：    其中优化器是数据库中用于把关系表达式转换成执行计划的核心组件，很大程度上决定了一个系统的性能。 查询优化器分类查询优化器分为两类：  基于规则的优化器(Rule-Based Optimizer，RBO)  基于代价的优化器(Cost-Based Optimizer，CBO)   基于规则的优化器(R">
 <meta property="og:type" content="article">
 <meta property="og:title" content="数据库simpleDB入门-3">
 <meta property="og:url" content="http://example.com/2022/01/01/%E6%95%B0%E6%8D%AE%E5%BA%93simpleDB%E5%85%A5%E9%97%A8-3/index.html">
 <meta property="og:site_name" content="我住8楼">
-<meta property="og:description" content="查询优化Lab3总结参考">
+<meta property="og:description" content="查询优化查询优化器是什么数据库主要由三部分组成，分别是解析器、优化器和执行引擎，如下图所示：    其中优化器是数据库中用于把关系表达式转换成执行计划的核心组件，很大程度上决定了一个系统的性能。 查询优化器分类查询优化器分为两类：  基于规则的优化器(Rule-Based Optimizer，RBO)  基于代价的优化器(Cost-Based Optimizer，CBO)   基于规则的优化器(R">
 <meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="http://example.com/2022/01/01/%E6%95%B0%E6%8D%AE%E5%BA%93simpleDB%E5%85%A5%E9%97%A8-3/v2-6c98f34b8d88cdf590cedfe8b52b9c28_1440w.jpg">
+<meta property="og:image" content="http://example.com/2022/01/01/%E6%95%B0%E6%8D%AE%E5%BA%93simpleDB%E5%85%A5%E9%97%A8-3/v2-f1d719b8de4a750288501ec4d54a5d7f_1440w.jpg">
+<meta property="og:image" content="http://example.com/2022/01/01/%E6%95%B0%E6%8D%AE%E5%BA%93simpleDB%E5%85%A5%E9%97%A8-3/v2-a369cbeda3b3e886ff7debdf2afe66b8_1440w.jpg">
+<meta property="og:image" content="http://example.com/2022/01/01/%E6%95%B0%E6%8D%AE%E5%BA%93simpleDB%E5%85%A5%E9%97%A8-3/v2-263b3c0d36ee7f7a439e6dc9f7c21b9b_1440w.jpg">
+<meta property="og:image" content="http://example.com/2022/01/01/%E6%95%B0%E6%8D%AE%E5%BA%93simpleDB%E5%85%A5%E9%97%A8-3/v2-6bdeef50781893341328ffe96a26d78d_1440w.jpg">
+<meta property="og:image" content="http://example.com/2022/01/01/%E6%95%B0%E6%8D%AE%E5%BA%93simpleDB%E5%85%A5%E9%97%A8-3/v2-e4542c0825a7070b6438b016cf606f2d_1440w.jpg">
+<meta property="og:image" content="http://example.com/2022/01/01/%E6%95%B0%E6%8D%AE%E5%BA%93simpleDB%E5%85%A5%E9%97%A8-3/v2-56921cbe9bca56774d34ce8647dea63f_1440w.jpg">
+<meta property="og:image" content="http://example.com/2022/01/01/%E6%95%B0%E6%8D%AE%E5%BA%93simpleDB%E5%85%A5%E9%97%A8-3/v2-294369f498767f93e2390dcc275d11c8_1440w.jpg">
+<meta property="og:image" content="http://example.com/2022/01/01/%E6%95%B0%E6%8D%AE%E5%BA%93simpleDB%E5%85%A5%E9%97%A8-3/v2-1c8cb3c04d66b05cbd0e8b22f4a9a729_1440w.jpg">
+<meta property="og:image" content="http://example.com/2022/01/01/%E6%95%B0%E6%8D%AE%E5%BA%93simpleDB%E5%85%A5%E9%97%A8-3/v2-21d1e0ec3c0b1bb4c4d7a8eb5cf717c0_1440w.jpg">
+<meta property="og:image" content="http://example.com/2022/01/01/%E6%95%B0%E6%8D%AE%E5%BA%93simpleDB%E5%85%A5%E9%97%A8-3/v2-9697eb9488705ebdbc127c6b8bf603ae_1440w.jpg">
+<meta property="og:image" content="http://example.com/2022/01/01/%E6%95%B0%E6%8D%AE%E5%BA%93simpleDB%E5%85%A5%E9%97%A8-3/v2-1e18a23c28f5bf838fb9f4d9e2764ee3_1440w.jpg">
+<meta property="og:image" content="http://example.com/2022/01/01/%E6%95%B0%E6%8D%AE%E5%BA%93simpleDB%E5%85%A5%E9%97%A8-3/v2-8525b33d8bad1edf4df83cc73eea0513_1440w.jpg">
+<meta property="og:image" content="http://example.com/2022/01/01/%E6%95%B0%E6%8D%AE%E5%BA%93simpleDB%E5%85%A5%E9%97%A8-3/v2-aa35dccd5a93cfa0db73423508fa8c35_1440w.jpg">
+<meta property="og:image" content="http://example.com/2022/01/01/%E6%95%B0%E6%8D%AE%E5%BA%93simpleDB%E5%85%A5%E9%97%A8-3/image-20220104225120999.png">
+<meta property="og:image" content="http://example.com/2022/01/01/%E6%95%B0%E6%8D%AE%E5%BA%93simpleDB%E5%85%A5%E9%97%A8-3/image-20220104224950921.png">
+<meta property="og:image" content="http://example.com/2022/01/01/%E6%95%B0%E6%8D%AE%E5%BA%93simpleDB%E5%85%A5%E9%97%A8-3/%E4%BC%81%E4%B8%9A%E5%BE%AE%E4%BF%A1%E6%88%AA%E5%9B%BE_16416064644488.png">
+<meta property="og:image" content="http://example.com/2022/01/01/%E6%95%B0%E6%8D%AE%E5%BA%93simpleDB%E5%85%A5%E9%97%A8-3/lab4-hist.png">
 <meta property="article:published_time" content="2022-01-01T14:41:14.000Z">
-<meta property="article:modified_time" content="2022-01-01T14:44:13.881Z">
+<meta property="article:modified_time" content="2022-01-08T09:08:04.563Z">
 <meta property="article:author" content="Jason Chao">
 <meta property="article:tag" content="database">
 <meta property="article:tag" content="simpleDB">
 <meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http://example.com/2022/01/01/%E6%95%B0%E6%8D%AE%E5%BA%93simpleDB%E5%85%A5%E9%97%A8-3/v2-6c98f34b8d88cdf590cedfe8b52b9c28_1440w.jpg">
 
 
 <link rel="canonical" href="http://example.com/2022/01/01/%E6%95%B0%E6%8D%AE%E5%BA%93simpleDB%E5%85%A5%E9%97%A8-3/">
@@ -160,7 +179,7 @@
       <div class="sidebar-panel-container">
         <!--noindex-->
         <div class="post-toc-wrap sidebar-panel">
-            <div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#%E6%9F%A5%E8%AF%A2%E4%BC%98%E5%8C%96"><span class="nav-number">1.</span> <span class="nav-text">查询优化</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#Lab3"><span class="nav-number">2.</span> <span class="nav-text">Lab3</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E6%80%BB%E7%BB%93"><span class="nav-number">3.</span> <span class="nav-text">总结</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E5%8F%82%E8%80%83"><span class="nav-number">4.</span> <span class="nav-text">参考</span></a></li></ol></div>
+            <div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#%E6%9F%A5%E8%AF%A2%E4%BC%98%E5%8C%96"><span class="nav-number">1.</span> <span class="nav-text">查询优化</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%9F%A5%E8%AF%A2%E4%BC%98%E5%8C%96%E5%99%A8%E6%98%AF%E4%BB%80%E4%B9%88"><span class="nav-number">1.1.</span> <span class="nav-text">查询优化器是什么</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%9F%A5%E8%AF%A2%E4%BC%98%E5%8C%96%E5%99%A8%E5%88%86%E7%B1%BB"><span class="nav-number">1.2.</span> <span class="nav-text">查询优化器分类</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%9F%BA%E4%BA%8E%E8%A7%84%E5%88%99%E7%9A%84%E4%BC%98%E5%8C%96%E5%99%A8-Rule-Based-Optimizer%EF%BC%8CRBO"><span class="nav-number">1.2.1.</span> <span class="nav-text">基于规则的优化器(Rule-Based Optimizer，RBO)</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%9F%BA%E4%BA%8E%E4%BB%A3%E4%BB%B7%E7%9A%84%E4%BC%98%E5%8C%96%E5%99%A8-Cost-Based-Optimizer%EF%BC%8CCBO"><span class="nav-number">1.2.2.</span> <span class="nav-text">基于代价的优化器(Cost-Based Optimizer，CBO)</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%9F%A5%E8%AF%A2%E4%BC%98%E5%8C%96%E5%99%A8%E6%89%A7%E8%A1%8C%E8%BF%87%E7%A8%8B"><span class="nav-number">1.3.</span> <span class="nav-text">查询优化器执行过程</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#RBO%E6%89%A7%E8%A1%8C%E8%BF%87%E7%A8%8B"><span class="nav-number">1.3.0.1.</span> <span class="nav-text">RBO执行过程</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#CBO%E6%89%A7%E8%A1%8C%E8%BF%87%E7%A8%8B"><span class="nav-number">1.3.0.2.</span> <span class="nav-text">CBO执行过程</span></a></li></ol></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#VolCano-amp-Cascades%E4%BC%98%E5%8C%96%E5%99%A8"><span class="nav-number">1.4.</span> <span class="nav-text">VolCano&amp;Cascades优化器</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#Volcano"><span class="nav-number">1.4.1.</span> <span class="nav-text">Volcano</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#%E8%AE%BF%E9%97%AE%E8%B7%AF%E5%BE%84"><span class="nav-number">1.4.1.1.</span> <span class="nav-text">访问路径</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E5%8A%A8%E6%80%81%E8%A7%84%E5%88%92"><span class="nav-number">1.4.1.2.</span> <span class="nav-text">动态规划</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#Interesting-Order"><span class="nav-number">1.4.1.3.</span> <span class="nav-text">Interesting Order</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#PostgreSQL%E5%AE%9E%E7%8E%B0"><span class="nav-number">1.4.1.4.</span> <span class="nav-text">PostgreSQL实现</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Cascades"><span class="nav-number">1.4.2.</span> <span class="nav-text">Cascades</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#Memo"><span class="nav-number">1.4.2.1.</span> <span class="nav-text">Memo</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#Stats-Derivation"><span class="nav-number">1.4.2.2.</span> <span class="nav-text">Stats Derivation</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#Branch-and-bound"><span class="nav-number">1.4.2.3.</span> <span class="nav-text">Branch and bound</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#Search"><span class="nav-number">1.4.2.4.</span> <span class="nav-text">Search</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#Property-Enforcer"><span class="nav-number">1.4.2.5.</span> <span class="nav-text">Property Enforcer</span></a></li></ol></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Pull-amp-Push-%E8%AE%A1%E7%AE%97%E5%BC%95%E6%93%8E"><span class="nav-number">1.5.</span> <span class="nav-text">Pull &amp; Push 计算引擎</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E8%87%AA%E9%A1%B6%E5%90%91%E4%B8%8B%EF%BC%88Top-to-Bottom%EF%BC%89-Pull%E6%A8%A1%E5%9E%8B"><span class="nav-number">1.5.1.</span> <span class="nav-text">自顶向下（Top-to-Bottom）- Pull模型</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E8%87%AA%E5%BA%95%E5%90%91%E4%B8%8A%EF%BC%88Bottom-to-Top%EF%BC%89-Push%E6%A8%A1%E5%9E%8B"><span class="nav-number">1.5.2.</span> <span class="nav-text">自底向上（Bottom-to-Top） - Push模型</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E7%89%A9%E7%90%86%E8%AE%A1%E7%AE%97%E5%BC%95%E6%93%8E%E7%9A%84%E6%8A%80%E6%9C%AF%E6%BC%94%E8%BF%9B%E4%B9%8B%E8%B7%AF"><span class="nav-number">1.5.3.</span> <span class="nav-text">物理计算引擎的技术演进之路</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#%E7%AC%AC%E4%B8%80%E4%BB%A3%E7%81%AB%E5%B1%B1%E6%A8%A1%E5%9E%8B"><span class="nav-number">1.5.3.1.</span> <span class="nav-text">第一代火山模型</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E7%AC%AC%E4%BA%8C%E4%BB%A3%E7%81%AB%E5%B1%B1%E6%A8%A1%E5%9E%8B"><span class="nav-number">1.5.3.2.</span> <span class="nav-text">第二代火山模型</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E6%8E%A8%E9%80%81%E6%89%A7%E8%A1%8C%E6%A8%A1%E5%9E%8B"><span class="nav-number">1.5.3.3.</span> <span class="nav-text">推送执行模型</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%8E%A8%E9%80%81%E6%A8%A1%E5%9E%8B%E4%B8%8E%E6%8B%89%E5%8F%96%E6%A8%A1%E5%9E%8B%E7%9A%84%E5%8C%BA%E5%88%AB"><span class="nav-number">1.5.4.</span> <span class="nav-text">推送模型与拉取模型的区别</span></a></li></ol></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#Lab3"><span class="nav-number">2.</span> <span class="nav-text">Lab3</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#System-R%E4%BC%98%E5%8C%96%E5%99%A8%E7%AE%97%E6%B3%95"><span class="nav-number">2.1.</span> <span class="nav-text">System R优化器算法</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E7%AE%97%E6%B3%95%E6%AD%A5%E9%AA%A4"><span class="nav-number">2.1.1.</span> <span class="nav-text">算法步骤</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#cost%E5%88%86%E6%9E%90"><span class="nav-number">2.1.2.</span> <span class="nav-text">cost分析</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E7%BB%9F%E8%AE%A1%E4%BF%A1%E6%81%AF%E5%92%8C%E5%85%83%E6%95%B0%E6%8D%AE"><span class="nav-number">2.1.3.</span> <span class="nav-text">统计信息和元数据</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%A4%A7%E5%B0%8F%E5%88%86%E6%9E%90%E5%92%8C%E7%AD%9B%E9%80%89%E7%8E%87"><span class="nav-number">2.1.4.</span> <span class="nav-text">大小分析和筛选率</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#%E6%B2%A1%E6%9C%89%E7%BB%9F%E8%AE%A1%E6%95%B0%E6%8D%AE"><span class="nav-number">2.1.4.1.</span> <span class="nav-text">没有统计数据</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E6%95%B0%E6%8D%AE%E5%80%BE%E6%96%9C"><span class="nav-number">2.1.4.2.</span> <span class="nav-text">数据倾斜</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E5%88%86%E6%9E%90join%E7%9A%84%E5%9F%BA%E6%95%B0"><span class="nav-number">2.1.4.3.</span> <span class="nav-text">分析join的基数</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E5%90%AF%E5%8F%91%E5%BC%8F%E6%9E%9A%E4%B8%BE%E8%AE%A1%E5%88%92"><span class="nav-number">2.1.4.4.</span> <span class="nav-text">启发式枚举计划</span></a></li></ol></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#lab3%E5%AE%9E%E9%AA%8C"><span class="nav-number">2.2.</span> <span class="nav-text">lab3实验</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E7%9B%B4%E6%96%B9%E5%9B%BE"><span class="nav-number">2.2.1.</span> <span class="nav-text">直方图</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#TableStats"><span class="nav-number">2.2.2.</span> <span class="nav-text">TableStats</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Join-Cardinality"><span class="nav-number">2.2.3.</span> <span class="nav-text">Join Cardinality</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Join-Ordering"><span class="nav-number">2.2.4.</span> <span class="nav-text">Join Ordering</span></a></li></ol></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E6%80%BB%E7%BB%93"><span class="nav-number">3.</span> <span class="nav-text">总结</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E5%8F%82%E8%80%83"><span class="nav-number">4.</span> <span class="nav-text">参考</span></a></li></ol></div>
         </div>
         <!--/noindex-->
 
@@ -249,10 +268,16 @@
         <i class="far fa-calendar"></i>
       </span>
       <span class="post-meta-item-text">发表于</span>
-      
 
-      <time title="创建时间：2022-01-01 22:41:14 / 修改时间：22:44:13" itemprop="dateCreated datePublished" datetime="2022-01-01T22:41:14+08:00">2022-01-01</time>
+      <time title="创建时间：2022-01-01 22:41:14" itemprop="dateCreated datePublished" datetime="2022-01-01T22:41:14+08:00">2022-01-01</time>
     </span>
+      <span class="post-meta-item">
+        <span class="post-meta-item-icon">
+          <i class="far fa-calendar-check"></i>
+        </span>
+        <span class="post-meta-item-text">更新于</span>
+        <time title="修改时间：2022-01-08 17:08:04" itemprop="dateModified" datetime="2022-01-08T17:08:04+08:00">2022-01-08</time>
+      </span>
 
   
 </div>
@@ -264,7 +289,312 @@
     
     
     <div class="post-body" itemprop="articleBody">
-        <h1 id="查询优化"><a href="#查询优化" class="headerlink" title="查询优化"></a>查询优化</h1><h1 id="Lab3"><a href="#Lab3" class="headerlink" title="Lab3"></a>Lab3</h1><h1 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h1><h1 id="参考"><a href="#参考" class="headerlink" title="参考"></a>参考</h1><!-- flag of hidden posts -->
+        <h1 id="查询优化"><a href="#查询优化" class="headerlink" title="查询优化"></a>查询优化</h1><h2 id="查询优化器是什么"><a href="#查询优化器是什么" class="headerlink" title="查询优化器是什么"></a>查询优化器是什么</h2><p>数据库主要由三部分组成，分别是解析器、优化器和执行引擎，如下图所示：</p>
+<img src="/2022/01/01/%E6%95%B0%E6%8D%AE%E5%BA%93simpleDB%E5%85%A5%E9%97%A8-3/v2-6c98f34b8d88cdf590cedfe8b52b9c28_1440w.jpg" class="" title="img">
+
+
+<p>其中优化器是数据库中用于把关系表达式转换成执行计划的核心组件，很大程度上决定了一个系统的性能。</p>
+<h2 id="查询优化器分类"><a href="#查询优化器分类" class="headerlink" title="查询优化器分类"></a>查询优化器分类</h2><p>查询优化器分为两类：</p>
+<ul>
+<li>基于规则的优化器(Rule-Based Optimizer，RBO) </li>
+<li>基于代价的优化器(Cost-Based Optimizer，CBO) </li>
+</ul>
+<h3 id="基于规则的优化器-Rule-Based-Optimizer，RBO"><a href="#基于规则的优化器-Rule-Based-Optimizer，RBO" class="headerlink" title="基于规则的优化器(Rule-Based Optimizer，RBO)"></a>基于规则的优化器(Rule-Based Optimizer，RBO)</h3><p>根据优化规则对关系表达式进行转换，这里的转换是说一个关系表达式经过优化规则后会变成另外一个关系表达式，同时原有表达式会被裁剪掉，经过一系列转换后生成最终的执行计划。</p>
+<p>RBO中包含了一套有着严格顺序的优化规则，同样一条SQL，无论读取的表中数据是怎么样的，最后生成的执行计划都是一样的。同时，在RBO中SQL写法的不同很有可能影响最终的执行计划，从而影响脚本性能。</p>
+<h3 id="基于代价的优化器-Cost-Based-Optimizer，CBO"><a href="#基于代价的优化器-Cost-Based-Optimizer，CBO" class="headerlink" title="基于代价的优化器(Cost-Based Optimizer，CBO)"></a>基于代价的优化器(Cost-Based Optimizer，CBO)</h3><p>根据优化规则对关系表达式进行转换，这里的转换是说一个关系表达式经过优化规则后会生成另外一个关系表达式，同时原有表达式也会保留，经过一系列转换后会生成多个执行计划，然后CBO会根据统计信息和代价模型(Cost Model)计算每个执行计划的Cost，从中挑选Cost最小的执行计划。由上可知，CBO中有两个依赖：统计信息和代价模型。统计信息的准确与否、代价模型的合理与否都会影响CBO选择最优计划。</p>
+<p>从上述描述可知，CBO是优于RBO的，原因是RBO是一种只认规则，对数据不敏感的呆板的优化器，而在实际过程中，数据往往是有变化的，通过RBO生成的执行计划很有可能不是最优的。</p>
+<p>事实上目前各大数据库和大数据计算引擎都倾向于使用CBO，例如从Oracle 10g开始，Oracle已经彻底放弃RBO，转而使用CBO；而Hive在0.14版本中也引入了CBO。</p>
+<h2 id="查询优化器执行过程"><a href="#查询优化器执行过程" class="headerlink" title="查询优化器执行过程"></a>查询优化器执行过程</h2><p>无论是RBO，还是CBO都包含了一系列优化规则，这些优化规则可以对关系表达式进行等价转换，常见的优化规则包含：</p>
+<ul>
+<li>谓词下推</li>
+<li>列裁剪</li>
+<li>常量折叠</li>
+<li>其他</li>
+</ul>
+<p>在这些优化规则的基础上，就能对关系表达式做相应的等价转换，从而生成执行计划。下面将介绍RBO和CBO两种优化器的执行过程。</p>
+<h4 id="RBO执行过程"><a href="#RBO执行过程" class="headerlink" title="RBO执行过程"></a>RBO执行过程</h4><p>RBO的执行过程比较简单，主要包含两个步骤：</p>
+<p>1）Transformation<br>    遍历关系表达式，只要模式能够满足特定优化规则就进行转换。<br>2）Build Physical Plan<br>    经过Step1之后就生成了一个逻辑执行计划，但这只是逻辑上可行，还需要将逻辑执行计划build成物理执行计划，即决定各个Operator的具体实现。如Join算子的具体实现选择BroadcastHashJoin还是SortMergeJoin。</p>
+<h4 id="CBO执行过程"><a href="#CBO执行过程" class="headerlink" title="CBO执行过程"></a>CBO执行过程</h4><p>CBO查询优化主要包含三个步骤：</p>
+<p>1）Exploration<br>        根据优化规则进行等价转换，生成等价关系表达式，此时原有关系表达式会被保留。<br>2）Build Physical Plan<br>        决定各个Operator的具体实现。<br>3）Find Best Plan<br>        根据统计信息计算各个执行计划的Cost，选择Cost最小的执行计划。</p>
+<p>CBO实现有两种模型，即Volcano模型[1]和Cascades模型[2]，其中Calcite使用的是Volcano模型，而Orca[3]使用的是Cascades模型。这两种模型的思想基本相同，不同点在于Cascades模型并不是先Explore、后Build，而是边Explore边Build，从而进一步裁剪掉一些执行计划。</p>
+<h2 id="VolCano-amp-Cascades优化器"><a href="#VolCano-amp-Cascades优化器" class="headerlink" title="VolCano&amp;Cascades优化器"></a>VolCano&amp;Cascades优化器</h2><p>优化器三大组件：</p>
+<ul>
+<li><p><strong>输入</strong>：SQL 文本首先被语法解析（Parse）为 AST（Abstract Syntax Tree），然后翻译成 Logical Operator 树（关系代数表达式，初始的逻辑计划），作为优化器的输入。因 SQL 语法成熟固定，这步并无太多 讨论，可采用 BNF 范式状态机等。  </p>
+</li>
+<li><p><strong>输出</strong>：代价最优的 Physical Operator 树，即物理计划；交由执行引擎执行，访问存储、汇聚结果。执 行引擎如何切分并行化 Operator、如何分布式调度、如何向量化，大有文章，但不在查询优化器范围 内。 </p>
+</li>
+<li><p><strong>元数据</strong>：通常有外部服务提供数据库表目录（Catalog），提供有关代价的统计信息。元数据 Provider 甚至可以插件[11]提供，以兼容异构平台</p>
+</li>
+</ul>
+<img src="/2022/01/01/%E6%95%B0%E6%8D%AE%E5%BA%93simpleDB%E5%85%A5%E9%97%A8-3/v2-f1d719b8de4a750288501ec4d54a5d7f_1440w.jpg" class="" title="img">
+
+<p>优化过程中， 优化器需要搜索最优逻辑、物理计划，需要评估每种计划的代价；如下图所示，可以将优化器分解为三大部分。（事实上，每个都是一门研究方向。） </p>
+<ul>
+<li><strong>搜索计划空间（Plan Enumeration）</strong>：Volcano/Cascades 采用动态规划（Dynamic Programming），继承 自[9]System-R；搜索自顶向下。搜索需要在短暂时间内探索大量逻辑、物理计划，并评估代价。 </li>
+<li><strong>代价模型</strong>：如何为一个物理计划（Physical Operator 树）确定代价，如何为每个 Physical Operator 确定 代价。Logical Operator 需展开为 Physical Operator 后才能确定代价，但能提前估算更好。 </li>
+<li><strong>统计信息（Statistics）</strong>：代价模型需要统计信息作为输入，例如 Selectivity、Cardinality。经过 Operator 输出后的“表”，例如 Join 结果，也需要导出统计信息（Statistics Derivation），为下一步计算 代价。</li>
+</ul>
+<img src="/2022/01/01/%E6%95%B0%E6%8D%AE%E5%BA%93simpleDB%E5%85%A5%E9%97%A8-3/v2-a369cbeda3b3e886ff7debdf2afe66b8_1440w.jpg" class="" title="img">
+
+
+
+<p>搜索过程驱动优化器工作，不断生成等价的 Operator 树（逻辑计划、物理计划），扩展搜索空间，寻找最优。如何为其建立精炼的抽象概念？Volcano/Cascades 的答案是 Pattern 和 Rule  </p>
+<ul>
+<li><p><strong>Pattern</strong>：当 Operator 树的某个局部形态匹配 Pattern 时，可以对其应用 Rule 来转换树的形态； </p>
+</li>
+<li><p><strong>Rule</strong>：如何转换 Operator 树，即将其匹配的节点替换（Substitute）为新形态。从而生成新的、等价的 Operator 树。</p>
+</li>
+</ul>
+<p>逻辑优化和物理优化都需不断应用 Pattern/Rule。在逻辑优化阶段</p>
+<ul>
+<li><strong>Transformation Rule</strong>：逻辑优化应用 Pattern/Rule 生成新的 Operator 树（逻辑计划）以供探索；例如 根据 Rule 生成不同 Join 顺序的多个逻辑计划。此时的 Rule 称作 Transformation Rule（对应 Implementation Rule）。</li>
+<li><strong>Normalization</strong>：逻辑优化中有些总是更优的转换，例如谓词下推、去掉不需要的 Select 字段 （Cropping）。这些转换（Transform）往往在优化开始阶段执行；也可由 Pattern/Rule 定义。 CockroachDB 称其为 Normalization[5]。 </li>
+</ul>
+<p>在物理优化阶段 </p>
+<ul>
+<li><strong>Implementation Rule</strong>：将 Logical Operator 转换为对应的（多种）Physical Operator 的 Rule 称作 Implementation Rule。该过程生成新的（多个）Operator 树，逐步优化，最终生成完全由 Physical Operator 组成的物理计划。 至此，优化器搜索过程被抽象为不断匹配 Pattern 然后应用 Rule 转换，搜索空间递归展开，应用代价模型择 优。开发者只需添加新的 Pattern 和 Rule 即可扩展优化器（如继承抽象类、添加 Optgen[37]文件）。</li>
+</ul>
+<p>在搜索时有两种流派，一种是以<strong>System R</strong>为代表的自底向上，另一种则是<strong>Cascades</strong>流派的自顶向下。</p>
+<h3 id="Volcano"><a href="#Volcano" class="headerlink" title="Volcano"></a>Volcano</h3><h4 id="访问路径"><a href="#访问路径" class="headerlink" title="访问路径"></a>访问路径</h4><img src="/2022/01/01/%E6%95%B0%E6%8D%AE%E5%BA%93simpleDB%E5%85%A5%E9%97%A8-3/v2-263b3c0d36ee7f7a439e6dc9f7c21b9b_1440w.jpg" class="" title="img">
+
+
+
+<p>自底向上的算法会先计算基表的访问路径（Access Path），通常来说存在几种：顺序扫描、索引扫描、组合索引等，而存在多个索引时，每个索引都视作一个访问路径。接着，枚举两表Join，这里同时还需要对Join的物理实现进行枚举，所以第二层的状态会比第一层多许多。一层层往上搜索，即可得到多表Join的执行计划。</p>
+<h4 id="动态规划"><a href="#动态规划" class="headerlink" title="动态规划"></a>动态规划</h4><img src="/2022/01/01/%E6%95%B0%E6%8D%AE%E5%BA%93simpleDB%E5%85%A5%E9%97%A8-3/v2-6bdeef50781893341328ffe96a26d78d_1440w.jpg" class="" title="img">
+
+<p>在搜索过程中，如果是纯粹地枚举所有可能的组合，则搜索空间会非常大。因此通常会对Join Tree的形状进行限制，也会在搜索过程中进行一定的剪枝。</p>
+<img src="/2022/01/01/%E6%95%B0%E6%8D%AE%E5%BA%93simpleDB%E5%85%A5%E9%97%A8-3/v2-e4542c0825a7070b6438b016cf606f2d_1440w.jpg" class="" title="img">
+
+
+
+<p>例如这里的两种典型的Join Tree，Left-deep和Bushy-Join。相比于Bushy-Tree的<code>(2n-2)!/(n-1)!</code>的复杂度，Left-Deep只有<code>n!</code>，搜索空间小了很多。</p>
+<h4 id="Interesting-Order"><a href="#Interesting-Order" class="headerlink" title="Interesting Order"></a>Interesting Order</h4><p>在搜索过程中，每一层不需要保留所有的组合，而是保留代价最低的即可。但需要考虑到一个问题，两表Join的最优解，未必能得到三表Join的最优解，例如两表用了HashJoin，那么输出的结果会是无序的；相比之下，如果用MergeJoin，两表Join可能不是代价最小的， 但是在三表Join时，就可以利用其有序性，对上层的Join进行优化。</p>
+<p>为了刻画这个问题，引入了Interesting Order，即上层对下层的输出结果的顺序感兴趣。因此自底向上枚举时，A JOIN B不仅仅是保留代价最小的，还需要对每种Interesting Order的最小代价的Join进行保留。例如<code>A JOIN B</code>输出的顺序可能是<code>(A.x), (A.x, B.y), (None)</code>等多种可能性，就需要保留每种Interesting Order。</p>
+<img src="/2022/01/01/%E6%95%B0%E6%8D%AE%E5%BA%93simpleDB%E5%85%A5%E9%97%A8-3/v2-56921cbe9bca56774d34ce8647dea63f_1440w.jpg" class="" title="img">
+
+
+
+<p>这里其实引出一个问题，自底向上的搜索过程中，下层无法知道上层需要的顺序，即便保留所有的Order，也未必能得到最优解。例如对A、B两表做笛卡尔积再排序，其代价可能要比先排序在做Join要高，但是在枚举Join时，无法知道上层需要的顺序，也就无法搜索这个计划。</p>
+<h4 id="PostgreSQL实现"><a href="#PostgreSQL实现" class="headerlink" title="PostgreSQL实现"></a>PostgreSQL实现</h4><figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br></pre></td><td class="code"><pre><span class="line">join_search() &#123;</span><br><span class="line">    join_levels[<span class="number">1</span>] = initial_rels;</span><br><span class="line">    <span class="keyword">for</span> (level : <span class="number">2</span> -&gt; N) &#123;</span><br><span class="line">        join_search_one_level() &#123;</span><br><span class="line">            <span class="comment">// linear</span></span><br><span class="line">            <span class="keyword">for</span> (outer : join_levels[level<span class="number">-1</span>]) &#123;</span><br><span class="line">                <span class="keyword">for</span> (inner : join_levels[<span class="number">1</span>]) &#123;</span><br><span class="line">                    <span class="keyword">if</span> (overlap(outer, inner)) &#123;</span><br><span class="line">                        <span class="keyword">continue</span>;</span><br><span class="line">                    &#125;</span><br><span class="line">                    <span class="keyword">if</span> (!has_restriction(outer, inner)) &#123;</span><br><span class="line">                        <span class="keyword">continue</span>;</span><br><span class="line">                    &#125;</span><br><span class="line">                    join_levels[level].add_path(make_join_rel(outer, inner));</span><br><span class="line">				&#125;</span><br><span class="line">            &#125;</span><br><span class="line">            <span class="comment">// bushy</span></span><br><span class="line">            <span class="keyword">for</span> (k : <span class="number">2</span> -&gt; N - <span class="number">2</span>) &#123;</span><br><span class="line">                <span class="keyword">for</span> (outer : join_levels[k]) &#123;</span><br><span class="line">                    <span class="keyword">for</span> (inner : join_levels[N-k]) &#123;</span><br><span class="line">                        ...</span><br><span class="line">                    &#125;</span><br><span class="line">                &#125;</span><br><span class="line">            &#125;</span><br><span class="line">            <span class="comment">// cross-product</span></span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>PostgreSQL实现的Join算法就是经典的自底向上的动态规划，上面是其伪代码：</p>
+<ul>
+<li>首先计算基表访问路径，PostgreSQL实现了SeqScan、IndexScan、BitmapScan、TidScan等方式</li>
+<li>搜索空间的第一层即为基表</li>
+<li>向上搜索每一层，先尝试linear tree，枚举上一层的每个Relation，与第一层的Relation进行组合，如果没有重叠并且有Join谓词连接，即调用add_path增加一条访问路径</li>
+<li>add_path：并不是直接把访问路径加到这一层，而是先评估其代价和Interesting Order，如果代价更优，或者产生了新的Interesting Order，才会加到这一层的访问路径中</li>
+<li>bushy tree：枚举bushy tree会把<code>[2, N-2]</code>层的Relation和N-k层的Relation进行组合</li>
+<li>cross-product：如果上述两种枚举都没有搜索出可行的Join，则采取笛卡尔积，这个产生的结果通常较多</li>
+</ul>
+<p>注意到其中一个细节，尝试组合两个Relation时，会判断两个Relation是否存在Join 谓词，例如JOIN A, B ON A.x = B.x，如果有连接谓词作为过滤条件，生成的结果会大大减少。这种先枚举再测试连通性的方式称之为『generate and test』，在特定的场景下效率并不高，test这个步骤占据了很大开销，存在一定的优化空间，后面会做介绍。</p>
+<h3 id="Cascades"><a href="#Cascades" class="headerlink" title="Cascades"></a>Cascades</h3><p>经过以上的铺垫，自底向上的方法基本有了一个轮廓，同时我们在探索的过程中也意识到自底向上的一些局限性：</p>
+<ul>
+<li>适用于Join Enumeration问题，但对其他的优化并不适用</li>
+<li>在处理Interesting Order问题时，不能覆盖所有的搜索空间</li>
+<li>剪枝有限，很有可能下层会产生一些代价非常大的解决方案，本可以预先剪枝掉</li>
+</ul>
+<p>为此，我们尝试另一种思路，自顶向下的搜索方案：Cascades。Cascades其实是继承了Volcano Optimizer Generator，并做了很多优化，也对算法细节做了更多工作，因此我们直接跳过Volcano来看Cascades。</p>
+<img src="/2022/01/01/%E6%95%B0%E6%8D%AE%E5%BA%93simpleDB%E5%85%A5%E9%97%A8-3/v2-294369f498767f93e2390dcc275d11c8_1440w.jpg" class="" title="img">
+
+
+
+<p>自顶向下个人感觉更加直观一点，对于一个Operator Tree来说，从根节点往下遍历，每个节点可以做多种变换：</p>
+<ul>
+<li>Implementation：逻辑算子可以转换成物理算子；例如Join转换成NestLoop或者HashJoin等</li>
+<li>Exploration：逻辑算子可以做等价变换；例如交换Inner Join的两个子节点，即可枚举Join顺序</li>
+</ul>
+<h4 id="Memo"><a href="#Memo" class="headerlink" title="Memo"></a>Memo</h4><img src="/2022/01/01/%E6%95%B0%E6%8D%AE%E5%BA%93simpleDB%E5%85%A5%E9%97%A8-3/v2-1c8cb3c04d66b05cbd0e8b22f4a9a729_1440w.jpg" class="" title="img">
+
+<p>自顶向下的搜索过程中，整个搜索空间会形成一个Operator Tree的森林，因此很重要的一个问题是，如何高效地保存搜索状态。</p>
+<p>Cascades首先将整个Operator Tree按节点拷贝到一个<strong>Memo</strong>的数据结构中，每个Operator放在一个Group。对于有子节点的Operator来说，将原本对Operator的直接引用，变成对Group的引用。例如上图的Group 0，引用了Group 1 和Group 2。</p>
+<img src="/2022/01/01/%E6%95%B0%E6%8D%AE%E5%BA%93simpleDB%E5%85%A5%E9%97%A8-3/v2-21d1e0ec3c0b1bb4c4d7a8eb5cf717c0_1440w.jpg" class="" title="img">
+
+<p>而每个Group中会存在多个成员，成员通常称之为<strong>Group Expression</strong>。成员之间是逻辑等价的，也就意味着他们输出的结果是一样的。随着搜索过程的推进，对Operator Tree进行变换时会产生新的Operator Tree，这些Tree仍然存储在Memo中。例如上图的的Group1，既包含了初始的Scan A，也包含了后续搜索产生的TableScan、SortedIDXScan。由于Group引用的是其他Group，这里可以视作形成了一个Group Tree，例如上面的Group 7 引用了 Group3、Group4，Group3又是一个Join算子，引用了Group1、Group2。</p>
+<p>在搜索完成之后，我们可以从每个Group中选择出最优的Operator，并递归构建其子节点，即可得到最优的Operator Tree。</p>
+<h4 id="Stats-Derivation"><a href="#Stats-Derivation" class="headerlink" title="Stats Derivation"></a>Stats Derivation</h4><img src="/2022/01/01/%E6%95%B0%E6%8D%AE%E5%BA%93simpleDB%E5%85%A5%E9%97%A8-3/v2-9697eb9488705ebdbc127c6b8bf603ae_1440w.jpg" class="" title="img">
+
+<p>在搜索过程中，需要对Group Expression的代价进行评估，而代价评估则依赖于统计信息。统计信息的构建是一个自底向上的过程，每个基表维护直方图等统计信息，向上可进一步推导出Join 的统计信息。由于Group中的多个Expression是逻辑等价的，因此他们共享一个statistics。这一过程称之为『Stats Derivation』。</p>
+<h4 id="Branch-and-bound"><a href="#Branch-and-bound" class="headerlink" title="Branch and bound"></a>Branch and bound</h4><p>前面提到自顶向下的搜索可以进行更多的剪枝，这里的原理是根据代价的upper bound剪枝。将最初的Operator Tree的代价计算其lower bound和upper bound，之后的搜索过程中，如果还没搜索到最底层的节点，其代价已经超过了upper bound，那么这个解决方案即可放弃，不会更优只会雪上加霜。</p>
+<p>理想情况下，这种剪枝能过滤掉很多不必要的搜索，但依赖于初始计划的代价。初始计划如果很糟糕，代价很大，对后续的搜索将无法发挥剪枝的作用。因此通常的优化器会在搜索之前进行称之为Transformation/Rewrite/Normalize的阶段，应用一些Heuristic的规则，预先对Plan进行优化，减小后面的搜索空间。</p>
+<h4 id="Search"><a href="#Search" class="headerlink" title="Search"></a>Search</h4><p>优化规则和搜索过程是Cascades的核心，也是优化器的工作重心。在传统的优化器实现中，往往是面向过程的，一条一条地应用优化规则，对Operator Tree进行变换。这种hardcode的方式往往难以扩展，想增加一条规则较为困难，需要考虑规则之间的应用顺序。而Cascades在处理这一问题时，将搜索过程与具体的规则解耦，用面向对象的方式对优化规则进行建模，规则的编写不需要关心搜索过程。</p>
+<img src="/2022/01/01/%E6%95%B0%E6%8D%AE%E5%BA%93simpleDB%E5%85%A5%E9%97%A8-3/v2-1e18a23c28f5bf838fb9f4d9e2764ee3_1440w.jpg" class="" title="img">
+
+<p>这里的搜索过程分解为几种Task：</p>
+<ul>
+<li>Optimize Group：对一个Group进行优化，具体来说就是对其中每个Expression进行优化</li>
+<li>Optimize Expression：优化一个Expression，对每个Expression应用优化规则，并寻找代价最小的Expression</li>
+<li>Explore Group &amp; Explore Expression：Explore过程是对逻辑算子进行等价变化</li>
+<li>Apply Rule：应用具体的优化规则，从逻辑表达式推导出等价的逻辑表达式，或者从逻辑表达式推导物理表达式</li>
+<li>Optimize Input：对代价进行估算，这是一个自底向上的过程，需要递归地计算子节点的统计信息和代价，再计算当前节点</li>
+</ul>
+<p>这些Task会进行递归搜索，因此有两种选择，一种是直接递归调用，另一种则是用一个显式的的Stack，对任务进行调度：</p>
+<img src="/2022/01/01/%E6%95%B0%E6%8D%AE%E5%BA%93simpleDB%E5%85%A5%E9%97%A8-3/v2-8525b33d8bad1edf4df83cc73eea0513_1440w.jpg" class="" title="img">
+
+<h4 id="Property-Enforcer"><a href="#Property-Enforcer" class="headerlink" title="Property Enforcer"></a>Property Enforcer</h4><p>前面提到Interesting Order的问题，在自顶向下的搜索过程中可以更加优雅地解决。这里讲Interesting Order的问题推广到Property，在分布式数据库的场景下，Property包含了数据分布的方式。例如分布式HashJoin要求两个表按照Hash分布，如果不满足这个属性，则需要对数据进行一次重分布。</p>
+<img src="/2022/01/01/%E6%95%B0%E6%8D%AE%E5%BA%93simpleDB%E5%85%A5%E9%97%A8-3/v2-aa35dccd5a93cfa0db73423508fa8c35_1440w.jpg" class="" title="img">
+
+<p>自顶向下的搜索过程可以用需求驱动的方式来计算属性，例如需要对T1.a进行排序的方式有多种，即可分解成多个子问题，对HashJoin的结果进行归并排序，或者把数据收集到一个节点之后再进行排序，都是可能的解决方案。对于不同的解决方案仍然是基于代价来选择出最优的方案，从而形成整体的最优解。</p>
+<h2 id="Pull-amp-Push-计算引擎"><a href="#Pull-amp-Push-计算引擎" class="headerlink" title="Pull &amp; Push 计算引擎"></a>Pull &amp; Push 计算引擎</h2><h3 id="自顶向下（Top-to-Bottom）-Pull模型"><a href="#自顶向下（Top-to-Bottom）-Pull模型" class="headerlink" title="自顶向下（Top-to-Bottom）- Pull模型"></a>自顶向下（Top-to-Bottom）- Pull模型</h3><p>这种处理方式的典型代表是火山模型。火山模型是数据库成熟的 SQL 语句解释执行方案，该模型是数据库执行器中非常流行的“设计模式”。开始从父节点向子节点拉数据，每一行数据都要经过所有算子的计算。但是这种设计模式对于Cpu Cache是不友好的。</p>
+<h3 id="自底向上（Bottom-to-Top）-Push模型"><a href="#自底向上（Bottom-to-Top）-Push模型" class="headerlink" title="自底向上（Bottom-to-Top） - Push模型"></a>自底向上（Bottom-to-Top） - Push模型</h3><p>除了上述火山模型，还有一种反向的调用模型也十分流行，那就是 Push 模型。Push 模型简单来说就是由调度器先分析执行树，然后从树的叶子节点开始执行，在执行之后，有子节点通知父节点执行操作。</p>
+<p>Push 模型的执行看起来更为直观，但是由于控制流是反转的，一般实现起来会比较繁琐。相比起来火山模型更易于操作，比如在终止查询的时候，火山模型只要停止从根节点继续迭代即可。但是 Push 模型相对单纯的火山模型也有很多优点：由于子算子产生的结果会直接 Push 给父算子进行操作，Push 模型的 Context switch 相对较少，对 CPU Cache 的友好性也更强。</p>
+<img src="/2022/01/01/%E6%95%B0%E6%8D%AE%E5%BA%93simpleDB%E5%85%A5%E9%97%A8-3/image-20220104225120999.png" class="" title="image-20220104225120999">
+
+
+
+<h3 id="物理计算引擎的技术演进之路"><a href="#物理计算引擎的技术演进之路" class="headerlink" title="物理计算引擎的技术演进之路"></a>物理计算引擎的技术演进之路</h3><p>物理计算引擎的技术迭代如上图所示:</p>
+<h4 id="第一代火山模型"><a href="#第一代火山模型" class="headerlink" title="第一代火山模型"></a>第一代火山模型</h4><p>前文说到第一代火山模型的设计是基于单行计算的设计方式，上层算子通过虚函数调用下次算子的方式实现，可以使算子之间的逻辑解耦。使用火山模型可以使整个架构的设计和实现趋向于简单。但是这种设计是对于CPU Cache非常不友好的。每一行数据都要通过虚函数的调用来计算结果，虚函数的间接调用本身会导致分支预测。据统计，间接分支预测的失败率在25%左右。一旦分支预测失败，将会导致流水线被冲刷，进而需要重新取指令、译码，对性能造成严重的影响。</p>
+<h4 id="第二代火山模型"><a href="#第二代火山模型" class="headerlink" title="第二代火山模型"></a>第二代火山模型</h4><p>第二代火山模型的设计是批量计算的设计方式，因为第一代火山模型的痛点，单行计算导致频繁的虚函数调用开销，导致程序的性能低下。那么可不可以批量计算的方式，来降低虚函数的调用次数，从而简单虚函数的调用开销，从而提升程序的性能。</p>
+<p>火山模型通过虚函数来实现的，如果数据量很大，那么虚函数的调用开销和对CPU Cache的不友好型成为了它的痛点，那么业界通过批处理计算的方式，原先火山模型传递的数据是一行数据，那么我们可以一次传递多行数据同时计算，所以技术演进出批处理之火山模型。</p>
+<h4 id="推送执行模型"><a href="#推送执行模型" class="headerlink" title="推送执行模型"></a>推送执行模型</h4><p>所谓成也风云，败也风云。一次性需要处理批量的数据。如果我们要处理的数据特别大，假设某个表有1亿条数据，Scan需要把所有数据先读取到内存中，再传输给上层节点，可能在这个过程中，就已经OOM(out of memory)了。</p>
+<p>考虑到火山模型这些痛点问题，推送执行模型(Push Based)应运而生很好的解决了这个问题。与拉取模型相反，推送模型自低向上的执行，执行逻辑由底层算子开始，其处理完一行数据之后，将一行数据传给上层算子处理。</p>
+<p>推送模型最早在一些流媒体计算中被使用，随着大数据时代的来临，在一些基于内存设计的OLAP数据库也被大量使用起来，例如HyPer、LegoBase等。</p>
+<h3 id="推送模型与拉取模型的区别"><a href="#推送模型与拉取模型的区别" class="headerlink" title="推送模型与拉取模型的区别"></a>推送模型与拉取模型的区别</h3><p>推送模型与拉取模型的两种不同的控制流和数据流关系图如下所示:</p>
+<img src="/2022/01/01/%E6%95%B0%E6%8D%AE%E5%BA%93simpleDB%E5%85%A5%E9%97%A8-3/image-20220104224950921.png" class="" title="image-20220104224950921">
+
+<p>根据上图可知，拉取模型的设计更加符合查询执行的直观印象，上层算子按需要向下层算子获取数据并执行。其实本质上就是一层层的虚函数调用。</p>
+<p>推送模型与拉取模型刚好相反，通过将上层的计算下推到数据产生的操作符中，由数据的最终生产者驱动上层运算符对数据进行消费。</p>
+<h1 id="Lab3"><a href="#Lab3" class="headerlink" title="Lab3"></a>Lab3</h1><h2 id="System-R优化器算法"><a href="#System-R优化器算法" class="headerlink" title="System R优化器算法"></a>System R优化器算法</h2><h3 id="算法步骤"><a href="#算法步骤" class="headerlink" title="算法步骤"></a>算法步骤</h3><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">1. Break query up into blocks and generate the logical operators for each block.</span><br><span class="line">2. For each logical operator, generate a set of physical operators that implement it.</span><br><span class="line">	1. All combinations of join algorithms and access paths</span><br><span class="line">3. Then iteratively construct a “left-deep” tree that minimizes the estimated amount of work to execute the plan</span><br></pre></td></tr></table></figure>
+
+
+<p>基本思路：</p>
+<ol>
+<li>对每张表选择最好的检索数据方式：<ol>
+<li>顺序扫描</li>
+<li>索引查找</li>
+</ol>
+</li>
+<li>枚举所有的join序</li>
+<li>使用统计数据来估算最好的join序</li>
+</ol>
+<img src="/2022/01/01/%E6%95%B0%E6%8D%AE%E5%BA%93simpleDB%E5%85%A5%E9%97%A8-3/%E4%BC%81%E4%B8%9A%E5%BE%AE%E4%BF%A1%E6%88%AA%E5%9B%BE_16416064644488.png" class="" title="img">
+
+<p>如上图所示，是System R的详细算法：</p>
+<ol>
+<li>将查询语句拆分成查询块，拆分的逻辑是一个select语句就是一个查询块，如果有嵌套查询，那子查询又是一个查询块</li>
+<li>每个查询块单独进行优化：<ol>
+<li>将查询块变成成关系算子树</li>
+<li>自下而上构建最优执行计划<ol>
+<li>左叶子节点表示对表的数据检索</li>
+<li>迭代的将选择和投影一层一层尽量往下推</li>
+<li>考虑左深树的join序</li>
+<li>尽量避免笛卡尔积</li>
+<li>考虑所有的join序</li>
+</ol>
+</li>
+</ol>
+</li>
+<li>剪除比较贵的plan</li>
+</ol>
+<h3 id="cost分析"><a href="#cost分析" class="headerlink" title="cost分析"></a>cost分析</h3><p>对于每个计划的cost分析，需要考虑以下几点：</p>
+<ol>
+<li>每个算子的cost都要估算</li>
+<li>计划的cost=所有算子的cost和</li>
+<li>算子cost估算：<ol>
+<li>数据输入量io</li>
+<li>每种算子的计算cost</li>
+</ol>
+</li>
+<li>还需要分析每个算子的结果集大小<ol>
+<li>结果集是树的上一层的输入</li>
+<li>计算方式是：输入量+筛选率<ol>
+<li>对于选择和join，它们的筛选率都是独立的</li>
+</ol>
+</li>
+</ol>
+</li>
+</ol>
+<h3 id="统计信息和元数据"><a href="#统计信息和元数据" class="headerlink" title="统计信息和元数据"></a>统计信息和元数据</h3><p>主要用来分析表的数据基数和筛选率。</p>
+<ol>
+<li>catalog包含表的元数据</li>
+<li>对于优化器，需要从元数据里获取以下信息：<ol>
+<li>tuples个数（基数），page个数</li>
+<li>索引唯一值个数</li>
+<li>最大最小值</li>
+<li>索引</li>
+</ol>
+</li>
+<li>统计数据<ol>
+<li>近似统计</li>
+<li>周期性更新</li>
+<li>对于不太好准的统计数据，容易导致比较差的计划生成</li>
+</ol>
+</li>
+</ol>
+<h3 id="大小分析和筛选率"><a href="#大小分析和筛选率" class="headerlink" title="大小分析和筛选率"></a>大小分析和筛选率</h3><p>结果集的基数分析如下：</p>
+<blockquote>
+<p> Result cardinality = Max # tuples  *  product of all RF’s</p>
+<p> 最大的输入tuple个数乘以所有的筛选率</p>
+</blockquote>
+<p>筛选率分析如下：</p>
+<blockquote>
+<p>假设条件：</p>
+<ol>
+<li>值是均匀分布的</li>
+<li>NKeys表示唯一值个数</li>
+</ol>
+<p>对于col=value这种类型的语句的筛选率估算：</p>
+<p>RF = 1/NKeys(col)</p>
+<p>对于col1=col2这种类型的语句的筛选率估算：</p>
+<p>RF = 1/MAX(NKeys(col1), NKeys(col2))</p>
+<p>对于col &gt; value这种类型的语句的筛选率估算：</p>
+<p>RF= (High(col)-value)/(High(col)-Low(col))</p>
+</blockquote>
+<h4 id="没有统计数据"><a href="#没有统计数据" class="headerlink" title="没有统计数据"></a>没有统计数据</h4><p>对于col=value这种条件，如果没有统计数据，RF默认为1/10就行。</p>
+<h4 id="数据倾斜"><a href="#数据倾斜" class="headerlink" title="数据倾斜"></a>数据倾斜</h4><p>上面筛选率的假设是值均匀分布，如果有数据倾斜，那就回倒是不太准确。可以使用直方图来进行分析筛选率</p>
+<h4 id="分析join的基数"><a href="#分析join的基数" class="headerlink" title="分析join的基数"></a>分析join的基数</h4><p>这里主要是equal的join操作。大概思路是，分析两张表，看下哪张表唯一值筛选率高，以高的为准。</p>
+<p>因为结果最大数肯定是两张表的笛卡尔积，但是两张表的join的每个字段对应tuple个数不一样，有的低（表示筛选率高），有的低（代表筛选率低），以高的为准即可。</p>
+<blockquote>
+<p> 假设：</p>
+<ol>
+<li><p>R join S</p>
+</li>
+<li><p>join on {A} ({A} is key for neither)</p>
+<p>下面这个是估算筛选后的结果集基数。</p>
+<p>RF = min(NTuples(R) * NTuples(S)/NKeys(A,S)， NTuples(S) * NTuples(R)/NKeys(A,R))</p>
+</li>
+</ol>
+</blockquote>
+<h4 id="启发式枚举计划"><a href="#启发式枚举计划" class="headerlink" title="启发式枚举计划"></a>启发式枚举计划</h4><p>仅仅考虑左深树的join树。</p>
+<h2 id="lab3实验"><a href="#lab3实验" class="headerlink" title="lab3实验"></a>lab3实验</h2><h3 id="直方图"><a href="#直方图" class="headerlink" title="直方图"></a>直方图</h3><img src="/2022/01/01/%E6%95%B0%E6%8D%AE%E5%BA%93simpleDB%E5%85%A5%E9%97%A8-3/lab4-hist.png" class="" title="lab4-hist">
+
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br><span class="line">88</span><br><span class="line">89</span><br><span class="line">90</span><br><span class="line">91</span><br><span class="line">92</span><br><span class="line">93</span><br><span class="line">94</span><br><span class="line">95</span><br><span class="line">96</span><br><span class="line">97</span><br><span class="line">98</span><br><span class="line">99</span><br><span class="line">100</span><br><span class="line">101</span><br><span class="line">102</span><br><span class="line">103</span><br><span class="line">104</span><br><span class="line">105</span><br><span class="line">106</span><br><span class="line">107</span><br><span class="line">108</span><br><span class="line">109</span><br><span class="line">110</span><br><span class="line">111</span><br><span class="line">112</span><br><span class="line">113</span><br><span class="line">114</span><br><span class="line">115</span><br><span class="line">116</span><br><span class="line">117</span><br><span class="line">118</span><br><span class="line">119</span><br><span class="line">120</span><br><span class="line">121</span><br><span class="line">122</span><br><span class="line">123</span><br><span class="line">124</span><br><span class="line">125</span><br><span class="line">126</span><br><span class="line">127</span><br><span class="line">128</span><br><span class="line">129</span><br><span class="line">130</span><br><span class="line">131</span><br><span class="line">132</span><br><span class="line">133</span><br><span class="line">134</span><br><span class="line">135</span><br><span class="line">136</span><br><span class="line">137</span><br><span class="line">138</span><br><span class="line">139</span><br><span class="line">140</span><br><span class="line">141</span><br><span class="line">142</span><br><span class="line">143</span><br><span class="line">144</span><br><span class="line">145</span><br><span class="line">146</span><br><span class="line">147</span><br><span class="line">148</span><br><span class="line">149</span><br><span class="line">150</span><br><span class="line">151</span><br><span class="line">152</span><br><span class="line">153</span><br><span class="line">154</span><br><span class="line">155</span><br><span class="line">156</span><br><span class="line">157</span><br><span class="line">158</span><br><span class="line">159</span><br><span class="line">160</span><br><span class="line">161</span><br><span class="line">162</span><br><span class="line">163</span><br><span class="line">164</span><br><span class="line">165</span><br><span class="line">166</span><br><span class="line">167</span><br><span class="line">168</span><br><span class="line">169</span><br><span class="line">170</span><br><span class="line">171</span><br><span class="line">172</span><br><span class="line">173</span><br><span class="line">174</span><br><span class="line">175</span><br><span class="line">176</span><br><span class="line">177</span><br><span class="line">178</span><br><span class="line">179</span><br><span class="line">180</span><br><span class="line">181</span><br><span class="line">182</span><br><span class="line">183</span><br><span class="line">184</span><br><span class="line">185</span><br><span class="line">186</span><br><span class="line">187</span><br><span class="line">188</span><br><span class="line">189</span><br><span class="line">190</span><br><span class="line">191</span><br><span class="line">192</span><br><span class="line">193</span><br><span class="line">194</span><br><span class="line">195</span><br><span class="line">196</span><br><span class="line">197</span><br><span class="line">198</span><br><span class="line">199</span><br><span class="line">200</span><br><span class="line">201</span><br><span class="line">202</span><br><span class="line">203</span><br><span class="line">204</span><br><span class="line">205</span><br><span class="line">206</span><br><span class="line">207</span><br><span class="line">208</span><br><span class="line">209</span><br><span class="line">210</span><br><span class="line">211</span><br><span class="line">212</span><br><span class="line">213</span><br><span class="line">214</span><br><span class="line">215</span><br><span class="line">216</span><br><span class="line">217</span><br><span class="line">218</span><br><span class="line">219</span><br><span class="line">220</span><br><span class="line">221</span><br><span class="line">222</span><br><span class="line">223</span><br><span class="line">224</span><br><span class="line">225</span><br><span class="line">226</span><br><span class="line">227</span><br><span class="line">228</span><br><span class="line">229</span><br><span class="line">230</span><br><span class="line">231</span><br><span class="line">232</span><br><span class="line">233</span><br><span class="line">234</span><br><span class="line">235</span><br><span class="line">236</span><br><span class="line">237</span><br><span class="line">238</span><br><span class="line">239</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">package</span> simpledb;</span><br><span class="line"></span><br><span class="line"><span class="keyword">import</span> java.util.ArrayList;</span><br><span class="line"><span class="keyword">import</span> java.util.List;</span><br><span class="line"></span><br><span class="line"><span class="comment">/** A class to represent a fixed-width histogram over a single integer-based field.</span></span><br><span class="line"><span class="comment"> */</span></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">IntHistogram</span> </span>&#123;</span><br><span class="line">    <span class="keyword">private</span> List&lt;Bucket&gt; innerBuckets;</span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">int</span> min;</span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">int</span> max;</span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">int</span> bucketNum;</span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">int</span> width;</span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">int</span> totalNum;</span><br><span class="line"></span><br><span class="line">    <span class="comment">/**</span></span><br><span class="line"><span class="comment">     * Create a new IntHistogram.</span></span><br><span class="line"><span class="comment">     * &lt;p&gt;</span></span><br><span class="line"><span class="comment">     * This IntHistogram should maintain a histogram of integer values that it receives.</span></span><br><span class="line"><span class="comment">     * It should split the histogram into &quot;buckets&quot; buckets.</span></span><br><span class="line"><span class="comment">     * &lt;p&gt;</span></span><br><span class="line"><span class="comment">     * The values that are being histogrammed will be provided one-at-a-time through the &quot;addValue()&quot; function.</span></span><br><span class="line"><span class="comment">     * &lt;p&gt;</span></span><br><span class="line"><span class="comment">     * Your implementation should use space and have execution time that are both</span></span><br><span class="line"><span class="comment">     * constant with respect to the number of values being histogrammed.  For example, you shouldn&#x27;t</span></span><br><span class="line"><span class="comment">     * simply store every value that you see in a sorted list.</span></span><br><span class="line"><span class="comment">     *</span></span><br><span class="line"><span class="comment">     * <span class="doctag">@param</span> buckets The number of buckets to split the input value into.</span></span><br><span class="line"><span class="comment">     * <span class="doctag">@param</span> min     The minimum integer value that will ever be passed to this class for histogramming</span></span><br><span class="line"><span class="comment">     * <span class="doctag">@param</span> max     The maximum integer value that will ever be passed to this class for histogramming</span></span><br><span class="line"><span class="comment">     */</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="title">IntHistogram</span><span class="params">(<span class="keyword">int</span> buckets, <span class="keyword">int</span> min, <span class="keyword">int</span> max)</span> </span>&#123;</span><br><span class="line">        <span class="comment">// some code goes here</span></span><br><span class="line">        innerBuckets = <span class="keyword">new</span> ArrayList&lt;&gt;(buckets);</span><br><span class="line">        <span class="keyword">this</span>.bucketNum = buckets;</span><br><span class="line">        <span class="keyword">this</span>.max = max;</span><br><span class="line">        <span class="keyword">this</span>.min = min;</span><br><span class="line">        <span class="keyword">this</span>.width = (<span class="keyword">int</span>) Math.ceil((<span class="keyword">double</span>) (max - min + <span class="number">1</span>) / buckets);</span><br><span class="line">        <span class="keyword">this</span>.totalNum = <span class="number">0</span>;</span><br><span class="line">        <span class="keyword">int</span> cur = min;</span><br><span class="line">        <span class="keyword">for</span> (<span class="keyword">int</span> i = <span class="number">0</span>; i &lt; bucketNum; i++) &#123;</span><br><span class="line">            Bucket bucket = <span class="keyword">new</span> Bucket();</span><br><span class="line">            bucket.setLeft(cur);</span><br><span class="line">            bucket.setRight(Math.min(cur + width - <span class="number">1</span>, max));</span><br><span class="line">            cur = bucket.getRight() + <span class="number">1</span>;</span><br><span class="line">            bucket.setWidth(bucket.getRight() - bucket.getLeft() + <span class="number">1</span>);</span><br><span class="line">            innerBuckets.add(bucket);</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">private</span> <span class="keyword">int</span> <span class="title">getIndex</span><span class="params">(<span class="keyword">int</span> v)</span> </span>&#123;</span><br><span class="line">        <span class="keyword">if</span> (v &lt;= min) &#123;</span><br><span class="line">            <span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">        &#125; <span class="keyword">else</span> <span class="keyword">if</span> (v &gt;= max) &#123;</span><br><span class="line">            <span class="keyword">return</span> bucketNum - <span class="number">1</span>;</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">int</span> origin = (v - min + <span class="number">1</span>) / width;</span><br><span class="line">        origin += (v - min + <span class="number">1</span> - origin * width) &gt; <span class="number">0</span> ? <span class="number">0</span> : -<span class="number">1</span>;</span><br><span class="line">        <span class="keyword">return</span> origin;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">/**</span></span><br><span class="line"><span class="comment">     * Add a value to the set of values that you are keeping a histogram of.</span></span><br><span class="line"><span class="comment">     *</span></span><br><span class="line"><span class="comment">     * <span class="doctag">@param</span> v Value to add to the histogram</span></span><br><span class="line"><span class="comment">     */</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">addValue</span><span class="params">(<span class="keyword">int</span> v)</span> </span>&#123;</span><br><span class="line">        <span class="comment">// some code goes here</span></span><br><span class="line">        innerBuckets.get(getIndex(v)).addHeight();</span><br><span class="line">        <span class="keyword">this</span>.totalNum++;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">/**</span></span><br><span class="line"><span class="comment">     * Estimate the selectivity of a particular predicate and operand on this table.</span></span><br><span class="line"><span class="comment">     * &lt;p&gt;</span></span><br><span class="line"><span class="comment">     * For example, if &quot;op&quot; is &quot;GREATER_THAN&quot; and &quot;v&quot; is 5,</span></span><br><span class="line"><span class="comment">     * return your estimate of the fraction of elements that are greater than 5.</span></span><br><span class="line"><span class="comment">     *</span></span><br><span class="line"><span class="comment">     * <span class="doctag">@param</span> op Operator</span></span><br><span class="line"><span class="comment">     * <span class="doctag">@param</span> v  Value</span></span><br><span class="line"><span class="comment">     * <span class="doctag">@return</span> Predicted selectivity of this particular operator and value</span></span><br><span class="line"><span class="comment">     */</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">double</span> <span class="title">estimateSelectivity</span><span class="params">(Predicate.Op op, <span class="keyword">int</span> v)</span> </span>&#123;</span><br><span class="line">        <span class="keyword">double</span> ret = -<span class="number">1.0</span>;</span><br><span class="line">        <span class="keyword">int</span> index = getIndex(v);</span><br><span class="line">        Bucket bucket = innerBuckets.get(index);</span><br><span class="line">        <span class="keyword">switch</span> (op) &#123;</span><br><span class="line">            <span class="keyword">case</span> EQUALS:</span><br><span class="line">                <span class="keyword">if</span> (v &lt; min || v &gt; max) &#123;</span><br><span class="line">                    <span class="keyword">return</span> <span class="number">0.0</span>;</span><br><span class="line">                &#125;</span><br><span class="line">                ret = (<span class="keyword">double</span>) (bucket.getHeight()) / bucket.getWidth() / totalNum;</span><br><span class="line">                <span class="keyword">break</span>;</span><br><span class="line">            <span class="keyword">case</span> GREATER_THAN:</span><br><span class="line">            <span class="keyword">case</span> GREATER_THAN_OR_EQ:</span><br><span class="line">                ret = computeGreateOrEqual(op, v);</span><br><span class="line">                <span class="keyword">break</span>;</span><br><span class="line">            <span class="keyword">case</span> LESS_THAN:</span><br><span class="line">            <span class="keyword">case</span> LESS_THAN_OR_EQ:</span><br><span class="line">                ret = computeLessOrEqual(op, v);</span><br><span class="line">                <span class="keyword">break</span>;</span><br><span class="line">            <span class="keyword">case</span> NOT_EQUALS:</span><br><span class="line">                <span class="keyword">if</span> (v &gt; max || v &lt; min) &#123;</span><br><span class="line">                    <span class="keyword">return</span> <span class="number">1.0</span>;</span><br><span class="line">                &#125;</span><br><span class="line">                ret = <span class="number">1.0</span> - (<span class="keyword">double</span>) (bucket.getHeight()) / bucket.getWidth() / totalNum;</span><br><span class="line">            <span class="keyword">default</span>:</span><br><span class="line">                <span class="keyword">break</span>;</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        <span class="comment">// some code goes here</span></span><br><span class="line">        <span class="keyword">return</span> ret;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">private</span> <span class="keyword">double</span> <span class="title">computeLessOrEqual</span><span class="params">(Predicate.Op op, <span class="keyword">int</span> v)</span> </span>&#123;</span><br><span class="line">        <span class="keyword">double</span> ret = -<span class="number">1.0</span>;</span><br><span class="line">        <span class="keyword">int</span> index = getIndex(v);</span><br><span class="line">        Bucket bucket = innerBuckets.get(index);</span><br><span class="line">        <span class="keyword">if</span> (v &lt; min) &#123;</span><br><span class="line">            <span class="keyword">return</span> <span class="number">0.0</span>;</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">double</span> range = v - bucket.getLeft();</span><br><span class="line">        <span class="keyword">if</span> (v &gt; max) &#123;</span><br><span class="line">            ret = (<span class="keyword">double</span>) bucket.getHeight() / totalNum;</span><br><span class="line">        &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">            <span class="keyword">if</span> (op == Predicate.Op.LESS_THAN_OR_EQ) &#123;</span><br><span class="line">                range += <span class="number">1</span>;</span><br><span class="line">            &#125;</span><br><span class="line">            ret = range / bucket.getWidth() * (bucket.getHeight()) / bucket.getWidth() / totalNum;</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">for</span> (<span class="keyword">int</span> i = <span class="number">0</span>; i &lt; index; i++) &#123;</span><br><span class="line">            ret += (<span class="keyword">double</span>) innerBuckets.get(i).getHeight()/totalNum;</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">return</span> ret;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">private</span> <span class="keyword">double</span> <span class="title">computeGreateOrEqual</span><span class="params">(Predicate.Op op, <span class="keyword">int</span> v)</span> </span>&#123;</span><br><span class="line">        <span class="keyword">double</span> ret = -<span class="number">1.0</span>;</span><br><span class="line">        <span class="keyword">int</span> index = getIndex(v);</span><br><span class="line">        Bucket bucket = innerBuckets.get(index);</span><br><span class="line">        <span class="keyword">if</span> (v &gt; max) &#123;</span><br><span class="line">            <span class="keyword">return</span> <span class="number">0.0</span>;</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">double</span> range = bucket.getRight() - v;</span><br><span class="line">        <span class="keyword">if</span> (v &lt; min) &#123;</span><br><span class="line">            ret = (<span class="keyword">double</span>) bucket.getHeight() / totalNum;</span><br><span class="line">        &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">            <span class="keyword">if</span> (op == Predicate.Op.GREATER_THAN_OR_EQ) &#123;</span><br><span class="line">                range += <span class="number">1</span>;</span><br><span class="line">            &#125;</span><br><span class="line">            ret = range / bucket.getWidth() * (bucket.getHeight()) / bucket.getWidth() / totalNum;</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">for</span> (<span class="keyword">int</span> i = index + <span class="number">1</span>; i &lt; bucketNum; i++) &#123;</span><br><span class="line">            ret += (<span class="keyword">double</span>) innerBuckets.get(i).getHeight()/totalNum;</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">return</span> ret;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">/**</span></span><br><span class="line"><span class="comment">     * <span class="doctag">@return</span> the average selectivity of this histogram.</span></span><br><span class="line"><span class="comment">     * &lt;p&gt;</span></span><br><span class="line"><span class="comment">     * This is not an indispensable method to implement the basic</span></span><br><span class="line"><span class="comment">     * join optimization. It may be needed if you want to</span></span><br><span class="line"><span class="comment">     * implement a more efficient optimization</span></span><br><span class="line"><span class="comment">     */</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">double</span> <span class="title">avgSelectivity</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        <span class="comment">// some code goes here</span></span><br><span class="line">        <span class="keyword">return</span> <span class="number">1.0</span>;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">/**</span></span><br><span class="line"><span class="comment">     * <span class="doctag">@return</span> A string describing this histogram, for debugging purposes</span></span><br><span class="line"><span class="comment">     */</span></span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> String <span class="title">toString</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        <span class="keyword">return</span> <span class="string">&quot;IntHistogram&#123;&quot;</span> +</span><br><span class="line">            <span class="string">&quot;innerBuckets=&quot;</span> + innerBuckets +</span><br><span class="line">            <span class="string">&quot;, min=&quot;</span> + min +</span><br><span class="line">            <span class="string">&quot;, max=&quot;</span> + max +</span><br><span class="line">            <span class="string">&quot;, bucketNum=&quot;</span> + bucketNum +</span><br><span class="line">            <span class="string">&quot;, width=&quot;</span> + width +</span><br><span class="line">            <span class="string">&#x27;&#125;&#x27;</span>;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">    <span class="class"><span class="keyword">class</span> <span class="title">Bucket</span> </span>&#123;</span><br><span class="line">        <span class="keyword">private</span> <span class="keyword">int</span> height = <span class="number">0</span>;</span><br><span class="line">        <span class="keyword">private</span> <span class="keyword">int</span> right = <span class="number">0</span>;</span><br><span class="line">        <span class="keyword">private</span> <span class="keyword">int</span> left = <span class="number">0</span>;</span><br><span class="line">        <span class="keyword">private</span> <span class="keyword">int</span> width = <span class="number">0</span>;</span><br><span class="line"></span><br><span class="line">        <span class="function"><span class="keyword">public</span> <span class="keyword">int</span> <span class="title">getHeight</span><span class="params">()</span> </span>&#123;</span><br><span class="line">            <span class="keyword">return</span> height;</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">setHeight</span><span class="params">(<span class="keyword">int</span> height)</span> </span>&#123;</span><br><span class="line">            <span class="keyword">this</span>.height = height;</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        <span class="function"><span class="keyword">public</span> <span class="keyword">int</span> <span class="title">getRight</span><span class="params">()</span> </span>&#123;</span><br><span class="line">            <span class="keyword">return</span> right;</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">setRight</span><span class="params">(<span class="keyword">int</span> right)</span> </span>&#123;</span><br><span class="line">            <span class="keyword">this</span>.right = right;</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        <span class="function"><span class="keyword">public</span> <span class="keyword">int</span> <span class="title">getLeft</span><span class="params">()</span> </span>&#123;</span><br><span class="line">            <span class="keyword">return</span> left;</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">setLeft</span><span class="params">(<span class="keyword">int</span> left)</span> </span>&#123;</span><br><span class="line">            <span class="keyword">this</span>.left = left;</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">addHeight</span><span class="params">()</span> </span>&#123;</span><br><span class="line">            <span class="keyword">this</span>.height++;</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        <span class="function"><span class="keyword">public</span> <span class="keyword">int</span> <span class="title">getWidth</span><span class="params">()</span> </span>&#123;</span><br><span class="line">            <span class="keyword">return</span> width;</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">setWidth</span><span class="params">(<span class="keyword">int</span> width)</span> </span>&#123;</span><br><span class="line">            <span class="keyword">this</span>.width = width;</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        <span class="meta">@Override</span></span><br><span class="line">        <span class="function"><span class="keyword">public</span> String <span class="title">toString</span><span class="params">()</span> </span>&#123;</span><br><span class="line">            <span class="keyword">return</span> <span class="string">&quot;Bucket&#123;&quot;</span> +</span><br><span class="line">                <span class="string">&quot;height=&quot;</span> + height +</span><br><span class="line">                <span class="string">&quot;, right=&quot;</span> + right +</span><br><span class="line">                <span class="string">&quot;, left=&quot;</span> + left +</span><br><span class="line">                <span class="string">&quot;, width=&quot;</span> + width +</span><br><span class="line">                <span class="string">&#x27;&#125;&#x27;</span>;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+<h3 id="TableStats"><a href="#TableStats" class="headerlink" title="TableStats"></a>TableStats</h3><p>统计一张表的统计信息，主要是包含每列的直方图信息。</p>
+<h3 id="Join-Cardinality"><a href="#Join-Cardinality" class="headerlink" title="Join Cardinality"></a>Join Cardinality</h3><ol>
+<li>等于join，其中一个表是primary key，那join的cardinality另外一个表的join字段的基数<ol>
+<li>为什么呢？</li>
+<li>举例来说，axb，其中a的join字段是primary key，因为b的每条数据只会跟a的一条数据相等，因此join后，整个表的基数就是b的基数</li>
+</ol>
+</li>
+<li>等于join，但是join字段在两张表里都不是primary key<ol>
+<li>可大可小，就用启发式的方式来估算，以两表最大的基数作为join后的基数</li>
+</ol>
+</li>
+<li>非等于join<ol>
+<li>也是可大可小，启发式的方式来估算，以两表的笛卡尔积的30%作为join后的基数</li>
+</ol>
+</li>
+</ol>
+<h3 id="Join-Ordering"><a href="#Join-Ordering" class="headerlink" title="Join Ordering"></a>Join Ordering</h3><p>对多个表join进行排序，大概思路是动态规划的方式来构建左深树的方式。</p>
+<ol>
+<li>先求单个表的基数</li>
+<li>再求每两个表的join后的代价估算，对于每个组合求出最优的plan（join序）</li>
+<li>一直找到所有表的最优join序</li>
+</ol>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line">1. j &#x3D; set of join nodes</span><br><span class="line">2. for (i in 1...|j|):  &#x2F;&#x2F; First find best plan for single join, then for two joins, etc. </span><br><span class="line">3.     for s in &#123;all length i subsets of j&#125; &#x2F;&#x2F; Looking at a concrete subset of joins</span><br><span class="line">4.       bestPlan &#x3D; &#123;&#125;  &#x2F;&#x2F; We want to find the best plan for this concrete subset </span><br><span class="line">5.       for s&#39; in &#123;all length i-1 subsets of s&#125; </span><br><span class="line">6.            subplan &#x3D; optjoin(s&#39;)  &#x2F;&#x2F; Look-up in the cache the best query plan for s but with one relation missing</span><br><span class="line">7.            plan &#x3D; best way to join (s-s&#39;) to subplan &#x2F;&#x2F; Now find the best plan to extend s&#39; by one join to get s</span><br><span class="line">8.            if (cost(plan) &lt; cost(bestPlan))</span><br><span class="line">9.               bestPlan &#x3D; plan &#x2F;&#x2F; Update the best plan for computing s</span><br><span class="line">10.      optjoin(s) &#x3D; bestPlan</span><br><span class="line">11. return optjoin(j)</span><br></pre></td></tr></table></figure>
+<h1 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h1><ol>
+<li>以System R的优化器方式作为查询优化器</li>
+<li>join排序按动态规划的方式来检索，复杂度还是有些高，对于join比较少的还可以接受</li>
+<li>使用直方图来统计每个字段的信息</li>
+<li>使用启发式的算法来估算join后的基数</li>
+</ol>
+<h1 id="参考"><a href="#参考" class="headerlink" title="参考"></a>参考</h1><ol>
+<li><a target="_blank" rel="noopener" href="https://zhuanlan.zhihu.com/p/40478975">SQL优化器原理——查询优化器综述</a></li>
+<li><a target="_blank" rel="noopener" href="http://accelazh.github.io/images/query-optimizer-volcano-cascades.pdf">级联火山口：数据库查询优化器初探</a></li>
+<li><a target="_blank" rel="noopener" href="https://zhuanlan.zhihu.com/p/73545345">Cascades Optimizer</a></li>
+<li><a target="_blank" rel="noopener" href="https://www.icodebang.com/article/277596">深入解析分布式数据库的 SQL 引擎优化</a></li>
+<li><a target="_blank" rel="noopener" href="https://blog.csdn.net/Night_ZW/article/details/108359927">【数据库内核】物理计算引擎Push模型之编译执行</a></li>
+<li><a target="_blank" rel="noopener" href="https://sites.google.com/site/cs186fall2013/homeworks/proj3">CS186 Project 3: Query Optimization</a></li>
+</ol>
+<!-- flag of hidden posts -->
     </div>
 
     
