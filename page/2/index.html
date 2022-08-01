@@ -167,7 +167,7 @@
       <div class="site-state-item site-state-posts">
           <a href="/archives/">
         
-          <span class="site-state-item-count">22</span>
+          <span class="site-state-item-count">27</span>
           <span class="site-state-item-name">日志</span>
         </a>
       </div>
@@ -180,7 +180,7 @@
       <div class="site-state-item site-state-tags">
             <a href="/tags/">
           
-        <span class="site-state-item-count">22</span>
+        <span class="site-state-item-count">24</span>
         <span class="site-state-item-name">标签</span></a>
       </div>
   </nav>
@@ -209,6 +209,603 @@
 
 
     <div class="main-inner index posts-expand">
+
+    
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="http://example.com/2021/07/11/SQLite%E4%BA%8B%E5%8A%A1%E7%AE%A1%E7%90%86/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="Jason Chao">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="我住8楼">
+    </span>
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">
+          <a href="/2021/07/11/SQLite%E4%BA%8B%E5%8A%A1%E7%AE%A1%E7%90%86/" class="post-title-link" itemprop="url">SQLite事务管理</a>
+        </h2>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">发表于</span>
+
+      <time title="创建时间：2021-07-11 20:46:49" itemprop="dateCreated datePublished" datetime="2021-07-11T20:46:49+08:00">2021-07-11</time>
+    </span>
+      <span class="post-meta-item">
+        <span class="post-meta-item-icon">
+          <i class="far fa-calendar-check"></i>
+        </span>
+        <span class="post-meta-item-text">更新于</span>
+        <time title="修改时间：2021-07-29 23:14:10" itemprop="dateModified" datetime="2021-07-29T23:14:10+08:00">2021-07-29</time>
+      </span>
+
+  
+</div>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+          <h1 id="事务类型"><a href="#事务类型" class="headerlink" title="事务类型"></a>事务类型</h1><h2 id="系统事务"><a href="#系统事务" class="headerlink" title="系统事务"></a>系统事务</h2><h3 id="系统事务-1"><a href="#系统事务-1" class="headerlink" title="系统事务"></a>系统事务</h3><p>每条语句都会被包装成一个事务的形式进行执行。一个应用可以在一个数据库链接中并发执行多个查询事务，但是只能执行一个写入事务。</p>
+<h3 id="用户事务"><a href="#用户事务" class="headerlink" title="用户事务"></a>用户事务</h3><p>默认系统事务时自动提交模式，即针对每条语句都会有事务包装起来执行。对于写入比较频繁的应用来说性能非常不友好。因为一次写事务提交都涉及到重新打开、写入和关闭日志文件的操作。并且，这还有并发控制的开销，因为应用需要为每个语句执行重新获取和释放锁。</p>
+<p>通过将多条语句组合成一个用户事务，可以降低这些性能开销。</p>
+<h3 id="子事务"><a href="#子事务" class="headerlink" title="子事务"></a>子事务</h3><p>在一个用户事务中，连续的非查询操作可以作为一个子事务执行。而查询操作则是单独的子事务操作。如果一个用户事务里有几个联系非查询操作，它们会作为一个子事务来执行。如果其中某个执行失败了，数据库会恢复到这个操作之前的状态，然后接着执行下一个操作。</p>
+<p>当前有五种处理违反约束的更新后的回滚策略：</p>
+<ol>
+<li>回滚，中止当前子事务</li>
+<li>中止当前语句，但是当前子事务的其他语句还是继续执行，这个也是默认策略</li>
+<li>失败，接受当前语句执行失败后的改动，并停止当前语句更进一步的改动。整个子事务继续执行。</li>
+<li>忽略，当前语句更新的有问题的行的更新被忽略，整个子事务继续执行。</li>
+<li>替代，违反约束的行直接被移除，子事务继续执行。</li>
+</ol>
+<h2 id="锁管理"><a href="#锁管理" class="headerlink" title="锁管理"></a>锁管理</h2><p>目前只有数据库级别的锁。</p>
+<h3 id="锁类型"><a href="#锁类型" class="headerlink" title="锁类型"></a>锁类型</h3><ol>
+<li>NOLOCK<ol>
+<li>事务初始状态就是无锁的，不能读写数据库</li>
+</ol>
+</li>
+<li>SHARED<ol>
+<li>允许读。任意数量的事务都可以获得共享锁。只有当所有的共享锁被释放了，才能执行写操作。</li>
+</ol>
+</li>
+<li>EXCLUSIVE<ol>
+<li>写锁。一个数据库只有一个写锁。如果存在写锁，其他的锁都不能存在。</li>
+</ol>
+</li>
+<li>RESERVED<ol>
+<li>预留锁。这个事务过会儿要执行写，不过当前只是读。其他的事务还是可以继续加shared锁。</li>
+</ol>
+</li>
+<li>PENGDING<ol>
+<li>阻塞锁。这个事务马上要执行写，此时就是在等所有的shared锁被释放，然后转成exclusive锁。其他的事务不能再加锁了。</li>
+</ol>
+</li>
+</ol>
+<p><img src="C:/Users/94121/AppData/Local/Temp/企业微信截图_1627450277474.png" alt="img"></p>
+<h3 id="锁获取顺序"><a href="#锁获取顺序" class="headerlink" title="锁获取顺序"></a>锁获取顺序</h3><p><img src="C:/Users/94121/AppData/Local/Temp/企业微信截图_16274509232827.png" alt="img"></p>
+<p>正常获取锁的顺序是上图黑色粗线的顺序。</p>
+<p>从Shared到Pending，只有一种情况会发生：当一个事务在读时，需要进行日志回滚。</p>
+<p>这些锁对用户不会暴露，全都是lockmanager自己进行锁获取和释放。</p>
+<h3 id="死锁和饥饿"><a href="#死锁和饥饿" class="headerlink" title="死锁和饥饿"></a>死锁和饥饿</h3><p>当两个事务同时获得shared锁，然后都要去获取Reserved锁时，其中一个成功，但是他要等待别的事务释放shared 锁才能变成exclusive锁。此时就产生死锁。解决办法就是在事务内多次尝试获得锁，如果超过指定次数锁还未获得，就释放掉自己的锁。</p>
+<p>但是这样还会有一个饥饿的问题，就是多个事务一直并发获得锁，然后都尝试多次失败，再回滚事务，导致一直没法进行下去。也可以称为活锁。</p>
+<h3 id="锁实现"><a href="#锁实现" class="headerlink" title="锁实现"></a>锁实现</h3><p>如下图所示，sqlite使用不同区域来加不同的锁的方式实现四种锁。</p>
+<p>linux只支持两种文件锁：读锁和写锁。写锁是排他的。但是锁可以锁定文件的某段区域，因此一个文件可能会同时存在多把锁，只要它们区域不一样。</p>
+<p>sqlite锁的实现方式如下：</p>
+<ol>
+<li>shared锁，通过在指定区域加读锁来实现</li>
+<li>exclusive锁，通过给指定区域的所有字节加上写锁。</li>
+<li>reserved锁，通过在某个指定的字节里加上写锁来实现的。</li>
+<li>pending锁，也在另一个指定的字节里加上写锁来实现的。</li>
+</ol>
+<p>如下图所示：</p>
+<p>锁页的起始位置定义在PENDING_BYTE里。第一个字节是pending锁字节，第二个字节是reserve锁字节。第三个开始接下来510个字节是shared锁字节。</p>
+<p><img src="C:/Users/94121/AppData/Local/Temp/企业微信截图_1627484504367.png" alt="img"></p>
+<h4 id="sqlite锁映射成文件锁"><a href="#sqlite锁映射成文件锁" class="headerlink" title="sqlite锁映射成文件锁"></a>sqlite锁映射成文件锁</h4><ol>
+<li>一个进程如果要获得shared锁，先获取pending byte的读锁（这个主要是为了确保没有别的进程获取到pending锁了），如果获取成功，说明从shared first开始的都是读锁。这个pending的读锁最终会被释放掉。</li>
+<li>一个进程只有在获得shared锁之后才能获得reserved锁，在reserved byte加上写锁即可。但是它本身的shared锁不会被释放，这个为了防止别的进程也获得exclude锁。（这个是为何？不加shared锁，就有可能别的进程也能获得exclusive锁？）</li>
+<li>一个进程只有在获得shared锁之后才能获得pending锁，在pending byte加上写锁即可。但是它本身的shared锁不会被释放，这个为了防止别的进程也获得reserved锁。（这个是为何？不加shared锁，就有可能别的进程也能获得exclusive锁？因为获取exclusive锁需要其他进程的shared锁都释放掉，假设有没有释放的就不能加上exclusive锁）</li>
+<li>一个进程只有在获得pending锁之后才能获得exclusive锁。为了获得exclusive锁，需要在所有的shared byte上加上写锁即可。</li>
+</ol>
+<p><img src="C:/Users/94121/AppData/Local/Temp/企业微信截图_16274868398561.png" alt="img"></p>
+<h4 id="工程问题"><a href="#工程问题" class="headerlink" title="工程问题"></a>工程问题</h4><ol>
+<li>锁映射问题，一个进程只能获得一个文件的一把锁，如果多线程，那就sqlite自己模拟出多个锁对象unixFile，但是共享一个unixInodeInfo对象，这个对象才是这个进程对文件的linux锁。</li>
+</ol>
+<p><img src="C:/Users/94121/AppData/Local/Temp/企业微信截图_16274878971206.png" alt="img"></p>
+
+      
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+        <div class="post-eof"></div>
+      
+    </footer>
+  </article>
+</div>
+
+
+
+
+    
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="http://example.com/2021/07/06/sqlite%E6%96%87%E4%BB%B6%E6%8E%A2%E7%B4%A2/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="Jason Chao">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="我住8楼">
+    </span>
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">
+          <a href="/2021/07/06/sqlite%E6%96%87%E4%BB%B6%E6%8E%A2%E7%B4%A2/" class="post-title-link" itemprop="url">sqlite文件探索</a>
+        </h2>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">发表于</span>
+
+      <time title="创建时间：2021-07-06 22:18:12" itemprop="dateCreated datePublished" datetime="2021-07-06T22:18:12+08:00">2021-07-06</time>
+    </span>
+      <span class="post-meta-item">
+        <span class="post-meta-item-icon">
+          <i class="far fa-calendar-check"></i>
+        </span>
+        <span class="post-meta-item-text">更新于</span>
+        <time title="修改时间：2021-07-11 20:45:56" itemprop="dateModified" datetime="2021-07-11T20:45:56+08:00">2021-07-11</time>
+      </span>
+
+  
+</div>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+          <h1 id="存储组织"><a href="#存储组织" class="headerlink" title="存储组织"></a>存储组织</h1><h2 id="数据命名规则"><a href="#数据命名规则" class="headerlink" title="数据命名规则"></a>数据命名规则</h2><p>应用程序通过向sqlite3_open传入数据库文件名来打开数据库。文件名可以是相对路径也可以是绝对路径。SQLite支持常见的文件系统支持的文件名，但是有两条例外：</p>
+<ul>
+<li><p> 如果文件名是c语言NULL指针（例如：0）或者空字符串，或者只包含空字符的字符串，SQLite打开一个新的临时文件</p>
+</li>
+<li><p>如果文件名是”:memory:”，SQLite创建一个只在内存中存在的数据库(in-memory database)</p>
+</li>
+</ul>
+<p>在这两种情况下创建的数据库文件是临时的，只要数据库关闭，文件就会消失。</p>
+<blockquote>
+<p>临时文件的作用：回滚日志、语句日志、多数据库主机日志、临时索引、vacuum命令使用的临时数据库、物化视图以及子查询</p>
+</blockquote>
+<p>在SQLite内部，数据库文件的名字不是数据库名。他们是两个不同的概念。通过使用attach命令，你可以将一个同样的数据库文件以一个不同的数据库名称连接到一个数据库连接上。你可以通过这些数据库名称对数据库文件进行操作。更多有关attach的信息请查询官网。</p>
+<p>如下图所示：每当应用程序使用sqlite3_open打开一个数据库连接，SQLite就为这个数据库连接维护一个独立的临时数据库，这个临时数据库被命名为temp。temp数据库存储临时实体，例如：表和索引。（应用程序可以在SQL语句中使用main或者temp，例如：select * from temp.table1将返回temp数据库的table1的所有行，而不是从main数据库返回这些信息。Temp数据库的目录名是sqlite_temp_master）临时实体只对本数据库连接是可见的（而不是指向同一个文件的，同一个线程、进程或者其他进程中的数据库连接）。SQLite将temp数据库存储在一个单独的临时文件中，而不是存储在main数据库文件中。当应用程序关闭数据库连接的时候，temp文件将被删除。</p>
+<p><em>临时数据库用来干什么的呢？为什么关闭后要删除？只是为了方便用户操作一些临时信息，而不用再attach一个临时数据库</em></p>
+<img src="/2021/07/06/sqlite%E6%96%87%E4%BB%B6%E6%8E%A2%E7%B4%A2/%E4%BC%81%E4%B8%9A%E5%BE%AE%E4%BF%A1%E6%88%AA%E5%9B%BE_16255823128073.png" class="" title="img">
+
+<h2 id="数据库文件格式"><a href="#数据库文件格式" class="headerlink" title="数据库文件格式"></a>数据库文件格式</h2><p>如下图所示：数据库文件划分为多个固定大小的页</p>
+<img src="/2021/07/06/sqlite%E6%96%87%E4%BB%B6%E6%8E%A2%E7%B4%A2/%E4%BC%81%E4%B8%9A%E5%BE%AE%E4%BF%A1%E6%88%AA%E5%9B%BE_16256677282275.png" class="" title="img">
+
+<p>默认页大小是1024B，可以在编译的时候指定默认值。大小范围是512~65536，不过页的大小必须得是2的幂次方。也可以在创建表之前通过一个参数page_size来制定页大小。</p>
+<h3 id="页类型"><a href="#页类型" class="headerlink" title="页类型"></a>页类型</h3><ul>
+<li>free：未使用的页</li>
+<li>tree<ul>
+<li>leaf, B+树的叶子节点会存放数据，如果一个页存放不下，剩下部分会存到溢出页中</li>
+<li>internal，B+树的内部节点存放的是下一层节点的索引，B树则是索引和数据都会存放，B树一般用来做索引，B+树则是存数据</li>
+<li>overflow</li>
+</ul>
+</li>
+<li>pointer-map：</li>
+<li>lock-byte</li>
+</ul>
+<h3 id="Page-1"><a href="#Page-1" class="headerlink" title="Page 1"></a>Page 1</h3><p>page 1是特殊的，一般用来存放B树根节点，以及前100字节的数据库相关属性信息</p>
+<img src="/2021/07/06/sqlite%E6%96%87%E4%BB%B6%E6%8E%A2%E7%B4%A2/%E4%BC%81%E4%B8%9A%E5%BE%AE%E4%BF%A1%E6%88%AA%E5%9B%BE_16256683475039.png" class="" title="img">
+
+<p>下面是header的内容，页被分成多个cell。</p>
+<p>其中22-24字节的意思：</p>
+<ol>
+<li>最大碎片负载（偏移量是21）指的是每页能够用于存储B/B+树内部节点的空间。255表示100%。默认值是64（25%），这个值用来限定cell的最大值，即每个节点最少有4个cell。如果cell的大小超过允许的最大值，SQLite就创建溢出页，把尽量多的byte移动到溢出页中，但是不能在分割的过程中导致cell的大小小于最小embedded payload(偏移量是22，默认值是32，即12.5%)。</li>
+<li>叶子页最小负载（偏移量23）和最小embedded payload相似，但是是针对B+树的叶子页来说的。（默认值是32,12.5%）。叶子页的最大负载百分比永远是100%，文件头中并没有保存该值的变量。</li>
+</ol>
+<img src="/2021/07/06/sqlite%E6%96%87%E4%BB%B6%E6%8E%A2%E7%B4%A2/%E4%BC%81%E4%B8%9A%E5%BE%AE%E4%BF%A1%E6%88%AA%E5%9B%BE_16256691984879.png" class="" title="img">
+
+
+
+<h3 id="Incremental-Vacuum-amp-Autovacuum"><a href="#Incremental-Vacuum-amp-Autovacuum" class="headerlink" title="Incremental Vacuum &amp; Autovacuum"></a><strong>Incremental Vacuum &amp; Autovacuum</strong></h3><p>vacuum命令可以清空自由页链表。该命令在内存中建立一个数据库的副本（这个副本是通过INSERT INTO…SELECT * FROM…命令实现的）。然后在事务系统的保护下，用内存中的副本重写原始数据库。</p>
+<h3 id="free-list"><a href="#free-list" class="headerlink" title="free list"></a>free list</h3><p>自由页链表（偏移量32）存储未使用的页。自由页页数存储在偏移量36。在自由页链表中页有两种类型：主干页和叶子页。文件头指出了自由页链表中的第一个主干页。每一个主干页里含有指向许多叶子页的指针。</p>
+<img src="/2021/07/06/sqlite%E6%96%87%E4%BB%B6%E6%8E%A2%E7%B4%A2/%E4%BC%81%E4%B8%9A%E5%BE%AE%E4%BF%A1%E6%88%AA%E5%9B%BE_16256704019401.png" class="" title="img">
+
+<p>主干页的格式如下所示：</p>
+<ul>
+<li><p>下一个主干页的页号（4bytes）</p>
+</li>
+<li><p>本页中含有的叶子页指针个数（4bytes）</p>
+</li>
+<li><p>0或者更多4bytes叶子页页号</p>
+</li>
+</ul>
+<p>当一个页变为非激活态，SQLite将该页添加到自由页链表中，并不会把页释放给本地文件系统。当你向数据库中添加新的数据的时候，SQLite从自由页链表中取出一页用来存储用户添加的数据。如果自由页链表是空的，SQLite向本地文件系统申请新的页，把新页附加到数据库文件上。</p>
+<h2 id="日志文件格式"><a href="#日志文件格式" class="headerlink" title="日志文件格式"></a>日志文件格式</h2><p>SQLite最新的支持wal日志，后面会介绍。下面是一些旧的日志格式设计。</p>
+<h3 id="回滚日志"><a href="#回滚日志" class="headerlink" title="回滚日志"></a>回滚日志</h3><p>回滚日志跟数据库文件在同一个目录下，每次写事务开始时创建，事务完成后就被删除。它的名字是数据库名字-journal。</p>
+<h4 id="日志整体结构"><a href="#日志整体结构" class="headerlink" title="日志整体结构"></a>日志整体结构</h4><p>如下图所示，是回滚日志的结构。日志会被分成多个日志段，每个日志段会有一个头部。</p>
+<img src="/2021/07/06/sqlite%E6%96%87%E4%BB%B6%E6%8E%A2%E7%B4%A2/%E4%BC%81%E4%B8%9A%E5%BE%AE%E4%BF%A1%E6%88%AA%E5%9B%BE_16257554339707.png" class="" title="img">
+
+<h4 id="日志段header结构"><a href="#日志段header结构" class="headerlink" title="日志段header结构"></a>日志段header结构</h4><img src="/2021/07/06/sqlite%E6%96%87%E4%BB%B6%E6%8E%A2%E7%B4%A2/%E4%BC%81%E4%B8%9A%E5%BE%AE%E4%BF%A1%E6%88%AA%E5%9B%BE_16257553541447.png" class="" title="img">
+
+<p>下面是各个字段的解释。</p>
+<blockquote>
+<p> 其中需要说明的是第16字节开始的4个字节，表示的是当前日志文件创建时数据库中含有的页个数。</p>
+</blockquote>
+<img src="/2021/07/06/sqlite%E6%96%87%E4%BB%B6%E6%8E%A2%E7%B4%A2/%E4%BC%81%E4%B8%9A%E5%BE%AE%E4%BF%A1%E6%88%AA%E5%9B%BE_16257556265152.png" class="" title="img">
+
+<h4 id="日志记录结构"><a href="#日志记录结构" class="headerlink" title="日志记录结构"></a>日志记录结构</h4><img src="/2021/07/06/sqlite%E6%96%87%E4%BB%B6%E6%8E%A2%E7%B4%A2/image-20210710224302053.png" class="" title="image-20210710224302053">
+
+<p>需要说明的是校验和的位置的安排是为了简单快速的检测到大概率出现的日志损坏问题。</p>
+<ol>
+<li>因为如果一条日志损坏，大概率是因为掉电导致的。而写入一般都是线性写入，因此只会出现一条日志的末尾或者中间是有问题，而不会出现两端没有问题，只有中间出问题的情况。<ol>
+<li>这里意思是checksum如果放在前面，那page number和checksum可能是对的，但是后面的data page image则可能发生了变化。但是最后校验的时候不就知道有问题了么？</li>
+<li><strong>可能data page image没写成功，但是checksum还是跟原来一样。但是如果把checksum放到最后，如果data page image没有写成功，checksum肯定也没写成功，那不可能出现成功的校验？</strong></li>
+</ol>
+</li>
+<li>另外，检验和校验的东西包括page number和中间的数据，还把日志段的头部那个随机数作为key，这样能尽量防止垃圾数据被认为是有效数据的概率。因为垃圾数据一般是旧的未删除的日志文件里的，每次新的日志段都会产生新的随机数，因此加上这个，能降低检验和一致，但是数据其实不一致的问题。</li>
+</ol>
+<h3 id="语句声明日志"><a href="#语句声明日志" class="headerlink" title="语句声明日志"></a>语句声明日志</h3><p>用来支持语句中止功能的。当有语句执行出错时，就需要语句声明日志来把数据恢复到正常的状态。它实际上是一个临时的回滚日志。</p>
+<h3 id="多数据库事务日志"><a href="#多数据库事务日志" class="headerlink" title="多数据库事务日志"></a>多数据库事务日志</h3><p>跨数据库事务时，因为每个数据库都有自己的回滚日志，因此跨数据库事务非原子的。为了做到原子，就支持一种多数据库事务日志，这种日志只包含子事务的回滚日志文件路径。跨数据库事务文件只有在要提交事务时才创建，如果事务中止，不会创建。</p>
+<p>如下图所示，每个子事务日志也包含一条跨数据库事务文件的路径记录。这个记录是在事务提交的时候append进去的。</p>
+<img src="/2021/07/06/sqlite%E6%96%87%E4%BB%B6%E6%8E%A2%E7%B4%A2/image-20210711145809505.png" class="" title="image-20210711145809505">
+
+<h1 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h1><ol>
+<li>SQLite的数据都存放在一个文件中，一个数据库文件可以理解为页的数组，可以伸缩。页被分为四类：空闲、树、锁字节、指针map。其中树页又可以细分为三类：中间页，叶子页，溢出页。所有的页中第一页是比较特殊的，它作为所有其他的页的根。</li>
+<li>SQLite支持三种过时的日志类型：回滚，语句声明，多数据库事务。回滚日志存放多个日志段，每个日志段由一个日志段头和多条日志记录组成。日志记录则由页个数，旧页数据，校验和组成。语句声明日志则记录单个插入、更新、删除操作的执行影响的回滚日志。跨数据库事务日志存放的是所有参与单个事务的子回滚日志的路径。</li>
+</ol>
+<h1 id="参考"><a href="#参考" class="headerlink" title="参考"></a>参考</h1><ol>
+<li><a target="_blank" rel="noopener" href="https://www.sqlite.org/fileformat.html">Database File Format (sqlite.org)</a></li>
+<li>SQLite Database System Design and Implementation</li>
+<li>inside sqlite</li>
+</ol>
+
+      
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+        <div class="post-eof"></div>
+      
+    </footer>
+  </article>
+</div>
+
+
+
+
+    
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="http://example.com/2021/07/05/sqlite%E8%99%9A%E6%8B%9F%E6%9C%BAvdbe%E5%88%9D%E8%A7%88-01/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="Jason Chao">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="我住8楼">
+    </span>
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">
+          <a href="/2021/07/05/sqlite%E8%99%9A%E6%8B%9F%E6%9C%BAvdbe%E5%88%9D%E8%A7%88-01/" class="post-title-link" itemprop="url">sqlite虚拟机vdbe初览-01</a>
+        </h2>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">发表于</span>
+      
+
+      <time title="创建时间：2021-07-05 22:28:35 / 修改时间：22:40:35" itemprop="dateCreated datePublished" datetime="2021-07-05T22:28:35+08:00">2021-07-05</time>
+    </span>
+
+  
+</div>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+          <h1 id="Sqlite虚拟机"><a href="#Sqlite虚拟机" class="headerlink" title="Sqlite虚拟机"></a>Sqlite虚拟机</h1><p>数据结构</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br></pre></td><td class="code"><pre><span class="line">struct VdbeOp &#123;</span><br><span class="line">  u8 opcode;          &#x2F;* What operation to perform *&#x2F;</span><br><span class="line">  signed char p4type; &#x2F;* One of the P4_xxx constants for p4 *&#x2F;</span><br><span class="line">  u16 p5;             &#x2F;* Fifth parameter is an unsigned 16-bit integer *&#x2F;</span><br><span class="line">  int p1;             &#x2F;* First operand *&#x2F;</span><br><span class="line">  int p2;             &#x2F;* Second parameter (often the jump destination) *&#x2F;</span><br><span class="line">  int p3;             &#x2F;* The third parameter *&#x2F;</span><br><span class="line">  union p4union &#123;     &#x2F;* fourth parameter *&#x2F;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">struct VdbeSorter &#123;</span><br><span class="line">  int mnPmaSize;                  &#x2F;* Minimum PMA size, in bytes *&#x2F;</span><br><span class="line">  int mxPmaSize;                  &#x2F;* Maximum PMA size, in bytes.  0&#x3D;&#x3D;no limit *&#x2F;</span><br><span class="line">  int mxKeysize;                  &#x2F;* Largest serialized key seen so far *&#x2F;</span><br><span class="line">  int pgsz;                       &#x2F;* Main database page size *&#x2F;</span><br><span class="line">  PmaReader *pReader;             &#x2F;* Readr data from here after Rewind() *&#x2F;</span><br><span class="line">  MergeEngine *pMerger;           &#x2F;* Or here, if bUseThreads&#x3D;&#x3D;0 *&#x2F;</span><br><span class="line">  sqlite3 *db;                    &#x2F;* Database connection *&#x2F;</span><br><span class="line">  KeyInfo *pKeyInfo;              &#x2F;* How to compare records *&#x2F;</span><br><span class="line">  UnpackedRecord *pUnpacked;      &#x2F;* Used by VdbeSorterCompare() *&#x2F;</span><br><span class="line">  SorterList list;                &#x2F;* List of in-memory records *&#x2F;</span><br><span class="line">  int iMemory;                    &#x2F;* Offset of free space in list.aMemory *&#x2F;</span><br><span class="line">  int nMemory;                    &#x2F;* Size of list.aMemory allocation in bytes *&#x2F;</span><br><span class="line">  u8 bUsePMA;                     &#x2F;* True if one or more PMAs created *&#x2F;</span><br><span class="line">  u8 bUseThreads;                 &#x2F;* True to use background threads *&#x2F;</span><br><span class="line">  u8 iPrev;                       &#x2F;* Previous thread used to flush PMA *&#x2F;</span><br><span class="line">  u8 nTask;                       &#x2F;* Size of aTask[] array *&#x2F;</span><br><span class="line">  u8 typeMask;</span><br><span class="line">  SortSubtask aTask[1];           &#x2F;* One or more subtasks *&#x2F;</span><br><span class="line">&#125;;</span><br></pre></td></tr></table></figure>
+
+      
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+        <div class="post-eof"></div>
+      
+    </footer>
+  </article>
+</div>
+
+
+
+
+    
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="http://example.com/2021/06/25/vscode-wsl-%E8%B0%83%E8%AF%95sqlite/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="Jason Chao">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="我住8楼">
+    </span>
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">
+          <a href="/2021/06/25/vscode-wsl-%E8%B0%83%E8%AF%95sqlite/" class="post-title-link" itemprop="url">vscode+wsl 调试sqlite</a>
+        </h2>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">发表于</span>
+      
+
+      <time title="创建时间：2021-06-25 16:56:05 / 修改时间：23:06:22" itemprop="dateCreated datePublished" datetime="2021-06-25T16:56:05+08:00">2021-06-25</time>
+    </span>
+
+  
+</div>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+          <h1 id="搭建环境"><a href="#搭建环境" class="headerlink" title="搭建环境"></a>搭建环境</h1><blockquote>
+<p>环境要求：</p>
+<ol>
+<li>win10 1943 +</li>
+<li>x86</li>
+</ol>
+</blockquote>
+<h2 id="wsl-升级为wsl2"><a href="#wsl-升级为wsl2" class="headerlink" title="wsl 升级为wsl2"></a>wsl 升级为wsl2</h2><h3 id="开启linux子系统功能"><a href="#开启linux子系统功能" class="headerlink" title="开启linux子系统功能"></a>开启linux子系统功能</h3><p>以管理员身份打开powershell，在终端里执行以下命令</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">dism.exe &#x2F;online &#x2F;enable-feature &#x2F;featurename:Microsoft-Windows-Subsystem-Linux &#x2F;all &#x2F;norestart</span><br></pre></td></tr></table></figure>
+<h3 id="开启虚拟机功能"><a href="#开启虚拟机功能" class="headerlink" title="开启虚拟机功能"></a>开启虚拟机功能</h3><p>WSL2需要使用虚拟机，因此需要在系统中启动虚拟机功能。</p>
+<p>打开PowerShell，执行命令 ：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">dism.exe /online /enable-feature /featurename:VirtualMachinePlatform /all /norestart</span><br></pre></td></tr></table></figure>
+<p>然后重启系统</p>
+<h3 id="下载linux子系统内核更新包并进行安装"><a href="#下载linux子系统内核更新包并进行安装" class="headerlink" title="下载linux子系统内核更新包并进行安装"></a>下载linux子系统内核更新包并进行安装</h3><p>链接如下<a target="_blank" rel="noopener" href="https://wslstorestorage.blob.core.windows.net/wslblob/wsl_update_x64.msi">https://wslstorestorage.blob.core.windows.net/wslblob/wsl_update_x64.msi</a></p>
+<h3 id="设置WSL为版本2"><a href="#设置WSL为版本2" class="headerlink" title="设置WSL为版本2"></a>设置WSL为版本2</h3><p>打开PowerShell，执行命令 ：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">wsl --set-default-version 2</span><br></pre></td></tr></table></figure>
+<h2 id="安装ubuntu20-04"><a href="#安装ubuntu20-04" class="headerlink" title="安装ubuntu20.04"></a>安装ubuntu20.04</h2><p>在Microsoft Store中搜索ubuntu，然后点击下面红框的第一个，点击安装即可</p>
+<img src="/2021/06/25/vscode-wsl-%E8%B0%83%E8%AF%95sqlite/%E4%BC%81%E4%B8%9A%E5%BE%AE%E4%BF%A1%E6%88%AA%E5%9B%BE_16246301321799.png" class="" title="img">
+
+<p>等待数分钟安装完成后，从开始菜单里找到ubuntu图标点击运行，第一次运行需要创建一个用户和密码，如下图所示：</p>
+<img src="/2021/06/25/vscode-wsl-%E8%B0%83%E8%AF%95sqlite/ubuntuinstall.png" class="" title="Ubuntu unpacking in the Windows console">
+
+<p>最后在powershell里运行以下命令，检查下是否为版本2，如下图所示：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">wsl -l -v</span><br></pre></td></tr></table></figure>
+<img src="/2021/06/25/vscode-wsl-%E8%B0%83%E8%AF%95sqlite/%E4%BC%81%E4%B8%9A%E5%BE%AE%E4%BF%A1%E6%88%AA%E5%9B%BE_16246306952275.png" class="" title="img">
+
+<p>考虑到root账户比较好用，可以将ubuntu启动的默认用户为root</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">ubuntu config --set-user root</span><br></pre></td></tr></table></figure>
+<h2 id="安装vscode"><a href="#安装vscode" class="headerlink" title="安装vscode"></a>安装vscode</h2><p>从<a target="_blank" rel="noopener" href="https://code.visualstudio.com/Download">这里</a>下载vscode，并进行安装</p>
+<p>然后安装插件Remote - WSL</p>
+<img src="/2021/06/25/vscode-wsl-%E8%B0%83%E8%AF%95sqlite/%E4%BC%81%E4%B8%9A%E5%BE%AE%E4%BF%A1%E6%88%AA%E5%9B%BE_16246308755039.png" class="" title="img">
+
+<p>这个插件可以在win10下链接到子系统ubuntu下</p>
+<h2 id="Windows-Terminal"><a href="#Windows-Terminal" class="headerlink" title="Windows Terminal"></a>Windows Terminal</h2><p>原来的cmd不好用，建议在Microsoft Store里安装一下windows terminal，可以通过windows terminal直接终端的方式访问ubuntu子系统。如下图所示：</p>
+<img src="/2021/06/25/vscode-wsl-%E8%B0%83%E8%AF%95sqlite/%E4%BC%81%E4%B8%9A%E5%BE%AE%E4%BF%A1%E6%88%AA%E5%9B%BE_16246310732630.png" class="" title="img">
+
+<p>在这个终端里可以折腾一些好用的工具，例如ohMyZsh，vim等。也可以根据习惯设置其主题。最重要的是，可以启动tmux来管理多个终端，当要访问服务器时，tmux非常nice。完全可以当做iterm2 + tmux来使用，win10也能当做mac一般方便开发。</p>
+<h1 id="编译sqlite3"><a href="#编译sqlite3" class="headerlink" title="编译sqlite3"></a>编译sqlite3</h1><h2 id="下载源码"><a href="#下载源码" class="headerlink" title="下载源码"></a>下载源码</h2><p>从github上下载想要查看的源码，链接是<a target="_blank" rel="noopener" href="https://github.com/sqlite/sqlite/releases">Releases · sqlite/sqlite (github.com)</a>，如果访问不了，那就去官网下载。建议下载分模块的代码，而不是汇总的代码。下图中红框的就是分模块的源码。未非模块的就只有sqlite3.h和sqlite3.c，所有逻辑都放到一块了。</p>
+<img src="/2021/06/25/vscode-wsl-%E8%B0%83%E8%AF%95sqlite/%E4%BC%81%E4%B8%9A%E5%BE%AE%E4%BF%A1%E6%88%AA%E5%9B%BE_16246317134879.png" class="" title="img">
+
+<h2 id="编译安装"><a href="#编译安装" class="headerlink" title="编译安装"></a>编译安装</h2><p>ubuntu的编译比较简单：</p>
+<ol>
+<li><p>需要安装gcc， g++，gdb，执行<code> apt-get install build-essential gdb</code></p>
+</li>
+<li><p>解压sqlite.zip的代码，然后编译</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">tar xzf sqlite.tar.gz    ;#  Unpack the source tree into &quot;sqlite&quot;</span><br><span class="line">mkdir bld                ;#  Build will occur in a sibling directory</span><br><span class="line">cd bld                   ;#  Change to the build directory</span><br><span class="line">..&#x2F;sqlite&#x2F;configure  CFLAGS&#x3D;&#39;-g&#39; --enable-debug    ;#  Run the configure script</span><br><span class="line">make                     ;#  Run the makefile.</span><br><span class="line">make install             ;#  Install the sqlite3</span><br></pre></td></tr></table></figure>
+<p>需要注意的是上面的configure，需要加两个配置，都是用来要求编译的动态库带上debug信息，方便后续debug sqlite源码时使用。</p>
+</li>
+</ol>
+<p>编译时，需要使用libtool工具，因此可能需要提前安装下，执行以下命令即可：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">apt-get install automake libtool </span><br></pre></td></tr></table></figure>
+<h1 id="调试sqlite3源码"><a href="#调试sqlite3源码" class="headerlink" title="调试sqlite3源码"></a>调试sqlite3源码</h1><h2 id="vscode插件安装"><a href="#vscode插件安装" class="headerlink" title="vscode插件安装"></a>vscode插件安装</h2><p>打开vscode，先链接上ubuntu子系统，会提示你安装vscode server。</p>
+<p>然后open folder里打开sqlite的源码目录</p>
+<img src="/2021/06/25/vscode-wsl-%E8%B0%83%E8%AF%95sqlite/%E4%BC%81%E4%B8%9A%E5%BE%AE%E4%BF%A1%E6%88%AA%E5%9B%BE_16246324019401.png" class="" title="img">
+
+<p>代码如下图所示：</p>
+<p>随便查看一个c文件，会提示你安装c/c++ 插件，点击确定即可。</p>
+<img src="/2021/06/25/vscode-wsl-%E8%B0%83%E8%AF%95sqlite/%E4%BC%81%E4%B8%9A%E5%BE%AE%E4%BF%A1%E6%88%AA%E5%9B%BE_16246324903106.png" class="" title="img">
+
+
+
+<h2 id="编译调试"><a href="#编译调试" class="headerlink" title="编译调试"></a>编译调试</h2><p>在src目录下创建一个c文件，内容如下：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;stdio.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;stdlib.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;sqlite3.h&gt; </span></span></span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">static</span> <span class="keyword">int</span> <span class="title">callback</span><span class="params">(<span class="keyword">void</span> *NotUsed, <span class="keyword">int</span> argc, <span class="keyword">char</span> **argv, <span class="keyword">char</span> **azColName)</span></span>&#123;</span><br><span class="line">   <span class="keyword">int</span> i;</span><br><span class="line">   <span class="keyword">for</span>(i=<span class="number">0</span>; i&lt;argc; i++)&#123;</span><br><span class="line">      <span class="built_in">printf</span>(<span class="string">&quot;%s = %s\n&quot;</span>, azColName[i], argv[i] ? argv[i] : <span class="string">&quot;NULL&quot;</span>);</span><br><span class="line">   &#125;</span><br><span class="line">   <span class="built_in">printf</span>(<span class="string">&quot;\n&quot;</span>);</span><br><span class="line">   <span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">int</span> <span class="title">main</span><span class="params">(<span class="keyword">int</span> argc, <span class="keyword">char</span>* argv[])</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">   sqlite3 *db;</span><br><span class="line">   <span class="keyword">char</span> *zErrMsg = <span class="number">0</span>;</span><br><span class="line">   <span class="keyword">int</span>  rc;</span><br><span class="line">   <span class="keyword">char</span> *sql;</span><br><span class="line"></span><br><span class="line">   <span class="comment">/* Open database */</span></span><br><span class="line">   rc = sqlite3_open(<span class="string">&quot;test.db&quot;</span>, &amp;db);</span><br><span class="line">   <span class="keyword">if</span>( rc )&#123;</span><br><span class="line">      <span class="built_in">fprintf</span>(<span class="built_in">stderr</span>, <span class="string">&quot;Can&#x27;t open database: %s\n&quot;</span>, sqlite3_errmsg(db));</span><br><span class="line">      <span class="built_in">exit</span>(<span class="number">0</span>);</span><br><span class="line">   &#125;<span class="keyword">else</span>&#123;</span><br><span class="line">      <span class="built_in">fprintf</span>(<span class="built_in">stdout</span>, <span class="string">&quot;Opened database successfully\n&quot;</span>);</span><br><span class="line">   &#125;</span><br><span class="line"></span><br><span class="line">   <span class="comment">/* Create SQL statement */</span></span><br><span class="line">   sql = <span class="string">&quot;CREATE TABLE COMPANY(&quot;</span>  \</span><br><span class="line">         <span class="string">&quot;ID INT PRIMARY KEY     NOT NULL,&quot;</span> \</span><br><span class="line">         <span class="string">&quot;NAME           TEXT    NOT NULL,&quot;</span> \</span><br><span class="line">         <span class="string">&quot;AGE            INT     NOT NULL,&quot;</span> \</span><br><span class="line">         <span class="string">&quot;ADDRESS        CHAR(50),&quot;</span> \</span><br><span class="line">         <span class="string">&quot;SALARY         REAL );&quot;</span>;</span><br><span class="line"></span><br><span class="line">   <span class="comment">/* Execute SQL statement */</span></span><br><span class="line">   rc = sqlite3_exec(db, sql, callback, <span class="number">0</span>, &amp;zErrMsg);</span><br><span class="line">   <span class="keyword">if</span>( rc != SQLITE_OK )&#123;</span><br><span class="line">   <span class="built_in">fprintf</span>(<span class="built_in">stderr</span>, <span class="string">&quot;SQL error: %s\n&quot;</span>, zErrMsg);</span><br><span class="line">      sqlite3_free(zErrMsg);</span><br><span class="line">   &#125;<span class="keyword">else</span>&#123;</span><br><span class="line">      <span class="built_in">fprintf</span>(<span class="built_in">stdout</span>, <span class="string">&quot;Table created successfully\n&quot;</span>);</span><br><span class="line">   &#125;</span><br><span class="line">   sqlite3_close(db);</span><br><span class="line">   <span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>然后开始执行编译，快捷键是Ctrl+Shrift+B，实际上是目录的terminal-&gt;run Build Task。这个会在当前目录的.vscode下创建一个task.json文件，用来描述编译行为。注意，我们依赖sqlite3动态库，因此需要在args里添加一行”-lsqlite3”，不然会编译失败。</p>
+<img src="/2021/06/25/vscode-wsl-%E8%B0%83%E8%AF%95sqlite/%E4%BC%81%E4%B8%9A%E5%BE%AE%E4%BF%A1%E6%88%AA%E5%9B%BE_16246329215768.png" class="" title="img">
+
+<p>如下图所示：</p>
+<p>也可以设置一个断点，然后按F5，或者Run-&gt;Start Debugging来启动调试功能。</p>
+<img src="/2021/06/25/vscode-wsl-%E8%B0%83%E8%AF%95sqlite/%E4%BC%81%E4%B8%9A%E5%BE%AE%E4%BF%A1%E6%88%AA%E5%9B%BE_16246330559835.png" class="" title="img">
+
+<p>这里需要注意的是，gdb可能链接的sqlite3动态库是，而这个库是不带debug信息的，导致debug时不会进入到sqlite的代码里。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">&#x2F;lib&#x2F;x86_64-linux-gnu&#x2F;libsqlite3.so.0</span><br></pre></td></tr></table></figure>
+<p>这个也只是个软连接，指向的是</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">&#x2F;lib&#x2F;x86_64-linux-gnu&#x2F;libsqlite3.so.0.8.6</span><br></pre></td></tr></table></figure>
+<p>但是我们编译带debug信息的动态库安装的实际上是在</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">&#x2F;usr&#x2F;local&#x2F;lib&#x2F;libsqlite3.so.0.8.6</span><br></pre></td></tr></table></figure>
+<p>因此把之前的软连接删除，然后再把软连接链接到我们安装的动态库上即可</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">ln -s &#x2F;usr&#x2F;local&#x2F;lib&#x2F;libsqlite3.so.0.8.6 &#x2F;lib&#x2F;x86_64-linux-gnu&#x2F;libsqlite3.so.0</span><br></pre></td></tr></table></figure>
+<h1 id="参考"><a href="#参考" class="headerlink" title="参考"></a>参考</h1><ol>
+<li><a target="_blank" rel="noopener" href="https://docs.microsoft.com/en-us/windows/wsl/install-win10">Install WSL on Windows 10 | Microsoft Docs</a></li>
+<li><a target="_blank" rel="noopener" href="https://code.visualstudio.com/">Visual Studio Code - Code Editing. Redefined</a></li>
+<li><a target="_blank" rel="noopener" href="https://sqlite.org/src/doc/trunk/README.md">SQLite: SQLite Source Repository</a></li>
+</ol>
+
+      
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+        <div class="post-eof"></div>
+      
+    </footer>
+  </article>
+</div>
+
+
+
+
+    
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="http://example.com/2021/05/18/%E5%B7%A5%E4%B8%9A%E5%B9%B3%E5%8F%B0%E5%95%86%E4%B8%9A%E5%8C%96%E6%80%9D%E8%B7%AF/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="Jason Chao">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="我住8楼">
+    </span>
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">
+          <a href="/2021/05/18/%E5%B7%A5%E4%B8%9A%E5%B9%B3%E5%8F%B0%E5%95%86%E4%B8%9A%E5%8C%96%E6%80%9D%E8%B7%AF/" class="post-title-link" itemprop="url">工业平台商业化思路</a>
+        </h2>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">发表于</span>
+      
+
+      <time title="创建时间：2021-05-18 11:05:31 / 修改时间：11:19:25" itemprop="dateCreated datePublished" datetime="2021-05-18T11:05:31+08:00">2021-05-18</time>
+    </span>
+
+  
+</div>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+          <h1 id="工业4-0"><a href="#工业4-0" class="headerlink" title="工业4.0"></a>工业4.0</h1><p>参考之前的文章</p>
+<h1 id="商业化思路"><a href="#商业化思路" class="headerlink" title="商业化思路"></a>商业化思路</h1><h2 id="中立的第三方平台"><a href="#中立的第三方平台" class="headerlink" title="中立的第三方平台"></a>中立的第三方平台</h2><p>参考西门子Mindsphere平台。</p>
+<p>西门子的数字化工厂集团（DF）致力于为企业提供全面的无缝集成软硬件和技术服务，帮助其提高制造流程的灵活性和效率，缩短产品上市时间，这一部门主要负责MindSphere。其解决方案前期用于自己，后期慢慢开始转为给客户提供服务。目前来看，数字化工厂营收逐步扩大，利润率稳定增长。</p>
+<p>当前，在国内已经有海尔的COSMO Plat、美的的M.IoT、沈阳机床的SESOL、徐工机械的Xrea、三一集团的RootCloud等工业4.0平台，但无论是哪个平台，都不敢说自己已经对行业形成了深度影响。所以，巨头企业几经努力改造完成后的工业4.0解决方案，也可能只是自己一家企业的玩具。</p>
+<p>其实，这类困境在互联网经济渗透的初期就曾经出现过。每当一家巨头企业希望搭建一个平台时，其一定绕不开一个质疑——凭什么让你又当运动员，又当裁判员？</p>
+<p>另外，要做智能工厂的改造也没有那么容易，这不是装上传感器、加载几个软件模块、简单调试调试、训练好工人就能够成功的。甚至，在当前的技术条件下，有的行业的有些环节还依然脱离不了人工，根本无法进行工业4.0改造。</p>
+<h2 id="从链接供需而推广自己的SaaS平台"><a href="#从链接供需而推广自己的SaaS平台" class="headerlink" title="从链接供需而推广自己的SaaS平台"></a>从链接供需而推广自己的SaaS平台</h2><p>参考智布互联。</p>
+<ol>
+<li>智布通过对纺织厂的深度调研发现，生产的精准和效率问题并不是这群客户真正的痛点，真正的痛点是获得订单。</li>
+<li>进一步看，这是很多工业4.0赛道的企业没有走出来的误区，它们认为老板需要生产的精准和效率，这绝对正确，但让工业4.0的方案落地并不是由老板一个人决定的。在企业内部改变哪个生产环节都会无比艰难，因为企业的每个部分都会有现有机制和利益既得者来阻扰变革。结果往往是老板热情很高，员工比较消极，觉得新模式增加了自己的麻烦。</li>
+<li>智布的逻辑是：“我们可以帮你们拉到订单，但你们必须用我们的SaaS系统。”当然，用了系统之后的好处也能够反映在平台的收益上，由于成本降低，中间环节差价变大，平台分佣自然增加。</li>
+<li>工业4.0的未来从来就不是“单件定制”，而是“小批量大规模定制”，这是互联网渗透产业的不二法门。</li>
+</ol>
+<h1 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h1><ol>
+<li>与高举高打的西门子和通用电气不同，智布这类小平台从行业切入，基于对行业的理解，做更轻量化、更接地气的解决方案，并在一个个里程碑之后，逐渐走入了深度赋能的模式。等到他们成熟了，我们会在行业里发现一个个的Mindsphere和Predix。</li>
+</ol>
+<h1 id="参考"><a href="#参考" class="headerlink" title="参考"></a>参考</h1><ol>
+<li><a target="_blank" rel="noopener" href="http://www.woshipm.com/it/3877810.html">狂热过后才发现这条路最难走，工业4.0还有春天吗？ | 人人都是产品经理 (woshipm.com)</a></li>
+</ol>
+
+      
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+        <div class="post-eof"></div>
+      
+    </footer>
+  </article>
+</div>
+
+
+
 
     
 
@@ -1290,690 +1887,6 @@
 <h3 id="Deploy-to-remote-sites"><a href="#Deploy-to-remote-sites" class="headerlink" title="Deploy to remote sites"></a>Deploy to remote sites</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ hexo deploy</span><br></pre></td></tr></table></figure>
 <p>More info: <a target="_blank" rel="noopener" href="https://hexo.io/docs/one-command-deployment.html">Deployment</a></p>
 
-      
-    </div>
-
-    
-    
-    
-
-    <footer class="post-footer">
-        <div class="post-eof"></div>
-      
-    </footer>
-  </article>
-</div>
-
-
-
-
-    
-
-
-<div class="post-block">
-  
-  
-
-  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="zh-CN">
-    <link itemprop="mainEntityOfPage" href="http://example.com/2021/01/29/tsfile%E5%89%96%E6%9E%90-1/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="image" content="/images/avatar.gif">
-      <meta itemprop="name" content="Jason Chao">
-      <meta itemprop="description" content="">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="我住8楼">
-    </span>
-      <header class="post-header">
-        <h2 class="post-title" itemprop="name headline">
-          <a href="/2021/01/29/tsfile%E5%89%96%E6%9E%90-1/" class="post-title-link" itemprop="url">tsfile剖析-1</a>
-        </h2>
-
-        <div class="post-meta-container">
-          <div class="post-meta">
-    <span class="post-meta-item">
-      <span class="post-meta-item-icon">
-        <i class="far fa-calendar"></i>
-      </span>
-      <span class="post-meta-item-text">发表于</span>
-      
-
-      <time title="创建时间：2021-01-29 16:55:58 / 修改时间：16:57:39" itemprop="dateCreated datePublished" datetime="2021-01-29T16:55:58+08:00">2021-01-29</time>
-    </span>
-    <span class="post-meta-item">
-      <span class="post-meta-item-icon">
-        <i class="far fa-folder"></i>
-      </span>
-      <span class="post-meta-item-text">分类于</span>
-        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-          <a href="/categories/tsdb/" itemprop="url" rel="index"><span itemprop="name">tsdb</span></a>
-        </span>
-    </span>
-
-  
-</div>
-
-        </div>
-      </header>
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-          <h1 id="起源"><a href="#起源" class="headerlink" title="起源"></a>起源</h1><h1 id="初步想法"><a href="#初步想法" class="headerlink" title="初步想法"></a>初步想法</h1><h1 id="问题和演化"><a href="#问题和演化" class="headerlink" title="问题和演化"></a>问题和演化</h1>
-      
-    </div>
-
-    
-    
-    
-
-    <footer class="post-footer">
-        <div class="post-eof"></div>
-      
-    </footer>
-  </article>
-</div>
-
-
-
-
-    
-
-
-<div class="post-block">
-  
-  
-
-  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="zh-CN">
-    <link itemprop="mainEntityOfPage" href="http://example.com/2021/01/29/%E7%A8%8B%E5%BA%8F%E5%91%98%E7%9A%84%E8%87%AA%E6%88%91%E4%BF%AE%E5%85%BB%E8%AF%BB%E4%B9%A6%E7%AC%94%E8%AE%B0-2/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="image" content="/images/avatar.gif">
-      <meta itemprop="name" content="Jason Chao">
-      <meta itemprop="description" content="">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="我住8楼">
-    </span>
-      <header class="post-header">
-        <h2 class="post-title" itemprop="name headline">
-          <a href="/2021/01/29/%E7%A8%8B%E5%BA%8F%E5%91%98%E7%9A%84%E8%87%AA%E6%88%91%E4%BF%AE%E5%85%BB%E8%AF%BB%E4%B9%A6%E7%AC%94%E8%AE%B0-2/" class="post-title-link" itemprop="url">程序员的自我修养读书笔记-2</a>
-        </h2>
-
-        <div class="post-meta-container">
-          <div class="post-meta">
-    <span class="post-meta-item">
-      <span class="post-meta-item-icon">
-        <i class="far fa-calendar"></i>
-      </span>
-      <span class="post-meta-item-text">发表于</span>
-      
-
-      <time title="创建时间：2021-01-29 15:19:24 / 修改时间：15:19:40" itemprop="dateCreated datePublished" datetime="2021-01-29T15:19:24+08:00">2021-01-29</time>
-    </span>
-
-  
-</div>
-
-        </div>
-      </header>
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-          <h1 id="静态链接"><a href="#静态链接" class="headerlink" title="静态链接"></a>静态链接</h1><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line">&#x2F;&#x2F; a.c</span><br><span class="line"></span><br><span class="line">extern int shared;</span><br><span class="line"></span><br><span class="line">int main() &#123;</span><br><span class="line">    int a &#x3D; 100;</span><br><span class="line">    swap(&amp;a, &amp;shared);</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">&#x2F;&#x2F; b.c </span><br><span class="line"></span><br><span class="line">int shared &#x3D; 1;</span><br><span class="line"></span><br><span class="line">void swap (int* a, int* b) &#123;</span><br><span class="line">    *a ^&#x3D; *b ^&#x3D; *a ^&#x3D; *b;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-<h2 id="空间与地址分配"><a href="#空间与地址分配" class="headerlink" title="空间与地址分配"></a>空间与地址分配</h2><p>多个不同目标文件链接到一起，多个段怎么拼接到一起：</p>
-<ol>
-<li>按序叠加：将输入的目标文件按照次序叠加起来，会导致输出文件中很多零散的段，段对齐后还会导致大量的内部碎片</li>
-<li>相似段合并：将相同性质的段合并到一起</li>
-</ol>
-<p>现在链接器一般采用第二种方法，这种链接器一般都采用一种叫两步链接的方法。</p>
-<ol>
-<li>空间与地址分配：合并所有段，并搜集所有符号放到一个全局符号表</li>
-<li>符号解析与重定位：符号解析与重定位、调整代码中的地址</li>
-</ol>
-<h2 id="符号解析与重定位"><a href="#符号解析与重定位" class="headerlink" title="符号解析与重定位"></a>符号解析与重定位</h2><p>链接器通过elf文件中的重定位表来获得需要被重定位的符号信息，然后根据不同符号类型，比如变量和函数，来决定使用地址修正方式。<br>x86架构上重定位有两种类型：</p>
-<table>
-<thead>
-<tr>
-<th align="left">宏定义</th>
-<th align="left">值</th>
-<th align="left">重定位修正方式</th>
-</tr>
-</thead>
-<tbody><tr>
-<td align="left">R_386_32</td>
-<td align="left">1</td>
-<td align="left">绝对寻址修正 S + A</td>
-</tr>
-<tr>
-<td align="left">R_386_PC32</td>
-<td align="left">2</td>
-<td align="left">相对寻址修正 S + A - P</td>
-</tr>
-</tbody></table>
-<p>A = 保存在被修正位置的值<br>P = 被修正的位置（相对于段开始的偏移量或者虚拟地址）<br>S = 符号的实际地址</p>
-<h2 id="common块"><a href="#common块" class="headerlink" title="common块"></a>common块</h2><p>解决多个符号定义的问题，将多个弱符号定义到一个共享地址中，以空间最大的为最终结果。</p>
-<h2 id="c-相关问题"><a href="#c-相关问题" class="headerlink" title="c++相关问题"></a>c++相关问题</h2><ol>
-<li><p>重复代码消除</p>
-<ol>
-<li>模板实例化被编译到一个段，这样多个编译单元可以共享</li>
-<li>虚函数，放到虚函数表中，多个实例共享该函数表</li>
-<li>外部内联函数、默认构造函数、默认拷贝构造函数和赋值操作符等都是类似处理</li>
-<li>函数级别链接，库中的函数都单独放到一个段里，这样只用链接需要用的函数，减少空间浪费</li>
-</ol>
-</li>
-<li><p>全局构造与析构</p>
-<ol>
-<li>linux系统的程序入口是_start,程序初始化完成一系列初始化过程之后，会调用main函数来执行程序主体</li>
-<li>elf文件中的两个段.init和.fini是main函数执行之前和结束后调用，构造和析构函数一般放在这两个段中实现</li>
-</ol>
-</li>
-<li><p>ABI</p>
-<p>二进制层面的接口，影响因素非常多，例如：</p>
-<ol>
-<li>内置类型</li>
-<li>组合类型</li>
-<li>外部符号</li>
-<li>函数调用方式</li>
-<li>堆栈的分布式方式</li>
-<li>寄存器使用约定</li>
-<li>…<br>c++的语法太复杂，其对ABI的影响非常多，因此二进制兼容性一直不好，除了不同编译器二进制代码之间无法相互兼容，还有编译器不同版本也不兼容。</li>
-</ol>
-</li>
-</ol>
-<h2 id="静态库链接"><a href="#静态库链接" class="headerlink" title="静态库链接"></a>静态库链接</h2><p>一组目标文件的集合，linux下是libc.a, 由ar压缩程序将各个不同函数目标文件压缩而成。</p>
-<h2 id="链接过程控制"><a href="#链接过程控制" class="headerlink" title="链接过程控制"></a>链接过程控制</h2><p>链接器提供多种方式控制链接过程：</p>
-<ol>
-<li>命令行给链接器指定参数</li>
-<li>将链接指令放到目标文件中</li>
-<li>使用链接控制脚本</li>
-</ol>
-<h2 id="BFD库"><a href="#BFD库" class="headerlink" title="BFD库"></a>BFD库</h2><p>抽象一种统一的接口来处理不同的目标文件格式，它把目标文件抽象成一个统一的模型，现在GCC都是通过BFD库来处理目标文件。如果需要支持新的目标文件格式，只需在BFD中添加一种格式就行。</p>
-<h2 id="小结"><a href="#小结" class="headerlink" title="小结"></a>小结</h2><p>本章主要是介绍了静态链接的第一个步骤，主要是各个目标文件的合并以及重定位。还介绍了一些静态链接过程中的几个典型问题：common块处理弱符号，链接脚本控制链接过程来定制化某些特殊需求等。</p>
-
-      
-    </div>
-
-    
-    
-    
-
-    <footer class="post-footer">
-        <div class="post-eof"></div>
-      
-    </footer>
-  </article>
-</div>
-
-
-
-
-    
-
-
-<div class="post-block">
-  
-  
-
-  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="zh-CN">
-    <link itemprop="mainEntityOfPage" href="http://example.com/2021/01/29/%E7%A8%8B%E5%BA%8F%E5%91%98%E7%9A%84%E8%87%AA%E6%88%91%E4%BF%AE%E5%85%BB%E8%AF%BB%E4%B9%A6%E7%AC%94%E8%AE%B0-1/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="image" content="/images/avatar.gif">
-      <meta itemprop="name" content="Jason Chao">
-      <meta itemprop="description" content="">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="我住8楼">
-    </span>
-      <header class="post-header">
-        <h2 class="post-title" itemprop="name headline">
-          <a href="/2021/01/29/%E7%A8%8B%E5%BA%8F%E5%91%98%E7%9A%84%E8%87%AA%E6%88%91%E4%BF%AE%E5%85%BB%E8%AF%BB%E4%B9%A6%E7%AC%94%E8%AE%B0-1/" class="post-title-link" itemprop="url">程序员的自我修养读书笔记-1</a>
-        </h2>
-
-        <div class="post-meta-container">
-          <div class="post-meta">
-    <span class="post-meta-item">
-      <span class="post-meta-item-icon">
-        <i class="far fa-calendar"></i>
-      </span>
-      <span class="post-meta-item-text">发表于</span>
-      
-
-      <time title="创建时间：2021-01-29 15:18:28 / 修改时间：16:26:06" itemprop="dateCreated datePublished" datetime="2021-01-29T15:18:28+08:00">2021-01-29</time>
-    </span>
-
-  
-</div>
-
-        </div>
-      </header>
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-          <h1 id="温故而知新"><a href="#温故而知新" class="headerlink" title="温故而知新"></a>温故而知新</h1><h2 id="硬件和操作系统历史"><a href="#硬件和操作系统历史" class="headerlink" title="硬件和操作系统历史"></a>硬件和操作系统历史</h2><h3 id="计算机硬件历史"><a href="#计算机硬件历史" class="headerlink" title="计算机硬件历史"></a>计算机硬件历史</h3><p>计算机中最重要的是三个部件：cpu，内存，io控制芯片<br>历史：</p>
-<ol>
-<li>早期cpu和内存以及io控制器是链接在一条总线上的</li>
-<li>后来cpu频率上升，并且图形芯片与内存和cpu交互变多，设计北桥芯片处理这种高速数据交互；对于低速的io设备，设计南桥来总领慢速io设备与北桥通信</li>
-<li>单核cpu频率到瓶颈，转向多核架构；最常见的就是SMP(对称多处理器),多个处理器对等，通过总线通信。（多核处理器是SMP的简化版，它将多个核心打包，共享昂贵的缓存组件以单个处理器的方式售卖)</li>
-</ol>
-<h3 id="操作系统历史"><a href="#操作系统历史" class="headerlink" title="操作系统历史"></a>操作系统历史</h3><p>操作系统两个功能：</p>
-<ol>
-<li>提供一个抽象的接口</li>
-<li>管理硬件资源</li>
-</ol>
-<p>CPU资源利用历史：</p>
-<ol>
-<li>多道程序：可以多个程序流水线执行，不用一个程序等待上一个程序完全处理完成（比如程序最后是写磁盘，但是依然不让下一个程序开始用闲下来的CPU资源）</li>
-<li>分时系统：每个程序运行一段时间，主动放弃cpu</li>
-<li>多任务系统：操作系统接管所有硬件资源，各任务以进程方式运行，cpu轮流调度不同进程；如果cpu会强行打断任务执行，根据优先级将cpu资源分配给别的进程，那么这就是抢占式任务调度方式。</li>
-</ol>
-<p>设备驱动：</p>
-<ol>
-<li>面向硬件接口编程</li>
-<li>统一抽象，交给硬件驱动程序来处理</li>
-</ol>
-<p>内存：</p>
-<ol>
-<li>直接操作硬件RAM<ol>
-<li>地址空间不隔离</li>
-<li>内存使用率低，整块连续内存不停换入换出</li>
-<li>程序运行的地址不确定</li>
-</ol>
-</li>
-<li>分段技术：整段内存空间映射到虚拟地址空间<ol>
-<li>解决了第一和第三个问题，但是第二问题还没有解决，映射粒度太大，空间不够时，可能小粒度的空间和等于需要的空间，但是不连续，无法映射</li>
-</ol>
-</li>
-<li>分页技术：将内存按页4K来划分，换入换出以页为单位，粒度小，利用效率高</li>
-</ol>
-<h2 id="现代操作系统CPU抽象-线程"><a href="#现代操作系统CPU抽象-线程" class="headerlink" title="现代操作系统CPU抽象-线程"></a>现代操作系统CPU抽象-线程</h2><ol>
-<li>线程基础<ol>
-<li>线程有自己的私有存储空间：局部变量，函数的参数，TLS（线程局部存储）数据</li>
-<li>线程共享存储（进程所有）：全局变量，堆上的数据，函数里的静态变量，程序代码，打开的文件</li>
-<li>状态：运行、就绪、等待</li>
-</ol>
-</li>
-<li>线程安全<ol>
-<li>同步与锁<ol>
-<li>二元信号量：任意线程获取和释放</li>
-<li>互斥量：哪个线程获取，哪个线程释放</li>
-<li>临界区：仅限本进程，信号量和互斥量在任何进程都可见</li>
-<li>读写锁：分独占和共享方式获取</li>
-<li>条件变量：类似栅栏，等待和唤醒</li>
-<li>可重入：并发安全的保障</li>
-</ol>
-</li>
-</ol>
-</li>
-<li>线程模型<ol>
-<li>一对一模型：一个用户线程对应一个内核线程</li>
-<li>多对一模型：多个用户线程对应一个内核线程，用不线程切换由用户代码执行，如果一个用户线程阻塞，会阻塞所有其他同核的用户线程</li>
-<li>多对多模型：多个用户线程对应多个内核线程，性能提升没有一对一高，资源利用率最高了</li>
-</ol>
-</li>
-</ol>
-<h1 id="编译和链接"><a href="#编译和链接" class="headerlink" title="编译和链接"></a>编译和链接</h1><h2 id="构建过程"><a href="#构建过程" class="headerlink" title="构建过程"></a>构建过程</h2><ol>
-<li>预编译<ol>
-<li>将#define删除，并展开所有宏定义</li>
-<li>处理所有条件预编译命令</li>
-<li>处理#include预编译命令，将被包含的文件插入到对应位置</li>
-<li>删除注释</li>
-<li>添加文件行号和文件名标识</li>
-<li>保留所有#pragma命令</li>
-</ol>
-</li>
-<li>编译<ol>
-<li>词法分析，语法分析，语义分析，生成汇编文件</li>
-</ol>
-</li>
-<li>汇编<ol>
-<li>将汇编代码转变为机器可执行指令</li>
-</ol>
-</li>
-<li>链接<ol>
-<li>将最终程序所需的所有文件都链接起来</li>
-</ol>
-</li>
-</ol>
-<h2 id="编译过程"><a href="#编译过程" class="headerlink" title="编译过程"></a>编译过程</h2><ol>
-<li>词法分析<ol>
-<li>执行类似有限状态机的算法来将字符序列分割成一系列的记号</li>
-<li>将记号分类为：关键字，标识符，字面量（包含数字，字符串等），特殊符号（加减号之类的）</li>
-</ol>
-</li>
-<li>语法分析<ol>
-<li>采用上下文无关语法来生成语法树，节点是表达式</li>
-</ol>
-</li>
-<li>语义分析<ol>
-<li>静态语义分析<ol>
-<li>声明与类型的匹配</li>
-<li>类型的转换</li>
-<li>将语法树的每个节点标识了类型</li>
-</ol>
-</li>
-</ol>
-</li>
-<li>中间语言生成<ol>
-<li>将语法树转换为三地址码（x = y op z）</li>
-<li>中间语言将编译器分割成前端和后端，前端将源码翻译成机器无关的中间代码，后端将中间代码转换为机器代码</li>
-</ol>
-</li>
-<li>目标代码生成与优化<ol>
-<li>属于编译器后端，包括代码生成器和目标代码优化器</li>
-</ol>
-</li>
-</ol>
-<h2 id="链接过程"><a href="#链接过程" class="headerlink" title="链接过程"></a>链接过程</h2><p>就是各个目标文件链接起来拼成最终目标文件。</p>
-<h3 id="静态链接"><a href="#静态链接" class="headerlink" title="静态链接"></a>静态链接</h3><ol>
-<li>地址和空间分配</li>
-<li>符号决议（符号绑定）<ol>
-<li>当编译器遇到一个不是本模块定义的符号时，会假设该函数由其它模块定义，并生成一个链接器符号表条目，交由链接器处理。如果链接器在它的任何输入模块都没有找到该符号，会给出一个类似undefined reference to ‘xxx’的链接错误。而如果链接器在输入模块中找到了一个以上的外部符号定义，这个时候就需要链接器进行符号决议，链接器对多个外部符号定义可能并不报错甚至警告，而是按照它的规则去选择其中一个符号定义。</li>
-</ol>
-</li>
-<li>重定位<ol>
-<li>计算各个目标地址的过程叫重定位</li>
-</ol>
-</li>
-</ol>
-<h1 id="目标文件里有什么"><a href="#目标文件里有什么" class="headerlink" title="目标文件里有什么"></a>目标文件里有什么</h1><h2 id="目标文件中的组成成分"><a href="#目标文件中的组成成分" class="headerlink" title="目标文件中的组成成分"></a>目标文件中的组成成分</h2><ol>
-<li>代码段.text</li>
-<li>数据段.data</li>
-<li>未初始化数据段.bss: 只是为未初始化的全局变量和局部静态变量预留位置而已</li>
-<li>只读数据段.rodata</li>
-<li>调试信息段.debug</li>
-<li>编译器版本信息段.comment</li>
-<li>动态链接信息段.dynamic</li>
-<li>字符串表.strtab, 存放各种字符串</li>
-<li>符号表.symtab</li>
-<li>段名表.shstrtab</li>
-<li>初始化和终结代码段.init/.fini</li>
-<li>动态链接的跳转表和全局入口表.plt/.got</li>
-</ol>
-<h2 id="ELF文件结构描述"><a href="#ELF文件结构描述" class="headerlink" title="ELF文件结构描述"></a>ELF文件结构描述</h2><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">|    ELF Header      |</span><br><span class="line">|     .text          |</span><br><span class="line">|     .data          |</span><br><span class="line">|     .bss           |</span><br><span class="line">|  other sections    |</span><br><span class="line">|section header table|</span><br><span class="line">|  string tables     |</span><br><span class="line">|  symbol tables     |</span><br><span class="line">|      ...           |</span><br></pre></td></tr></table></figure>
-<h3 id="ELF-Header"><a href="#ELF-Header" class="headerlink" title="ELF Header"></a>ELF Header</h3><p>包含ELF魔数、文件机器字节长度、数据存储个方式、版本、运行平台、ABI 版本、ELF重定位类型、硬件平台、硬件平台版本、入口地址、程序头入口和长度、段表的位置和长度、段的数量。其结构及相关常数被定义在/usr/include/elf.h里。</p>
-<p>其中elf魔数的前16个字节被ELF标准规定用来标识ELF文件的平台属性，比如字长、字节序、elf文件版本信息等</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br></pre></td><td class="code"><pre><span class="line">&#x2F;&#x2F; simplesection.c </span><br><span class="line"></span><br><span class="line">int printf(const char* format, ...);</span><br><span class="line">int global_init_var &#x3D; 84;</span><br><span class="line">int global_uninit_var;</span><br><span class="line"></span><br><span class="line">void func1(int i) &#123;</span><br><span class="line">    printf(&quot;%d\n&quot;, i);</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">int main(void) &#123;</span><br><span class="line">    static int static_var &#x3D; 85;</span><br><span class="line">    static int static_var2;</span><br><span class="line"></span><br><span class="line">    int a &#x3D; 1;</span><br><span class="line">    int b;</span><br><span class="line"></span><br><span class="line">    func1(static_var + static_var2 + a + b);</span><br><span class="line"></span><br><span class="line">    return a;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">&#x2F;&#x2F; $ readelf -h simplesection.o</span><br><span class="line"></span><br><span class="line">ELF Header:</span><br><span class="line">  Magic:   7f 45 4c 46 02 01 01 00 00 00 00 00 00 00 00 00</span><br><span class="line">  Class:                             ELF64</span><br><span class="line">  Data:                              2&#39;s complement, little endian</span><br><span class="line">  Version:                           1 (current)</span><br><span class="line">  OS&#x2F;ABI:                            UNIX - System V</span><br><span class="line">  ABI Version:                       0</span><br><span class="line">  Type:                              REL (Relocatable file)</span><br><span class="line">  Machine:                           Advanced Micro Devices X86-64</span><br><span class="line">  Version:                           0x1</span><br><span class="line">  Entry point address:               0x0</span><br><span class="line">  Start of program headers:          0 (bytes into file)</span><br><span class="line">  Start of section headers:          376 (bytes into file)</span><br><span class="line">  Flags:                             0x0</span><br><span class="line">  Size of this header:               64 (bytes)</span><br><span class="line">  Size of program headers:           0 (bytes)</span><br><span class="line">  Number of program headers:         0</span><br><span class="line">  Size of section headers:           64 (bytes)</span><br><span class="line">  Number of section headers:         13</span><br><span class="line">  Section header string table index: 10</span><br></pre></td></tr></table></figure>
-
-
-<h3 id="段表"><a href="#段表" class="headerlink" title="段表"></a>段表</h3><p>段表是保存elf文件中各种各样的段基本属性的结构。描述了elf的各个段的信息，比如每个段的段名、段的长度、在文件中的偏移、读写权限及段的其他属性。编译器、链接器、装载器都是依靠段表来定位和访问各个段的属性的。</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br></pre></td><td class="code"><pre><span class="line">&#x2F;&#x2F; $ readelf -S a.o</span><br><span class="line"></span><br><span class="line">There are 13 section headers, starting at offset 0x178:</span><br><span class="line"></span><br><span class="line">Section Headers:</span><br><span class="line">  [Nr] Name              Type             Address           Offset</span><br><span class="line">       Size              EntSize          Flags  Link  Info  Align</span><br><span class="line">  [ 0]                   NULL             0000000000000000  00000000</span><br><span class="line">       0000000000000000  0000000000000000           0     0     0</span><br><span class="line">  [ 1] .text             PROGBITS         0000000000000000  00000040</span><br><span class="line">       0000000000000054  0000000000000000  AX       0     0     4</span><br><span class="line">  [ 2] .rela.text        RELA             0000000000000000  000006a0</span><br><span class="line">       0000000000000078  0000000000000018          11     1     8</span><br><span class="line">  [ 3] .data             PROGBITS         0000000000000000  00000094</span><br><span class="line">       0000000000000008  0000000000000000  WA       0     0     4</span><br><span class="line">  [ 4] .bss              NOBITS           0000000000000000  0000009c</span><br><span class="line">       0000000000000004  0000000000000000  WA       0     0     4</span><br><span class="line">  [ 5] .rodata           PROGBITS         0000000000000000  0000009c</span><br><span class="line">       0000000000000004  0000000000000000   A       0     0     1</span><br><span class="line">  [ 6] .comment          PROGBITS         0000000000000000  000000a0</span><br><span class="line">       0000000000000012  0000000000000001  MS       0     0     1</span><br><span class="line">  [ 7] .note.GNU-stack   PROGBITS         0000000000000000  000000b2</span><br><span class="line">       0000000000000000  0000000000000000           0     0     1</span><br><span class="line">  [ 8] .eh_frame         PROGBITS         0000000000000000  000000b8</span><br><span class="line">       0000000000000058  0000000000000000   A       0     0     8</span><br><span class="line">  [ 9] .rela.eh_frame    RELA             0000000000000000  00000718</span><br><span class="line">       0000000000000030  0000000000000018          11     8     8</span><br><span class="line">  [10] .shstrtab         STRTAB           0000000000000000  00000110</span><br><span class="line">       0000000000000061  0000000000000000           0     0     1</span><br><span class="line">  [11] .symtab           SYMTAB           0000000000000000  000004b8</span><br><span class="line">       0000000000000180  0000000000000018          12    11     8</span><br><span class="line">  [12] .strtab           STRTAB           0000000000000000  00000638</span><br><span class="line">       0000000000000066  0000000000000000           0     0     1</span><br><span class="line">Key to Flags:</span><br><span class="line">  W (write), A (alloc), X (execute), M (merge), S (strings), l (large)</span><br><span class="line">  I (info), L (link order), G (group), T (TLS), E (exclude), x (unknown)</span><br><span class="line">  O (extra OS processing required) o (OS specific), p (processor specific)</span><br></pre></td></tr></table></figure>
-
-
-<h3 id="重定位表"><a href="#重定位表" class="headerlink" title="重定位表"></a>重定位表</h3><p>.rela.text段，重定位表，记录代码段和数据段对绝对地址的引用的位置。</p>
-<h3 id="字符串表"><a href="#字符串表" class="headerlink" title="字符串表"></a>字符串表</h3><p>因为elf文件中用到了很多字符串，比如段名、变量名等，因为字符串的长度往往是不确定的，所以用固定的结构来表示它比较困难。一种很常见的做法是把字符串集中起来存放到一个表，然后使用字符串在表中的偏移来引用字符串。</p>
-<p>字符串表.strtab,用来存放普通的字符串，比如符号名字； 段表字符串表.shstrtab用来保持段表中用到的字符串，最常见的就是段名。</p>
-<h2 id="链接的接口-符号"><a href="#链接的接口-符号" class="headerlink" title="链接的接口-符号"></a>链接的接口-符号</h2><p>最值得关注的是全局符号，因为链接过程只关心全局符号的相互“粘合”，局部符号、段名、行号等都是次要的，它们对于其他的目标文件来说是不可见的，在链接过程中无关紧要。</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">&#x2F;&#x2F; $ nm simplesection.o</span><br><span class="line"></span><br><span class="line">0000000000000000 T func1</span><br><span class="line">0000000000000000 D global_init_var</span><br><span class="line">0000000000000004 C global_uninit_var</span><br><span class="line">0000000000000021 T main</span><br><span class="line">                 U printf</span><br><span class="line">0000000000000004 d static_var.1731</span><br><span class="line">0000000000000000 b static_var2.1732</span><br></pre></td></tr></table></figure>
-
-
-<h3 id="elf符号表结构"><a href="#elf符号表结构" class="headerlink" title="elf符号表结构"></a>elf符号表结构</h3><p>elf文件中的一个段，段名叫.symtab。包含符号的信息：符号名、符号值（地址或绝对值）、符号大小、符号类型（数据对象、函数、段等）和绑定信息（局部，全局，弱引用）、符号所在的段</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br></pre></td><td class="code"><pre><span class="line">&#x2F;&#x2F; $ readelf -s simplesection.o</span><br><span class="line"></span><br><span class="line">Symbol table &#39;.symtab&#39; contains 16 entries:</span><br><span class="line">   Num:    Value          Size Type    Bind   Vis      Ndx Name</span><br><span class="line">     0: 0000000000000000     0 NOTYPE  LOCAL  DEFAULT  UND</span><br><span class="line">     1: 0000000000000000     0 FILE    LOCAL  DEFAULT  ABS simplesection.c</span><br><span class="line">     2: 0000000000000000     0 SECTION LOCAL  DEFAULT    1</span><br><span class="line">     3: 0000000000000000     0 SECTION LOCAL  DEFAULT    3</span><br><span class="line">     4: 0000000000000000     0 SECTION LOCAL  DEFAULT    4</span><br><span class="line">     5: 0000000000000000     0 SECTION LOCAL  DEFAULT    5</span><br><span class="line">     6: 0000000000000004     4 OBJECT  LOCAL  DEFAULT    3 static_var.1731</span><br><span class="line">     7: 0000000000000000     4 OBJECT  LOCAL  DEFAULT    4 static_var2.1732</span><br><span class="line">     8: 0000000000000000     0 SECTION LOCAL  DEFAULT    7</span><br><span class="line">     9: 0000000000000000     0 SECTION LOCAL  DEFAULT    8</span><br><span class="line">    10: 0000000000000000     0 SECTION LOCAL  DEFAULT    6</span><br><span class="line">    11: 0000000000000000     4 OBJECT  GLOBAL DEFAULT    3 global_init_var</span><br><span class="line">    12: 0000000000000004     4 OBJECT  GLOBAL DEFAULT  COM global_uninit_var</span><br><span class="line">    13: 0000000000000000    33 FUNC    GLOBAL DEFAULT    1 func1</span><br><span class="line">    14: 0000000000000000     0 NOTYPE  GLOBAL DEFAULT  UND printf</span><br><span class="line">    15: 0000000000000021    51 FUNC    GLOBAL DEFAULT    1 main</span><br></pre></td></tr></table></figure>
-
-
-<h3 id="特殊符号"><a href="#特殊符号" class="headerlink" title="特殊符号"></a>特殊符号</h3><p>链接器会定义很多特殊的符号，比如程序起始地址、结束地址等，可以在程序中使用它们。</p>
-<h3 id="符号修饰与函数签名"><a href="#符号修饰与函数签名" class="headerlink" title="符号修饰与函数签名"></a>符号修饰与函数签名</h3><p>符号修饰是为了统一符号名，以免冲突。</p>
-<p>C++符号修饰</p>
-<ol>
-<li>函数签名，包含了一个函数的信息，包括函数名、它的参数类型、它所在的类和名称空间及其他信息。用于识别不同的函数（比如重载的函数）。通常是用名称修饰的方式来做签名。</li>
-<li>符号修饰也可以用来防止静态变量的名字冲突。</li>
-</ol>
-<h3 id="extern-“C”"><a href="#extern-“C”" class="headerlink" title="extern “C”"></a>extern “C”</h3><p>避免c++符号修饰导致不识别c函数</p>
-<h3 id="弱符号与强符号"><a href="#弱符号与强符号" class="headerlink" title="弱符号与强符号"></a>弱符号与强符号</h3><p>强符号是函数和初始化了的全局变量；弱符号是未初始化的全局变量。<br>链接器处理强符号、弱符号的规则</p>
-<ol>
-<li>不允许强符号被多次定义</li>
-<li>如果有一个强符号，多个弱符号，选择强符号</li>
-<li>如果都是弱符号，选择占用空间最大的一个</li>
-</ol>
-<p>强引用和弱引用<br>对外部目标文件定义的符号在目标文件最终被链接时，如果找不到该符号的定义，报未定义错误，这种被称为强引用。如果有定义，则引用该定义，如果没有，也不报错，就是弱引用。</p>
-<h2 id="调试信息"><a href="#调试信息" class="headerlink" title="调试信息"></a>调试信息</h2><p>elf采用一种称为DWARF（Debug with arbitrary record format）格式的调试信息格式。</p>
-
-      
-    </div>
-
-    
-    
-    
-
-    <footer class="post-footer">
-        <div class="post-eof"></div>
-      
-    </footer>
-  </article>
-</div>
-
-
-
-
-    
-
-
-<div class="post-block">
-  
-  
-
-  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="zh-CN">
-    <link itemprop="mainEntityOfPage" href="http://example.com/2021/01/29/stl%E6%BA%90%E7%A0%81%E5%89%96%E6%9E%90-%E5%BA%8F%E5%88%97%E5%BC%8F%E5%AE%B9%E5%99%A8/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="image" content="/images/avatar.gif">
-      <meta itemprop="name" content="Jason Chao">
-      <meta itemprop="description" content="">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="我住8楼">
-    </span>
-      <header class="post-header">
-        <h2 class="post-title" itemprop="name headline">
-          <a href="/2021/01/29/stl%E6%BA%90%E7%A0%81%E5%89%96%E6%9E%90-%E5%BA%8F%E5%88%97%E5%BC%8F%E5%AE%B9%E5%99%A8/" class="post-title-link" itemprop="url">stl源码剖析-序列式容器</a>
-        </h2>
-
-        <div class="post-meta-container">
-          <div class="post-meta">
-    <span class="post-meta-item">
-      <span class="post-meta-item-icon">
-        <i class="far fa-calendar"></i>
-      </span>
-      <span class="post-meta-item-text">发表于</span>
-      
-
-      <time title="创建时间：2021-01-29 15:17:08 / 修改时间：16:40:23" itemprop="dateCreated datePublished" datetime="2021-01-29T15:17:08+08:00">2021-01-29</time>
-    </span>
-    <span class="post-meta-item">
-      <span class="post-meta-item-icon">
-        <i class="far fa-folder"></i>
-      </span>
-      <span class="post-meta-item-text">分类于</span>
-        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-          <a href="/categories/stl/" itemprop="url" rel="index"><span itemprop="name">stl</span></a>
-        </span>
-    </span>
-
-  
-</div>
-
-        </div>
-      </header>
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-          <h1 id="容器按排列分类"><a href="#容器按排列分类" class="headerlink" title="容器按排列分类"></a>容器按排列分类</h1><table>
-<thead>
-<tr>
-<th align="left">序列式容器</th>
-<th align="left"></th>
-<th align="left">关联式容器</th>
-<th align="left"></th>
-</tr>
-</thead>
-<tbody><tr>
-<td align="left">array(build-in)</td>
-<td align="left"></td>
-<td align="left">RB-Tree</td>
-<td align="left"></td>
-</tr>
-<tr>
-<td align="left">vector</td>
-<td align="left"></td>
-<td align="left"></td>
-<td align="left">set</td>
-</tr>
-<tr>
-<td align="left"></td>
-<td align="left">heap</td>
-<td align="left"></td>
-<td align="left">map</td>
-</tr>
-<tr>
-<td align="left"></td>
-<td align="left">priority-queue</td>
-<td align="left"></td>
-<td align="left">multiset</td>
-</tr>
-<tr>
-<td align="left">list</td>
-<td align="left"></td>
-<td align="left"></td>
-<td align="left">multimap</td>
-</tr>
-<tr>
-<td align="left">slist</td>
-<td align="left"></td>
-<td align="left">hashtable</td>
-<td align="left"></td>
-</tr>
-<tr>
-<td align="left">deque</td>
-<td align="left"></td>
-<td align="left"></td>
-<td align="left">hash_set</td>
-</tr>
-<tr>
-<td align="left"></td>
-<td align="left">stack</td>
-<td align="left"></td>
-<td align="left">hash_map</td>
-</tr>
-<tr>
-<td align="left"></td>
-<td align="left">queue</td>
-<td align="left"></td>
-<td align="left">hash_multiset</td>
-</tr>
-<tr>
-<td align="left"></td>
-<td align="left"></td>
-<td align="left"></td>
-<td align="left">hash_multimap</td>
-</tr>
-</tbody></table>
-<p><em>每一大列第二格是第一格的衍生</em></p>
-<h1 id="序列式容器"><a href="#序列式容器" class="headerlink" title="序列式容器"></a>序列式容器</h1><h2 id="vector"><a href="#vector" class="headerlink" title="vector"></a>vector</h2><p>如下代码所示，先来看看vector内部的成员变量，vector是一个线性空间，由三个变量分别记录使用情况和容量，非常直观好理解。</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br></pre></td><td class="code"><pre><span class="line">template &lt;class _Tp, class _Alloc &#x3D; __STL_DEFAULT_ALLOCATOR(_Tp) &gt;</span><br><span class="line">class vector : protected _Vector_base&lt;_Tp, _Alloc&gt; </span><br><span class="line">&#123;</span><br><span class="line">  &#x2F;&#x2F; requirements:</span><br><span class="line"></span><br><span class="line">  __STL_CLASS_REQUIRES(_Tp, _Assignable);</span><br><span class="line"></span><br><span class="line">private:</span><br><span class="line">  typedef _Vector_base&lt;_Tp, _Alloc&gt; _Base;</span><br><span class="line">public:</span><br><span class="line">  typedef _Tp value_type;</span><br><span class="line">  typedef value_type* pointer;</span><br><span class="line">  typedef const value_type* const_pointer;</span><br><span class="line">  typedef value_type* iterator;  &#x2F;&#x2F; 迭代器就是普通指针</span><br><span class="line">  typedef const value_type* const_iterator;</span><br><span class="line">  typedef value_type&amp; reference;</span><br><span class="line">  typedef const value_type&amp; const_reference;</span><br><span class="line">  typedef size_t size_type;</span><br><span class="line">  typedef ptrdiff_t difference_type;</span><br><span class="line"></span><br><span class="line">  typedef typename _Base::allocator_type allocator_type;</span><br><span class="line">  allocator_type get_allocator() const &#123; return _Base::get_allocator(); &#125;</span><br><span class="line"></span><br><span class="line">#ifdef __STL_CLASS_PARTIAL_SPECIALIZATION</span><br><span class="line">  typedef reverse_iterator&lt;const_iterator&gt; const_reverse_iterator;</span><br><span class="line">  typedef reverse_iterator&lt;iterator&gt; reverse_iterator;</span><br><span class="line">#else &#x2F;* __STL_CLASS_PARTIAL_SPECIALIZATION *&#x2F;</span><br><span class="line">  typedef reverse_iterator&lt;const_iterator, value_type, const_reference, </span><br><span class="line">                           difference_type&gt;  const_reverse_iterator;</span><br><span class="line">  typedef reverse_iterator&lt;iterator, value_type, reference, difference_type&gt;</span><br><span class="line">          reverse_iterator;</span><br><span class="line">#endif &#x2F;* __STL_CLASS_PARTIAL_SPECIALIZATION *&#x2F;</span><br><span class="line"></span><br><span class="line">protected:</span><br><span class="line">#ifdef __STL_HAS_NAMESPACES</span><br><span class="line">  using _Base::_M_allocate;</span><br><span class="line">  using _Base::_M_deallocate;</span><br><span class="line">  using _Base::_M_start;  &#x2F;&#x2F; 表示目前使用空间的头部</span><br><span class="line">  using _Base::_M_finish; &#x2F;&#x2F; 表示目前使用空间的尾部</span><br><span class="line">  using _Base::_M_end_of_storage; &#x2F;&#x2F; 表示目前可用空间的尾部，也就是容量尾部</span><br><span class="line">#endif &#x2F;* __STL_HAS_NAMESPACES *&#x2F;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-
-<p>再来看看vector容量不够时扩容的算法，都比较简单直观</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br></pre></td><td class="code"><pre><span class="line">&#x2F;&#x2F; push_back一个元素时扩容算法</span><br><span class="line"></span><br><span class="line">template &lt;class _Tp, class _Alloc&gt;</span><br><span class="line">void </span><br><span class="line">vector&lt;_Tp, _Alloc&gt;::_M_insert_aux(iterator __position, const _Tp&amp; __x)</span><br><span class="line">&#123;</span><br><span class="line">  if (_M_finish !&#x3D; _M_end_of_storage) &#123;  &#x2F;&#x2F; 空间足够</span><br><span class="line">    construct(_M_finish, *(_M_finish - 1));</span><br><span class="line">    ++_M_finish;</span><br><span class="line">    _Tp __x_copy &#x3D; __x;</span><br><span class="line">    copy_backward(__position, _M_finish - 2, _M_finish - 1);</span><br><span class="line">    *__position &#x3D; __x_copy;</span><br><span class="line">  &#125;</span><br><span class="line">  else &#123;  &#x2F;&#x2F; 空间不够</span><br><span class="line">    const size_type __old_size &#x3D; size();</span><br><span class="line">    const size_type __len &#x3D; __old_size !&#x3D; 0 ? 2 * __old_size : 1;  &#x2F;&#x2F; 原有空间*2</span><br><span class="line">    iterator __new_start &#x3D; _M_allocate(__len);</span><br><span class="line">    iterator __new_finish &#x3D; __new_start;</span><br><span class="line">    __STL_TRY &#123;</span><br><span class="line">      __new_finish &#x3D; uninitialized_copy(_M_start, __position, __new_start);</span><br><span class="line">      construct(__new_finish, __x);</span><br><span class="line">      ++__new_finish;</span><br><span class="line">      __new_finish &#x3D; uninitialized_copy(__position, _M_finish, __new_finish);</span><br><span class="line">    &#125;</span><br><span class="line">    __STL_UNWIND((destroy(__new_start,__new_finish), </span><br><span class="line">                  _M_deallocate(__new_start,__len)));</span><br><span class="line">    destroy(begin(), end());</span><br><span class="line">    _M_deallocate(_M_start, _M_end_of_storage - _M_start);</span><br><span class="line">    _M_start &#x3D; __new_start;</span><br><span class="line">    _M_finish &#x3D; __new_finish;</span><br><span class="line">    _M_end_of_storage &#x3D; __new_start + __len;</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">&#x2F;&#x2F; 插入多个数据时扩容算法</span><br><span class="line"></span><br><span class="line">template &lt;class _Tp, class _Alloc&gt;</span><br><span class="line">void vector&lt;_Tp, _Alloc&gt;::_M_fill_insert(iterator __position, size_type __n, </span><br><span class="line">                                         const _Tp&amp; __x)</span><br><span class="line">&#123;</span><br><span class="line">  if (__n !&#x3D; 0) &#123;</span><br><span class="line">    if (size_type(_M_end_of_storage - _M_finish) &gt;&#x3D; __n) &#123;</span><br><span class="line">      _Tp __x_copy &#x3D; __x;</span><br><span class="line">      const size_type __elems_after &#x3D; _M_finish - __position;</span><br><span class="line">      iterator __old_finish &#x3D; _M_finish;</span><br><span class="line">      if (__elems_after &gt; __n) &#123;</span><br><span class="line">        uninitialized_copy(_M_finish - __n, _M_finish, _M_finish);</span><br><span class="line">        _M_finish +&#x3D; __n;</span><br><span class="line">        copy_backward(__position, __old_finish - __n, __old_finish);</span><br><span class="line">        fill(__position, __position + __n, __x_copy);</span><br><span class="line">      &#125;</span><br><span class="line">      else &#123;</span><br><span class="line">        uninitialized_fill_n(_M_finish, __n - __elems_after, __x_copy);</span><br><span class="line">        _M_finish +&#x3D; __n - __elems_after;</span><br><span class="line">        uninitialized_copy(__position, __old_finish, _M_finish);</span><br><span class="line">        _M_finish +&#x3D; __elems_after;</span><br><span class="line">        fill(__position, __old_finish, __x_copy);</span><br><span class="line">      &#125;</span><br><span class="line">    &#125;</span><br><span class="line">    else &#123;</span><br><span class="line">      const size_type __old_size &#x3D; size();        </span><br><span class="line">      const size_type __len &#x3D; __old_size + max(__old_size, __n); &#x2F;&#x2F; 当前空间*2 或者加新加的元素个数</span><br><span class="line">      iterator __new_start &#x3D; _M_allocate(__len);</span><br><span class="line">      iterator __new_finish &#x3D; __new_start;</span><br><span class="line">      __STL_TRY &#123;</span><br><span class="line">        __new_finish &#x3D; uninitialized_copy(_M_start, __position, __new_start);</span><br><span class="line">        __new_finish &#x3D; uninitialized_fill_n(__new_finish, __n, __x);</span><br><span class="line">        __new_finish</span><br><span class="line">          &#x3D; uninitialized_copy(__position, _M_finish, __new_finish);</span><br><span class="line">      &#125;</span><br><span class="line">      __STL_UNWIND((destroy(__new_start,__new_finish), </span><br><span class="line">                    _M_deallocate(__new_start,__len)));</span><br><span class="line">      destroy(_M_start, _M_finish);</span><br><span class="line">      _M_deallocate(_M_start, _M_end_of_storage - _M_start);</span><br><span class="line">      _M_start &#x3D; __new_start;</span><br><span class="line">      _M_finish &#x3D; __new_finish;</span><br><span class="line">      _M_end_of_storage &#x3D; __new_start + __len;</span><br><span class="line">    &#125;</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-
-<h2 id="list"><a href="#list" class="headerlink" title="list"></a>list</h2><p>内部实现是环形双向列表，在末尾提供一个空的node作为头部，或者尾部，其前后指针都指向自己。遍历list的时候，这个节点作为end节点，提供哨兵的功能。</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">struct _List_node_base &#123;</span><br><span class="line">  _List_node_base* _M_next;</span><br><span class="line">  _List_node_base* _M_prev;</span><br><span class="line">&#125;;</span><br><span class="line"></span><br><span class="line">template &lt;class _Tp&gt;</span><br><span class="line">struct _List_node : public _List_node_base &#123;</span><br><span class="line">  _Tp _M_data;</span><br><span class="line">&#125;;</span><br></pre></td></tr></table></figure>
-
-
-<h2 id="deque"><a href="#deque" class="headerlink" title="deque"></a>deque</h2><p>是一个双向开口的连续线性空间。虽然说是整体连续的，但是实际上是一段一段定量连续空间拼凑起来的。整体构造如下图所示：</p>
-<p>deque由一个中控map来管理所有的存储块，其迭代器如下图所示：</p>
-<h2 id="stack"><a href="#stack" class="headerlink" title="stack"></a>stack</h2><p>封装了一下deque的接口，LIFO，没有迭代器</p>
-<h2 id="queue"><a href="#queue" class="headerlink" title="queue"></a>queue</h2><p>封装了一下deque的接口，FIFO，没有迭代器</p>
-<h2 id="heap"><a href="#heap" class="headerlink" title="heap"></a>heap</h2>
-      
-    </div>
-
-    
-    
-    
-
-    <footer class="post-footer">
-        <div class="post-eof"></div>
-      
-    </footer>
-  </article>
-</div>
-
-
-
-
-    
-
-
-<div class="post-block">
-  
-  
-
-  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="zh-CN">
-    <link itemprop="mainEntityOfPage" href="http://example.com/2021/01/29/stl%E6%BA%90%E7%A0%81%E5%89%96%E6%9E%90-%E8%BF%AD%E4%BB%A3%E5%99%A8/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="image" content="/images/avatar.gif">
-      <meta itemprop="name" content="Jason Chao">
-      <meta itemprop="description" content="">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="我住8楼">
-    </span>
-      <header class="post-header">
-        <h2 class="post-title" itemprop="name headline">
-          <a href="/2021/01/29/stl%E6%BA%90%E7%A0%81%E5%89%96%E6%9E%90-%E8%BF%AD%E4%BB%A3%E5%99%A8/" class="post-title-link" itemprop="url">stl源码剖析-迭代器</a>
-        </h2>
-
-        <div class="post-meta-container">
-          <div class="post-meta">
-    <span class="post-meta-item">
-      <span class="post-meta-item-icon">
-        <i class="far fa-calendar"></i>
-      </span>
-      <span class="post-meta-item-text">发表于</span>
-      
-
-      <time title="创建时间：2021-01-29 15:15:35 / 修改时间：16:40:16" itemprop="dateCreated datePublished" datetime="2021-01-29T15:15:35+08:00">2021-01-29</time>
-    </span>
-    <span class="post-meta-item">
-      <span class="post-meta-item-icon">
-        <i class="far fa-folder"></i>
-      </span>
-      <span class="post-meta-item-text">分类于</span>
-        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-          <a href="/categories/stl/" itemprop="url" rel="index"><span itemprop="name">stl</span></a>
-        </span>
-    </span>
-
-  
-</div>
-
-        </div>
-      </header>
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-          <h1 id="Traits编程技法"><a href="#Traits编程技法" class="headerlink" title="Traits编程技法"></a>Traits编程技法</h1><blockquote>
-<p>偏特化（partial specialization）：如果class template拥有一个以上的template参数，我么可以针对其中某个（或数个，但非全部）template参数进行特化工作。即，在泛化设计中提供一个特化版本。</p>
-</blockquote>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br></pre></td><td class="code"><pre><span class="line">template &lt;class T&gt;</span><br><span class="line">struct iterator_traits &#123;</span><br><span class="line">    typedef typename T::iterator_category iterator_category;  &#x2F;&#x2F; 遍历策略：只读，只写，允许写入型算法读写操作，双向移动，随机读写</span><br><span class="line">    typedef typename T::value_type        value_type;   &#x2F;&#x2F; 值类型</span><br><span class="line">    typedef typename T::difference_type   difference_type;  &#x2F;&#x2F; 两个迭代器之间距离类型</span><br><span class="line">    typedef typename T::pointer           pointer;   &#x2F;&#x2F; 迭代器所指类型指针：左值</span><br><span class="line">    typedef typename T::reference         reference;  &#x2F;&#x2F; 值引用类型： 左值</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">&#x2F;&#x2F; 上面是stl中迭代器需要指定的几种数据类型，函数模板通过这几种模板类型来操作相关数据，</span><br><span class="line">而真正的数据对象类型会根据传入的数据类型进行相应的调整。</span><br><span class="line"> </span><br><span class="line">#include &lt;iostream&gt;</span><br><span class="line">using namespace std;</span><br><span class="line"> </span><br><span class="line"> </span><br><span class="line">template &lt;class T&gt;</span><br><span class="line">struct flag_traits &#123;</span><br><span class="line">    typedef typename T::value_type   value_type;</span><br><span class="line">&#125;</span><br><span class="line"> </span><br><span class="line">struct B_tag &#123;&#125;;</span><br><span class="line">struct D1_tag ：public B_tag &#123;&#125;;</span><br><span class="line">struct D2_tag : public D1_tag &#123;&#125;;</span><br><span class="line"> </span><br><span class="line">template &lt;class I&gt;</span><br><span class="line">func(I&amp; p, B_tag) &#123;</span><br><span class="line">    cout &lt;&lt; &quot; B version &quot; &lt;&lt; endl;</span><br><span class="line">&#125;</span><br><span class="line"> </span><br><span class="line">template &lt;class I&gt;</span><br><span class="line">func(I&amp; p, D2_tag) &#123;</span><br><span class="line">    cout &lt;&lt; &quot; D2 version &quot; &lt;&lt; endl;</span><br><span class="line">&#125;</span><br><span class="line"> </span><br><span class="line">template &lt;class I&gt;</span><br><span class="line">func(I&amp; p) &#123;</span><br><span class="line">    func(p, typename flag_traits&lt;I&gt;::value_type());</span><br><span class="line">&#125;</span><br><span class="line"> </span><br><span class="line">class B &#123;</span><br><span class="line">    typedef B_tag  value_type;</span><br><span class="line">&#125;</span><br><span class="line"> </span><br><span class="line">class D1 &#123;</span><br><span class="line">    typedef D1_tag value_type;</span><br><span class="line">&#125;</span><br><span class="line"> </span><br><span class="line">class D2 &#123;</span><br><span class="line">    typedef D2_tag  value_type;</span><br><span class="line">&#125;</span><br><span class="line"> </span><br><span class="line">int main() &#123;</span><br><span class="line">    B b;</span><br><span class="line">    D1 d1;</span><br><span class="line">    D2 d2;</span><br><span class="line">    func(b);</span><br><span class="line">    func(d1);</span><br><span class="line">    func(d2);</span><br><span class="line">&#125;</span><br><span class="line"> </span><br><span class="line">可以通过flag_traits::value_type的方式来推导当前调用的函数是哪个函数的重载。</span><br><span class="line">这种通过设定一个模板类，间接推导参数类型的方式值得学习。</span><br></pre></td></tr></table></figure>
       
     </div>
 

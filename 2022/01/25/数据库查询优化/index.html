@@ -1,0 +1,745 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 5.3.0">
+
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+
+<link rel="stylesheet" href="//cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@5.15.1/css/all.min.css">
+  <link rel="stylesheet" href="//cdn.jsdelivr.net/npm/animate.css@3.1.1/animate.min.css">
+
+<script class="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"example.com","root":"/","images":"/images","scheme":"Gemini","version":"8.2.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12},"copycode":false,"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"fadeInDown","post_body":"fadeInDown","coll_header":"fadeInLeft","sidebar":"fadeInUp"}},"prism":false,"i18n":{"placeholder":"搜索...","empty":"没有找到任何搜索结果：${query}","hits_time":"找到 ${hits} 个搜索结果（用时 ${time} 毫秒）","hits":"找到 ${hits} 个搜索结果"}};
+  </script>
+<meta name="description" content="数据管理系统的查询优化数据库查询优化技术包括：  查询重用技术 查询重写规则，属于逻辑优化 查询算法优化技术，属于物理优化 并行查询优化技术 分布式查询优化技术 其他方面（例如框架结构）  从优化内容角度看：  代数优化（逻辑优化）：主要依据关系代数的等价变换做一些逻辑变换 非代数优化（物理优化）：主要依据数据读取、表链接方式、表连接顺序、排序等技术对查询进行优化  数据库调优有三种方式：  人工">
+<meta property="og:type" content="article">
+<meta property="og:title" content="数据库查询优化">
+<meta property="og:url" content="http://example.com/2022/01/25/%E6%95%B0%E6%8D%AE%E5%BA%93%E6%9F%A5%E8%AF%A2%E4%BC%98%E5%8C%96/index.html">
+<meta property="og:site_name" content="我住8楼">
+<meta property="og:description" content="数据管理系统的查询优化数据库查询优化技术包括：  查询重用技术 查询重写规则，属于逻辑优化 查询算法优化技术，属于物理优化 并行查询优化技术 分布式查询优化技术 其他方面（例如框架结构）  从优化内容角度看：  代数优化（逻辑优化）：主要依据关系代数的等价变换做一些逻辑变换 非代数优化（物理优化）：主要依据数据读取、表链接方式、表连接顺序、排序等技术对查询进行优化  数据库调优有三种方式：  人工">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="http://example.com/2022/01/25/%E6%95%B0%E6%8D%AE%E5%BA%93%E6%9F%A5%E8%AF%A2%E4%BC%98%E5%8C%96/%E4%BC%81%E4%B8%9A%E5%BE%AE%E4%BF%A1%E6%88%AA%E5%9B%BE_16430738165540.png">
+<meta property="og:image" content="http://example.com/2022/01/25/%E6%95%B0%E6%8D%AE%E5%BA%93%E6%9F%A5%E8%AF%A2%E4%BC%98%E5%8C%96/%E4%BC%81%E4%B8%9A%E5%BE%AE%E4%BF%A1%E6%88%AA%E5%9B%BE_16431090816124.png">
+<meta property="og:image" content="http://example.com/2022/01/25/%E6%95%B0%E6%8D%AE%E5%BA%93%E6%9F%A5%E8%AF%A2%E4%BC%98%E5%8C%96/%E4%BC%81%E4%B8%9A%E5%BE%AE%E4%BF%A1%E6%88%AA%E5%9B%BE_16431090596357.png">
+<meta property="og:image" content="http://example.com/2022/01/25/%E6%95%B0%E6%8D%AE%E5%BA%93%E6%9F%A5%E8%AF%A2%E4%BC%98%E5%8C%96/%E4%BC%81%E4%B8%9A%E5%BE%AE%E4%BF%A1%E6%88%AA%E5%9B%BE_16431091622885.png">
+<meta property="og:image" content="http://example.com/2022/01/25/%E6%95%B0%E6%8D%AE%E5%BA%93%E6%9F%A5%E8%AF%A2%E4%BC%98%E5%8C%96/%E4%BC%81%E4%B8%9A%E5%BE%AE%E4%BF%A1%E6%88%AA%E5%9B%BE_16431091812362.png">
+<meta property="og:image" content="http://example.com/2022/01/25/%E6%95%B0%E6%8D%AE%E5%BA%93%E6%9F%A5%E8%AF%A2%E4%BC%98%E5%8C%96/%E4%BC%81%E4%B8%9A%E5%BE%AE%E4%BF%A1%E6%88%AA%E5%9B%BE_16431092023455.png">
+<meta property="og:image" content="http://example.com/2022/01/25/%E6%95%B0%E6%8D%AE%E5%BA%93%E6%9F%A5%E8%AF%A2%E4%BC%98%E5%8C%96/%E4%BC%81%E4%B8%9A%E5%BE%AE%E4%BF%A1%E6%88%AA%E5%9B%BE_16431228162027.png">
+<meta property="og:image" content="http://example.com/2022/01/25/%E6%95%B0%E6%8D%AE%E5%BA%93%E6%9F%A5%E8%AF%A2%E4%BC%98%E5%8C%96/%E4%BC%81%E4%B8%9A%E5%BE%AE%E4%BF%A1%E6%88%AA%E5%9B%BE_16432755844989.png">
+<meta property="og:image" content="http://example.com/2022/01/25/%E6%95%B0%E6%8D%AE%E5%BA%93%E6%9F%A5%E8%AF%A2%E4%BC%98%E5%8C%96/%E4%BC%81%E4%B8%9A%E5%BE%AE%E4%BF%A1%E6%88%AA%E5%9B%BE_16432771861463.png">
+<meta property="og:image" content="http://example.com/2022/01/25/%E6%95%B0%E6%8D%AE%E5%BA%93%E6%9F%A5%E8%AF%A2%E4%BC%98%E5%8C%96/%E4%BC%81%E4%B8%9A%E5%BE%AE%E4%BF%A1%E6%88%AA%E5%9B%BE_16432772226850.png">
+<meta property="og:image" content="http://example.com/2022/01/25/%E6%95%B0%E6%8D%AE%E5%BA%93%E6%9F%A5%E8%AF%A2%E4%BC%98%E5%8C%96/%E4%BC%81%E4%B8%9A%E5%BE%AE%E4%BF%A1%E6%88%AA%E5%9B%BE_16432800085913.png">
+<meta property="og:image" content="http://example.com/2022/01/25/%E6%95%B0%E6%8D%AE%E5%BA%93%E6%9F%A5%E8%AF%A2%E4%BC%98%E5%8C%96/%E4%BC%81%E4%B8%9A%E5%BE%AE%E4%BF%A1%E6%88%AA%E5%9B%BE_16432801527062.png">
+<meta property="og:image" content="http://example.com/2022/01/25/%E6%95%B0%E6%8D%AE%E5%BA%93%E6%9F%A5%E8%AF%A2%E4%BC%98%E5%8C%96/%E4%BC%81%E4%B8%9A%E5%BE%AE%E4%BF%A1%E6%88%AA%E5%9B%BE_1643280220767.png">
+<meta property="og:image" content="http://example.com/2022/01/25/%E6%95%B0%E6%8D%AE%E5%BA%93%E6%9F%A5%E8%AF%A2%E4%BC%98%E5%8C%96/%E4%BC%81%E4%B8%9A%E5%BE%AE%E4%BF%A1%E6%88%AA%E5%9B%BE_16432802679636.png">
+<meta property="og:image" content="http://example.com/2022/01/25/%E6%95%B0%E6%8D%AE%E5%BA%93%E6%9F%A5%E8%AF%A2%E4%BC%98%E5%8C%96/%E4%BC%81%E4%B8%9A%E5%BE%AE%E4%BF%A1%E6%88%AA%E5%9B%BE_16432803915721.png">
+<meta property="og:image" content="http://example.com/2022/01/25/%E6%95%B0%E6%8D%AE%E5%BA%93%E6%9F%A5%E8%AF%A2%E4%BC%98%E5%8C%96/%E4%BC%81%E4%B8%9A%E5%BE%AE%E4%BF%A1%E6%88%AA%E5%9B%BE_16432816584634.png">
+<meta property="og:image" content="http://example.com/2022/01/25/%E6%95%B0%E6%8D%AE%E5%BA%93%E6%9F%A5%E8%AF%A2%E4%BC%98%E5%8C%96/%E4%BC%81%E4%B8%9A%E5%BE%AE%E4%BF%A1%E6%88%AA%E5%9B%BE_16433314367611.png">
+<meta property="article:published_time" content="2022-01-25T01:08:33.000Z">
+<meta property="article:modified_time" content="2022-01-28T00:57:20.399Z">
+<meta property="article:author" content="Jason Chao">
+<meta property="article:tag" content="database">
+<meta property="article:tag" content="数据库查询优化器的艺术原理解析">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http://example.com/2022/01/25/%E6%95%B0%E6%8D%AE%E5%BA%93%E6%9F%A5%E8%AF%A2%E4%BC%98%E5%8C%96/%E4%BC%81%E4%B8%9A%E5%BE%AE%E4%BF%A1%E6%88%AA%E5%9B%BE_16430738165540.png">
+
+
+<link rel="canonical" href="http://example.com/2022/01/25/%E6%95%B0%E6%8D%AE%E5%BA%93%E6%9F%A5%E8%AF%A2%E4%BC%98%E5%8C%96/">
+
+
+<script class="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'zh-CN'
+  };
+</script>
+<title>数据库查询优化 | 我住8楼</title><meta name="robots" content="noindex">
+  
+
+
+
+
+  <noscript>
+  <style>
+  body { margin-top: 2rem; }
+
+  .use-motion .menu-item,
+  .use-motion .sidebar,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header {
+    visibility: visible;
+  }
+
+  .use-motion .header,
+  .use-motion .site-brand-container .toggle,
+  .use-motion .footer { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle,
+  .use-motion .custom-logo-image {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line {
+    transform: scaleX(1);
+  }
+
+  .search-pop-overlay, .sidebar-nav { display: none; }
+  .sidebar-panel { display: block; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" class="use-motion">
+  <div class="headband"></div>
+
+  <main class="main">
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏" role="button">
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <i class="logo-line"></i>
+      <h1 class="site-title">我住8楼</h1>
+      <i class="logo-line"></i>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+    </div>
+  </div>
+</div>
+
+
+
+<nav class="site-nav">
+  <ul class="main-menu menu">
+        <li class="menu-item menu-item-home"><a href="/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a></li>
+        <li class="menu-item menu-item-tags"><a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>标签</a></li>
+        <li class="menu-item menu-item-categories"><a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>分类</a></li>
+        <li class="menu-item menu-item-archives"><a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档</a></li>
+  </ul>
+</nav>
+
+
+
+
+</div>
+        
+  
+  <div class="toggle sidebar-toggle" role="button">
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+  </div>
+
+  <aside class="sidebar">
+
+    <div class="sidebar-inner sidebar-nav-active sidebar-toc-active">
+      <ul class="sidebar-nav">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <div class="sidebar-panel-container">
+        <!--noindex-->
+        <div class="post-toc-wrap sidebar-panel">
+            <div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#%E6%95%B0%E6%8D%AE%E7%AE%A1%E7%90%86%E7%B3%BB%E7%BB%9F%E7%9A%84%E6%9F%A5%E8%AF%A2%E4%BC%98%E5%8C%96"><span class="nav-number">1.</span> <span class="nav-text">数据管理系统的查询优化</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%95%B0%E6%8D%AE%E5%BA%93%E8%B0%83%E4%BC%98"><span class="nav-number">1.1.</span> <span class="nav-text">数据库调优</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%9F%A5%E8%AF%A2%E4%BC%98%E5%8C%96%E6%8A%80%E6%9C%AF"><span class="nav-number">1.2.</span> <span class="nav-text">查询优化技术</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%9F%A5%E8%AF%A2%E9%87%8D%E7%94%A8"><span class="nav-number">1.2.1.</span> <span class="nav-text">查询重用</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%9F%A5%E8%AF%A2%E9%87%8D%E5%86%99%E8%A7%84%E5%88%99"><span class="nav-number">1.2.2.</span> <span class="nav-text">查询重写规则</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%9F%A5%E8%AF%A2%E7%AE%97%E6%B3%95%E4%BC%98%E5%8C%96"><span class="nav-number">1.2.3.</span> <span class="nav-text">查询算法优化</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%B9%B6%E8%A1%8C%E6%9F%A5%E8%AF%A2%E4%BC%98%E5%8C%96"><span class="nav-number">1.2.4.</span> <span class="nav-text">并行查询优化</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%88%86%E5%B8%83%E5%BC%8F%E6%9F%A5%E8%AF%A2%E4%BC%98%E5%8C%96"><span class="nav-number">1.2.5.</span> <span class="nav-text">分布式查询优化</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%85%B6%E4%BB%96%E4%BC%98%E5%8C%96"><span class="nav-number">1.2.6.</span> <span class="nav-text">其他优化</span></a></li></ol></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E9%80%BB%E8%BE%91%E6%9F%A5%E8%AF%A2%E4%BC%98%E5%8C%96"><span class="nav-number">2.</span> <span class="nav-text">逻辑查询优化</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E7%90%86%E8%AE%BA%E5%9F%BA%E7%A1%80"><span class="nav-number">2.1.</span> <span class="nav-text">理论基础</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%85%B3%E7%B3%BB%E4%BB%A3%E6%95%B0"><span class="nav-number">2.1.1.</span> <span class="nav-text">关系代数</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%85%B3%E7%B3%BB%E4%BB%A3%E6%95%B0%E7%AD%89%E4%BB%B7%E5%8F%98%E6%8D%A2"><span class="nav-number">2.1.2.</span> <span class="nav-text">关系代数等价变换</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#%E8%BF%90%E7%AE%97%E7%AC%A6%E4%B8%BB%E5%AF%BC%E7%9A%84%E4%BC%98%E5%8C%96"><span class="nav-number">2.1.2.1.</span> <span class="nav-text">运算符主导的优化</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E8%BF%90%E7%AE%97%E8%A7%84%E5%88%99%E4%B8%BB%E5%AF%BC%E7%9A%84%E4%BC%98%E5%8C%96"><span class="nav-number">2.1.2.2.</span> <span class="nav-text">运算规则主导的优化</span></a></li></ol></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%9F%A5%E8%AF%A2%E9%87%8D%E5%86%99%E8%A7%84%E5%88%99-1"><span class="nav-number">2.2.</span> <span class="nav-text">查询重写规则</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%AD%90%E6%9F%A5%E8%AF%A2%E7%9A%84%E4%BC%98%E5%8C%96"><span class="nav-number">2.2.1.</span> <span class="nav-text">子查询的优化</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E8%A7%86%E5%9B%BE%E9%87%8D%E5%86%99"><span class="nav-number">2.2.2.</span> <span class="nav-text">视图重写</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E7%AD%89%E4%BB%B7%E8%B0%93%E8%AF%8D%E9%87%8D%E5%86%99"><span class="nav-number">2.2.3.</span> <span class="nav-text">等价谓词重写</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%9D%A1%E4%BB%B6%E5%8C%96%E7%AE%80"><span class="nav-number">2.2.4.</span> <span class="nav-text">条件化简</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%A4%96%E8%BF%9E%E6%8E%A5%E6%B6%88%E9%99%A4"><span class="nav-number">2.2.5.</span> <span class="nav-text">外连接消除</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%B5%8C%E5%A5%97%E8%BF%9E%E6%8E%A5%E6%B6%88%E9%99%A4"><span class="nav-number">2.2.6.</span> <span class="nav-text">嵌套连接消除</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E8%BF%9E%E6%8E%A5%E6%B6%88%E9%99%A4"><span class="nav-number">2.2.7.</span> <span class="nav-text">连接消除</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#%E8%BF%9E%E6%8E%A5%E5%88%86%E7%B1%BB"><span class="nav-number">2.2.7.1.</span> <span class="nav-text">连接分类</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E8%BF%9E%E6%8E%A5%E6%B6%88%E9%99%A4-1"><span class="nav-number">2.2.7.2.</span> <span class="nav-text">连接消除</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E8%AF%AD%E4%B9%89%E4%BC%98%E5%8C%96"><span class="nav-number">2.2.8.</span> <span class="nav-text">语义优化</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E9%92%88%E5%AF%B9%E9%9D%9ESPJ%E7%9A%84%E4%BC%98%E5%8C%96"><span class="nav-number">2.2.9.</span> <span class="nav-text">针对非SPJ的优化</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%90%AF%E5%8F%91%E5%BC%8F%E8%A7%84%E5%88%99"><span class="nav-number">2.3.</span> <span class="nav-text">启发式规则</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E7%89%A9%E7%90%86%E6%9F%A5%E8%AF%A2%E4%BC%98%E5%8C%96"><span class="nav-number">3.</span> <span class="nav-text">物理查询优化</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%9F%A5%E8%AF%A2%E4%BB%A3%E4%BB%B7%E4%BC%B0%E7%AE%97"><span class="nav-number">3.1.</span> <span class="nav-text">查询代价估算</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E4%BB%A3%E4%BB%B7%E6%A8%A1%E5%9E%8B"><span class="nav-number">3.1.1.</span> <span class="nav-text">代价模型</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E9%80%89%E6%8B%A9%E7%8E%87%E8%AE%A1%E7%AE%97%E5%B8%B8%E7%94%A8%E7%AE%97%E6%B3%95"><span class="nav-number">3.1.2.</span> <span class="nav-text">选择率计算常用算法</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%8D%95%E8%A1%A8%E6%89%AB%E6%8F%8F%E7%AE%97%E6%B3%95"><span class="nav-number">3.2.</span> <span class="nav-text">单表扫描算法</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%B8%B8%E7%94%A8%E6%96%B9%E5%BC%8F"><span class="nav-number">3.2.1.</span> <span class="nav-text">常用方式</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E4%BB%A3%E4%BB%B7%E8%AE%A1%E7%AE%97"><span class="nav-number">3.2.2.</span> <span class="nav-text">代价计算</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E7%B4%A2%E5%BC%95"><span class="nav-number">3.3.</span> <span class="nav-text">索引</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%A6%82%E4%BD%95%E5%88%A9%E7%94%A8%E7%B4%A2%E5%BC%95"><span class="nav-number">3.3.1.</span> <span class="nav-text">如何利用索引</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E4%B8%A4%E8%A1%A8%E8%BF%9E%E6%8E%A5%E7%AE%97%E6%B3%95"><span class="nav-number">3.4.</span> <span class="nav-text">两表连接算法</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%9F%BA%E6%9C%AC%E8%BF%9E%E6%8E%A5%E7%AE%97%E6%B3%95"><span class="nav-number">3.4.1.</span> <span class="nav-text">基本连接算法</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#%E5%B5%8C%E5%A5%97%E8%BF%9E%E6%8E%A5%E7%AE%97%E6%B3%95"><span class="nav-number">3.4.1.1.</span> <span class="nav-text">嵌套连接算法</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E6%8E%92%E5%BA%8F%E5%BD%92%E5%B9%B6%E8%BF%9E%E6%8E%A5%E7%AE%97%E6%B3%95"><span class="nav-number">3.4.1.2.</span> <span class="nav-text">排序归并连接算法</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#Hash%E8%BF%9E%E6%8E%A5%E7%AE%97%E6%B3%95"><span class="nav-number">3.4.1.3.</span> <span class="nav-text">Hash连接算法</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E8%BF%9E%E6%8E%A5%E7%AE%97%E6%B3%95%E6%8C%89IO%E5%88%86%E7%B1%BB"><span class="nav-number">3.4.2.</span> <span class="nav-text">连接算法按IO分类</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E8%BF%9E%E6%8E%A5%E6%93%8D%E4%BD%9C%E4%BB%A3%E4%BB%B7%E8%AE%A1%E7%AE%97"><span class="nav-number">3.4.3.</span> <span class="nav-text">连接操作代价计算</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%A4%9A%E8%A1%A8%E8%BF%9E%E6%8E%A5%E7%AE%97%E6%B3%95"><span class="nav-number">3.5.</span> <span class="nav-text">多表连接算法</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%A4%9A%E8%A1%A8%E8%BF%9E%E6%8E%A5%E9%A1%BA%E5%BA%8F"><span class="nav-number">3.5.1.</span> <span class="nav-text">多表连接顺序</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%A4%9A%E8%A1%A8%E8%BF%9E%E6%8E%A5%E7%AE%97%E6%B3%95-1"><span class="nav-number">3.5.2.</span> <span class="nav-text">多表连接算法</span></a></li></ol></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E6%9F%A5%E8%AF%A2%E4%BC%98%E5%8C%96%E5%99%A8%E4%B8%8E%E5%85%B6%E4%BB%96%E6%A8%A1%E5%9D%97%E7%9A%84%E5%85%B3%E7%B3%BB"><span class="nav-number">4.</span> <span class="nav-text">查询优化器与其他模块的关系</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%9F%A5%E8%AF%A2%E4%BC%98%E5%8C%96%E5%99%A8"><span class="nav-number">4.0.1.</span> <span class="nav-text">查询优化器</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E4%B8%8E%E5%85%B6%E4%BB%96%E6%A8%A1%E5%9D%97%E7%9A%84%E5%85%B3%E7%B3%BB"><span class="nav-number">4.0.2.</span> <span class="nav-text">与其他模块的关系</span></a></li></ol></li></ol></li></ol></div>
+        </div>
+        <!--/noindex-->
+
+        <div class="site-overview-wrap sidebar-panel">
+          <div class="site-author site-overview-item animated" itemprop="author" itemscope itemtype="http://schema.org/Person">
+  <p class="site-author-name" itemprop="name">Jason Chao</p>
+  <div class="site-description" itemprop="description"></div>
+</div>
+<div class="site-state-wrap site-overview-item animated">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">27</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+          
+        <span class="site-state-item-count">2</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+          
+        <span class="site-state-item-count">24</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+
+
+
+        </div>
+      </div>
+    </div>
+  </aside>
+  <div class="sidebar-dimmer"></div>
+
+
+    </header>
+
+    
+  <div class="back-to-top" role="button">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+<noscript>
+  <div class="noscript-warning">Theme NexT works best with JavaScript enabled</div>
+</noscript>
+
+
+    <div class="main-inner post posts-expand">
+
+
+  
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="http://example.com/2022/01/25/%E6%95%B0%E6%8D%AE%E5%BA%93%E6%9F%A5%E8%AF%A2%E4%BC%98%E5%8C%96/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="Jason Chao">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="我住8楼">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          数据库查询优化
+        </h1>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">发表于</span>
+
+      <time title="创建时间：2022-01-25 09:08:33" itemprop="dateCreated datePublished" datetime="2022-01-25T09:08:33+08:00">2022-01-25</time>
+    </span>
+      <span class="post-meta-item">
+        <span class="post-meta-item-icon">
+          <i class="far fa-calendar-check"></i>
+        </span>
+        <span class="post-meta-item-text">更新于</span>
+        <time title="修改时间：2022-01-28 08:57:20" itemprop="dateModified" datetime="2022-01-28T08:57:20+08:00">2022-01-28</time>
+      </span>
+
+  
+</div>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+        <h1 id="数据管理系统的查询优化"><a href="#数据管理系统的查询优化" class="headerlink" title="数据管理系统的查询优化"></a>数据管理系统的查询优化</h1><p>数据库查询优化技术包括：</p>
+<ol>
+<li>查询重用技术</li>
+<li>查询重写规则，属于逻辑优化</li>
+<li>查询算法优化技术，属于物理优化</li>
+<li>并行查询优化技术</li>
+<li>分布式查询优化技术</li>
+<li>其他方面（例如框架结构）</li>
+</ol>
+<p>从优化内容角度看：</p>
+<ol>
+<li>代数优化（逻辑优化）：主要依据关系代数的等价变换做一些逻辑变换</li>
+<li>非代数优化（物理优化）：主要依据数据读取、表链接方式、表连接顺序、排序等技术对查询进行优化</li>
+</ol>
+<h2 id="数据库调优"><a href="#数据库调优" class="headerlink" title="数据库调优"></a>数据库调优</h2><p>有三种方式：</p>
+<ol>
+<li>人工调优</li>
+<li>基于案例的调优</li>
+<li>自调优</li>
+</ol>
+<p>5个阶段：</p>
+<ol>
+<li>应用情况的估算</li>
+<li>系统选型策略</li>
+<li>数据模型的设计<ol>
+<li>E-R模型设计</li>
+<li>数据逻辑分布策略</li>
+<li>数据物理存储策略</li>
+<li>索引</li>
+</ol>
+</li>
+<li>SQL设计</li>
+<li>数据库功能的启用<ol>
+<li>查询重用</li>
+<li>数据库参数的设置</li>
+</ol>
+</li>
+<li>模型系统预运行</li>
+<li>系统监控与分析<ol>
+<li>应用系统表现</li>
+<li>OS环境惊恐</li>
+<li>数据库内部状况监控</li>
+<li>日志分析</li>
+</ol>
+</li>
+</ol>
+<img src="/2022/01/25/%E6%95%B0%E6%8D%AE%E5%BA%93%E6%9F%A5%E8%AF%A2%E4%BC%98%E5%8C%96/%E4%BC%81%E4%B8%9A%E5%BE%AE%E4%BF%A1%E6%88%AA%E5%9B%BE_16430738165540.png" class="" title="img">
+
+<h2 id="查询优化技术"><a href="#查询优化技术" class="headerlink" title="查询优化技术"></a>查询优化技术</h2><h3 id="查询重用"><a href="#查询重用" class="headerlink" title="查询重用"></a>查询重用</h3><ol>
+<li>查询结果的重用：节省CPU和IO消耗，但是结果集会消耗内存资源，sql相同，不同的用户获取的结果集可能不完全相同</li>
+<li>查询计划的重用</li>
+</ol>
+<h3 id="查询重写规则"><a href="#查询重写规则" class="headerlink" title="查询重写规则"></a>查询重写规则</h3><ol>
+<li>将查询转换为等价的、效率更高的形式，例如将效率低的为此转换为效率高的谓词、消除重复条件等</li>
+<li>尽量将查询重写为等价、简单且不受表顺序限制的形式，为物理查询优化阶段提供更多的选择，如视图的重写、子查询的合并转换等</li>
+</ol>
+<p>对查询优化技术进行分类：</p>
+<ol>
+<li>语法级。查询语言层的优化，基于语法进行优化。</li>
+<li>代数级。查询使用形式逻辑进行优化，运用关系代数的原理进行优化。</li>
+<li>语义级。根据完整性约束，对查询语句进行语义理解，推知一些可优化的操作。</li>
+<li>物理级。物理优化技术，基于代价估算模型，比较得出各种执行方式中代价最小的。</li>
+</ol>
+<p>查询重写属于语法级、代数级、语义级的优化，可以统一归属到逻辑优化的范畴。</p>
+<p>查询重写技术思路：</p>
+<ul>
+<li>将过程性查询转换为描述性的查询，如视图重写。</li>
+<li>将复杂的查询（如嵌套子查询、外链接、嵌套查询）尽可能转换为多表链接查询</li>
+<li>将效率低的谓词转换为等价的效率高的谓词</li>
+<li>利用等式和不等式的性质，简化where、having和on条件</li>
+</ul>
+<h3 id="查询算法优化"><a href="#查询算法优化" class="headerlink" title="查询算法优化"></a>查询算法优化</h3><p>查询优化的目的是生成最好的查询计划。通常有两种策略：</p>
+<ol>
+<li>基于规则优化：操作简单并且能快速确定链接方式的优点，但是只是排除了一些不好的可能，得到的结果不一定是最优的。</li>
+<li>基于代价优化：对各种可能的情况进行量化比较，从而可以得到花费最小的情况，但是如果组合情况比较多则花费的判断时间就会很多。</li>
+</ol>
+<p>多表链接优化的算法，有以下几种：</p>
+<ul>
+<li>SYSTEM-R算法，近乎穷举的搜索算法。</li>
+<li>启发式搜索算法，基于规则</li>
+<li>贪婪算法。</li>
+<li>动态规划算法。</li>
+<li>遗传算法。</li>
+</ul>
+<h3 id="并行查询优化"><a href="#并行查询优化" class="headerlink" title="并行查询优化"></a>并行查询优化</h3><p>一个查询能否并行执行，取决于以下因素：</p>
+<ol>
+<li>系统中的可用资源（如内容、高速缓存中的数据量等）</li>
+<li>cpu的数目</li>
+<li>运算中的特定代数运算符<ol>
+<li>同一个SQL内，查询并行可以分为以下两种：<ul>
+<li>操作内并行</li>
+<li>操作间并行</li>
+</ul>
+</li>
+</ol>
+</li>
+</ol>
+<h3 id="分布式查询优化"><a href="#分布式查询优化" class="headerlink" title="分布式查询优化"></a>分布式查询优化</h3><p>分布式数据库系统汇总，代价估算模型如下：</p>
+<p><code>总代价 = IO代价 + CPU代价 + 通信代价</code></p>
+<h3 id="其他优化"><a href="#其他优化" class="headerlink" title="其他优化"></a>其他优化</h3><p>如系统share disk架构还是share nothing架构。不同架构的查询优化技术也不同。</p>
+<h1 id="逻辑查询优化"><a href="#逻辑查询优化" class="headerlink" title="逻辑查询优化"></a>逻辑查询优化</h1><p>解决的问题：<strong>如何找到sql语句等价的变换方式，使得sql执行更高效</strong>。</p>
+<h2 id="理论基础"><a href="#理论基础" class="headerlink" title="理论基础"></a>理论基础</h2><h3 id="关系代数"><a href="#关系代数" class="headerlink" title="关系代数"></a>关系代数</h3><p>关系模型组成：</p>
+<ul>
+<li>关系数据结构</li>
+<li>关系操作集合</li>
+<li>关系完整性约束</li>
+</ul>
+<p>关系代数的运算符：</p>
+<ul>
+<li>传统集合运算符。并（union）、交（intersection）、差（difference）、积（extended cartesian product)</li>
+<li>专门的关系运算符。选择（select）、投影（project）、连接（join）、除（divide）</li>
+<li>辅助运算符。用来辅助专门的关系运算符进行操作的，包括算术比较符和逻辑运算符</li>
+<li>关系扩展运算符，如半连接（semijoin）、半差（semidifference)、扩展（extend）、合计（composition）、传递闭包（tclose）等，这些操作符增强了关系代数的表达能力，但不常用。</li>
+</ul>
+<h3 id="关系代数等价变换"><a href="#关系代数等价变换" class="headerlink" title="关系代数等价变换"></a>关系代数等价变换</h3><h4 id="运算符主导的优化"><a href="#运算符主导的优化" class="headerlink" title="运算符主导的优化"></a>运算符主导的优化</h4><p>主要是选择和投影下推。</p>
+<img src="/2022/01/25/%E6%95%B0%E6%8D%AE%E5%BA%93%E6%9F%A5%E8%AF%A2%E4%BC%98%E5%8C%96/%E4%BC%81%E4%B8%9A%E5%BE%AE%E4%BF%A1%E6%88%AA%E5%9B%BE_16431090816124.png" class="" title="img">
+
+
+
+<img src="/2022/01/25/%E6%95%B0%E6%8D%AE%E5%BA%93%E6%9F%A5%E8%AF%A2%E4%BC%98%E5%8C%96/%E4%BC%81%E4%B8%9A%E5%BE%AE%E4%BF%A1%E6%88%AA%E5%9B%BE_16431090596357.png" class="" title="img">
+
+<h4 id="运算规则主导的优化"><a href="#运算规则主导的优化" class="headerlink" title="运算规则主导的优化"></a>运算规则主导的优化</h4><img src="/2022/01/25/%E6%95%B0%E6%8D%AE%E5%BA%93%E6%9F%A5%E8%AF%A2%E4%BC%98%E5%8C%96/%E4%BC%81%E4%B8%9A%E5%BE%AE%E4%BF%A1%E6%88%AA%E5%9B%BE_16431091622885.png" class="" title="img">
+
+<img src="/2022/01/25/%E6%95%B0%E6%8D%AE%E5%BA%93%E6%9F%A5%E8%AF%A2%E4%BC%98%E5%8C%96/%E4%BC%81%E4%B8%9A%E5%BE%AE%E4%BF%A1%E6%88%AA%E5%9B%BE_16431091812362.png" class="" title="img">
+
+<img src="/2022/01/25/%E6%95%B0%E6%8D%AE%E5%BA%93%E6%9F%A5%E8%AF%A2%E4%BC%98%E5%8C%96/%E4%BC%81%E4%B8%9A%E5%BE%AE%E4%BF%A1%E6%88%AA%E5%9B%BE_16431092023455.png" class="" title="img">
+
+<h2 id="查询重写规则-1"><a href="#查询重写规则-1" class="headerlink" title="查询重写规则"></a>查询重写规则</h2><p>OLTP使用基于select、project、join三种操作相结合的查询。优化方式如下：</p>
+<ol>
+<li>选择操作下推</li>
+<li>投影操作下推</li>
+<li>连接操作调整</li>
+</ol>
+<h3 id="子查询的优化"><a href="#子查询的优化" class="headerlink" title="子查询的优化"></a>子查询的优化</h3><p>原因：</p>
+<p>早期实现是嵌套执行方式，即父查询中每一行都执行一次子查询，这样子查询会执行很多次，效率很低。</p>
+<p>而将子查询转换为表连接后，有几个数量级的性能提升。</p>
+<p>优化技术：</p>
+<ol>
+<li>子查询合并，在某些条件下多个子查询可以合并成一个子查询。</li>
+<li>子查询展开，子查询上拉，即把某些子查询重写为等价的多表连接操作。典型的有in/any/some/all/exists依据情况变半连接。<ol>
+<li>如果子查询中出现了聚集、groupby、distinct子句，则子查询只能单独求解，不能上拉到上层</li>
+<li>如果子查询只是一个简单格式（SPJ格式），可以上拉到上层，但是要保证上拉后不会带来多余的元组</li>
+</ol>
+</li>
+<li>聚集子查询消除。聚集函数上推，将子查询转换为一个不包含聚集函数的子查询，并与父查询的部分或全部做半连接。</li>
+</ol>
+<h3 id="视图重写"><a href="#视图重写" class="headerlink" title="视图重写"></a>视图重写</h3><p>对视图的引用重写为对表的基本引用。</p>
+<h3 id="等价谓词重写"><a href="#等价谓词重写" class="headerlink" title="等价谓词重写"></a>等价谓词重写</h3><ol>
+<li>like规则，例如like ‘Abc%’ 改成 name &gt;= ‘Abc’ and name &lt; ‘Abd’，会将全表扫描变成索引范围扫描</li>
+<li>between-and规则，同like规则，也是可以将全表扫描变成索引范围扫描</li>
+<li>in转换为or规则</li>
+<li>in转换为any规则</li>
+<li>or转换为any规则</li>
+<li>all/any规则</li>
+<li>not规则</li>
+<li>or重写并集规则</li>
+</ol>
+<h3 id="条件化简"><a href="#条件化简" class="headerlink" title="条件化简"></a>条件化简</h3><ol>
+<li>having条件在不存在group by条件或聚集函数的情况下，并入where条件</li>
+<li>去除表达式中冗余的括号</li>
+<li>常量传递</li>
+<li>消除死码</li>
+<li>表达式计算</li>
+<li>等式变换</li>
+<li>不等式变换</li>
+<li>布尔表达式变换<ol>
+<li>谓词传递闭包</li>
+<li>布尔表达式转换为合取范式CNF，加快过滤速度</li>
+<li>索引的利用</li>
+</ol>
+</li>
+</ol>
+<h3 id="外连接消除"><a href="#外连接消除" class="headerlink" title="外连接消除"></a>外连接消除</h3><p>外连接转换为内连接的条件是：where子句中与内表相关的条件满足“空值拒绝”：</p>
+<ol>
+<li>条件可以保证从结果中排除外连接右侧生成的值为null的行。</li>
+<li>外连接提供空值的一侧为另一侧的每行只返回一行。</li>
+</ol>
+<img src="/2022/01/25/%E6%95%B0%E6%8D%AE%E5%BA%93%E6%9F%A5%E8%AF%A2%E4%BC%98%E5%8C%96/%E4%BC%81%E4%B8%9A%E5%BE%AE%E4%BF%A1%E6%88%AA%E5%9B%BE_16431228162027.png" class="" title="img">
+
+<h3 id="嵌套连接消除"><a href="#嵌套连接消除" class="headerlink" title="嵌套连接消除"></a>嵌套连接消除</h3><p>当执行连接操作的次序不是从左到右逐个进行时，就说明这样的连接表达方式存在嵌套。</p>
+<ol>
+<li>如果连接表达式只包括内连接，括号可以去掉，即表之间的次序可以交换</li>
+<li>如果连接表达式包括外连接，括号不可以去掉，即表之间的次序不能交换</li>
+</ol>
+<h3 id="连接消除"><a href="#连接消除" class="headerlink" title="连接消除"></a>连接消除</h3><h4 id="连接分类"><a href="#连接分类" class="headerlink" title="连接分类"></a>连接分类</h4><p>根据连接语义分类：</p>
+<ul>
+<li>内连接</li>
+<li>外连接</li>
+<li>半连接</li>
+<li>反连接</li>
+</ul>
+<p>根据连接对象分类：</p>
+<ul>
+<li>自连接</li>
+<li>非自连接</li>
+</ul>
+<p>根据连接条件分类：</p>
+<ul>
+<li>笛卡尔积</li>
+<li>带限定条件的连接</li>
+</ul>
+<p>根据连接条件形式分类：</p>
+<ul>
+<li>等值连接</li>
+<li>范围连接</li>
+</ul>
+<h4 id="连接消除-1"><a href="#连接消除-1" class="headerlink" title="连接消除"></a>连接消除</h4><p>三种情况下可以消除不必要的连接：</p>
+<ul>
+<li>主外键关系的表进行的连接，可消除主键表，不会影响对外检表的查询</li>
+<li>唯一键作为连接条件，三表内连接可以去掉中间表</li>
+<li>其他一些特殊形式，可以消除连接操作</li>
+</ul>
+<h3 id="语义优化"><a href="#语义优化" class="headerlink" title="语义优化"></a>语义优化</h3><ul>
+<li>连接消除</li>
+<li>连接引入</li>
+<li>谓词引入</li>
+<li>检测空回答集</li>
+<li>排序优化</li>
+<li>唯一性使用</li>
+</ul>
+<h3 id="针对非SPJ的优化"><a href="#针对非SPJ的优化" class="headerlink" title="针对非SPJ的优化"></a>针对非SPJ的优化</h3><p><strong>GROUPBY优化</strong></p>
+<ol>
+<li>分组操作下移，可能先做分组，然后进行表之间的连接，可以提高连接效率</li>
+<li>分组操作上移，如果连接操作可以过滤掉大部分元组，可以先连接再分组</li>
+</ol>
+<p><strong>ORDERBY优化</strong></p>
+<ol>
+<li>排序消除，无必要的排序操作消除（如利用索引）</li>
+<li>排序下推，下推到基表中，避免最终的大连接结果集的排序</li>
+</ol>
+<p><strong>DISTICT优化</strong></p>
+<ol>
+<li>DISTICT消除，如果表中存在主键、唯一约束、索引等，可以去掉distict</li>
+<li>DISTICT下推，对于反半连接，可能先执行distict比先执行连接效率高</li>
+<li>DISTICT迁移，对连接操作的结果执行distinct，可能把distict移到一个子查询中优先进行</li>
+</ol>
+<h2 id="启发式规则"><a href="#启发式规则" class="headerlink" title="启发式规则"></a>启发式规则</h2><p>逻辑优化阶段有两类。</p>
+<ul>
+<li>一定能带来优化效果的，主要包括：<ul>
+<li>优先做选择和投影（连接条件在查询树上下推）</li>
+<li>子查询的消除</li>
+<li>嵌套连接的消除</li>
+<li>外连接的消除</li>
+<li>连接的消除</li>
+<li>使用等价谓词重写对条件化简</li>
+<li>语义优化</li>
+<li>剪掉冗余操作</li>
+</ul>
+</li>
+<li>变换未必会带来性能的提高，需根据代价选择，主要包括：<ul>
+<li>分组的合并</li>
+<li>借用索引优化分组、排序、distinct等操作</li>
+<li>对视图的查询变为基于表的查询</li>
+<li>连接条件的下推</li>
+<li>分组的下推</li>
+<li>连接提取公共表达式</li>
+<li>谓词的上拉</li>
+<li>用连接取代集合操作</li>
+<li>用unionALL 取代or操作</li>
+</ul>
+</li>
+</ul>
+<h1 id="物理查询优化"><a href="#物理查询优化" class="headerlink" title="物理查询优化"></a>物理查询优化</h1><p>解决的问题：</p>
+<ul>
+<li>从可选的单表扫描方式中，挑选什么样的单表扫描方式是最优的</li>
+<li>对于两个表连接时，如何连接是最优的</li>
+<li>对于多个表连接，连接顺序有多种组合，哪种连接顺序是最优的</li>
+<li>对于多个表连接，连接顺序有多种组合，是否要对每种组合都探索？如果不全部探索，如何找到最优的一种组合？</li>
+</ul>
+<h2 id="查询代价估算"><a href="#查询代价估算" class="headerlink" title="查询代价估算"></a>查询代价估算</h2><h3 id="代价模型"><a href="#代价模型" class="headerlink" title="代价模型"></a>代价模型</h3><p>$$<br>总代价= IO代价 + CPU代价 \<br>COST = P<em>a_page_cpu_time + W</em>T<br>$$</p>
+<ul>
+<li>P为计划运行时访问的页面数，a_page_cpu_time是每个页面读取的时间花费，其乘积反映了IO花费。</li>
+<li>T为访问的元组数，反映了CPU花费（解析元组结构耗费cpu时间）。如果是索引扫描，则还包括索引读取的花费。</li>
+<li>W为权重因子，标明IO到CPU的相关性，又称为选择率（selectivity）。选择率用于表示在关系R中，满足条件“A <op> a”的元组数与R的所有元组数N的比值。</li>
+</ul>
+<h3 id="选择率计算常用算法"><a href="#选择率计算常用算法" class="headerlink" title="选择率计算常用算法"></a>选择率计算常用算法</h3><ul>
+<li>无参数方法，使用ad hoc数据结构或直方图维护属性值的分布来判断</li>
+<li>参数法，使用具有一些自由统计参数的数据分布函数逼近真实分布。</li>
+<li>曲线拟合法，为客服参数发的不灵活性，用一般多项式和标准最小方差来逼近属性值的分布</li>
+<li>抽样法，从数据库中抽样，然后对这些值进行查询来采集统计数据</li>
+<li>综合法，将以上集中方式结合起来。例如将抽样法和直方图法结合。</li>
+</ul>
+<h2 id="单表扫描算法"><a href="#单表扫描算法" class="headerlink" title="单表扫描算法"></a>单表扫描算法</h2><h3 id="常用方式"><a href="#常用方式" class="headerlink" title="常用方式"></a>常用方式</h3><ul>
+<li>顺序扫描</li>
+<li>索引扫描</li>
+<li>只读索引扫描，索引的数据足够条件判断</li>
+<li>行扫描，用于直接定位表中的某一行。</li>
+<li>并行表扫描。</li>
+<li>组合多个索引扫描。</li>
+</ul>
+<h3 id="代价计算"><a href="#代价计算" class="headerlink" title="代价计算"></a>代价计算</h3><table>
+<thead>
+<tr>
+<th>扫描方式</th>
+<th>代价估算公式</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>顺序扫描</td>
+<td>N_page * a_page_IO_time + N_tuple * a_tuple_CPU_time</td>
+</tr>
+<tr>
+<td>索引扫描</td>
+<td>C_index + N_page_index * a_tuple_IO_time</td>
+</tr>
+</tbody></table>
+<img src="/2022/01/25/%E6%95%B0%E6%8D%AE%E5%BA%93%E6%9F%A5%E8%AF%A2%E4%BC%98%E5%8C%96/%E4%BC%81%E4%B8%9A%E5%BE%AE%E4%BF%A1%E6%88%AA%E5%9B%BE_16432755844989.png" class="" title="img">
+
+<h2 id="索引"><a href="#索引" class="headerlink" title="索引"></a>索引</h2><h3 id="如何利用索引"><a href="#如何利用索引" class="headerlink" title="如何利用索引"></a>如何利用索引</h3><ul>
+<li>索引列作为条件出现在where、having、on子句汇总，有利于利用索引过滤元组</li>
+<li>索引列是被连接的表对象的列且存在于连接条件中</li>
+</ul>
+<h2 id="两表连接算法"><a href="#两表连接算法" class="headerlink" title="两表连接算法"></a>两表连接算法</h2><h3 id="基本连接算法"><a href="#基本连接算法" class="headerlink" title="基本连接算法"></a>基本连接算法</h3><h4 id="嵌套连接算法"><a href="#嵌套连接算法" class="headerlink" title="嵌套连接算法"></a>嵌套连接算法</h4><p>适用于内连接、左外连接、半连接、反半连接等语义的处理。</p>
+<p>嵌套循环连接算法。</p>
+<img src="/2022/01/25/%E6%95%B0%E6%8D%AE%E5%BA%93%E6%9F%A5%E8%AF%A2%E4%BC%98%E5%8C%96/%E4%BC%81%E4%B8%9A%E5%BE%AE%E4%BF%A1%E6%88%AA%E5%9B%BE_16432771861463.png" class="" title="img">
+
+<p>基于块的嵌套循环连接算法。</p>
+<img src="/2022/01/25/%E6%95%B0%E6%8D%AE%E5%BA%93%E6%9F%A5%E8%AF%A2%E4%BC%98%E5%8C%96/%E4%BC%81%E4%B8%9A%E5%BE%AE%E4%BF%A1%E6%88%AA%E5%9B%BE_16432772226850.png" class="" title="img">
+
+<h4 id="排序归并连接算法"><a href="#排序归并连接算法" class="headerlink" title="排序归并连接算法"></a>排序归并连接算法</h4><p>适用于内连接、左外连接、右外连接、全外连接、半连接、反半连接等语义的处理。</p>
+<p>步骤：</p>
+<ol>
+<li>为两个表创建可用内存缓冲区数为M的M个子表，将每个子表排好序</li>
+<li>读入每个子表的第一个块到M个块中，找出其中最小的先进行两个表的元组的匹配</li>
+<li>找出次小的匹配</li>
+<li>以此类推，完成其他子表的两表连接</li>
+</ol>
+<h4 id="Hash连接算法"><a href="#Hash连接算法" class="headerlink" title="Hash连接算法"></a>Hash连接算法</h4><p>适用于内连接、左外连接、右外连接、全外连接、半连接、反半连接等语义的处理。只适合处理等值连接。</p>
+<img src="/2022/01/25/%E6%95%B0%E6%8D%AE%E5%BA%93%E6%9F%A5%E8%AF%A2%E4%BC%98%E5%8C%96/%E4%BC%81%E4%B8%9A%E5%BE%AE%E4%BF%A1%E6%88%AA%E5%9B%BE_16432800085913.png" class="" title="img">
+
+<h3 id="连接算法按IO分类"><a href="#连接算法按IO分类" class="headerlink" title="连接算法按IO分类"></a>连接算法按IO分类</h3><img src="/2022/01/25/%E6%95%B0%E6%8D%AE%E5%BA%93%E6%9F%A5%E8%AF%A2%E4%BC%98%E5%8C%96/%E4%BC%81%E4%B8%9A%E5%BE%AE%E4%BF%A1%E6%88%AA%E5%9B%BE_16432801527062.png" class="" title="img">
+
+<h3 id="连接操作代价计算"><a href="#连接操作代价计算" class="headerlink" title="连接操作代价计算"></a>连接操作代价计算</h3><img src="/2022/01/25/%E6%95%B0%E6%8D%AE%E5%BA%93%E6%9F%A5%E8%AF%A2%E4%BC%98%E5%8C%96/%E4%BC%81%E4%B8%9A%E5%BE%AE%E4%BF%A1%E6%88%AA%E5%9B%BE_1643280220767.png" class="" title="img">
+
+<img src="/2022/01/25/%E6%95%B0%E6%8D%AE%E5%BA%93%E6%9F%A5%E8%AF%A2%E4%BC%98%E5%8C%96/%E4%BC%81%E4%B8%9A%E5%BE%AE%E4%BF%A1%E6%88%AA%E5%9B%BE_16432802679636.png" class="" title="img">
+
+<h2 id="多表连接算法"><a href="#多表连接算法" class="headerlink" title="多表连接算法"></a>多表连接算法</h2><p>解决两个问题：</p>
+<ol>
+<li>多表连接的顺序</li>
+<li>多表连接的搜索空间</li>
+</ol>
+<h3 id="多表连接顺序"><a href="#多表连接顺序" class="headerlink" title="多表连接顺序"></a>多表连接顺序</h3><p>多表间的连接顺序表示了查询计划树的基本形态。查询树分为下面三种形态。</p>
+<img src="/2022/01/25/%E6%95%B0%E6%8D%AE%E5%BA%93%E6%9F%A5%E8%AF%A2%E4%BC%98%E5%8C%96/%E4%BC%81%E4%B8%9A%E5%BE%AE%E4%BF%A1%E6%88%AA%E5%9B%BE_16432803915721.png" class="" title="img">
+
+<p>树的形成过程，主要有以下两种策略：</p>
+<ol>
+<li>自顶向下。从sql表达式树的树根开始，向下进行，估计每个节点可能的执行方式，计算每种组合的代价，从中挑选最优的。</li>
+<li>自底向上。从sql表达式树的树叶开始，向上进行，计算每个子表达式的所有实现方法的代价，从中挑选最优的，再和上层的进行连接，周而复始至树根。多数采用这种</li>
+</ol>
+<h3 id="多表连接算法-1"><a href="#多表连接算法-1" class="headerlink" title="多表连接算法"></a>多表连接算法</h3><ol>
+<li>动态规划</li>
+<li>启发式方法</li>
+<li>贪婪算法</li>
+<li>System R算法</li>
+<li>遗传算法</li>
+</ol>
+<img src="/2022/01/25/%E6%95%B0%E6%8D%AE%E5%BA%93%E6%9F%A5%E8%AF%A2%E4%BC%98%E5%8C%96/%E4%BC%81%E4%B8%9A%E5%BE%AE%E4%BF%A1%E6%88%AA%E5%9B%BE_16432816584634.png" class="" title="img">
+
+
+
+<h1 id="查询优化器与其他模块的关系"><a href="#查询优化器与其他模块的关系" class="headerlink" title="查询优化器与其他模块的关系"></a>查询优化器与其他模块的关系</h1><h3 id="查询优化器"><a href="#查询优化器" class="headerlink" title="查询优化器"></a>查询优化器</h3><p>查询语句的执行步骤：</p>
+<ol>
+<li>sql输入</li>
+<li>词法分析、语法分析</li>
+<li>语义分析</li>
+<li>sql优化</li>
+<li>sql执行</li>
+</ol>
+<h3 id="与其他模块的关系"><a href="#与其他模块的关系" class="headerlink" title="与其他模块的关系"></a>与其他模块的关系</h3><img src="/2022/01/25/%E6%95%B0%E6%8D%AE%E5%BA%93%E6%9F%A5%E8%AF%A2%E4%BC%98%E5%8C%96/%E4%BC%81%E4%B8%9A%E5%BE%AE%E4%BF%A1%E6%88%AA%E5%9B%BE_16433314367611.png" class="" title="img">
+<!-- flag of hidden posts -->
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/database/" rel="tag"># database</a>
+              <a href="/tags/%E6%95%B0%E6%8D%AE%E5%BA%93%E6%9F%A5%E8%AF%A2%E4%BC%98%E5%8C%96%E5%99%A8%E7%9A%84%E8%89%BA%E6%9C%AF%E5%8E%9F%E7%90%86%E8%A7%A3%E6%9E%90/" rel="tag"># 数据库查询优化器的艺术原理解析</a>
+          </div>
+
+        
+
+    </footer>
+  </article>
+</div>
+
+
+
+
+
+
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      const activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      const commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+</div>
+  </main>
+
+  <footer class="footer">
+    <div class="footer-inner">
+
+
+<div class="copyright">
+  &copy; 2021 – 
+  <span itemprop="copyrightYear">2022</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Jason Chao</span>
+</div>
+  <div class="powered-by">由 <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://theme-next.js.org/" class="theme-link" rel="noopener" target="_blank">NexT.Gemini</a> 强力驱动
+  </div>
+
+    </div>
+  </footer>
+
+  
+  <script src="//cdn.jsdelivr.net/npm/animejs@3.2.1/lib/anime.min.js"></script>
+<script src="/js/utils.js"></script><script src="/js/motion.js"></script><script src="/js/next-boot.js"></script>
+
+  
+
+
+
+
+
+
+  
+
+
+
+
+
+</body>
+</html>

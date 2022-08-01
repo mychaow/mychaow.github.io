@@ -1,0 +1,721 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 5.3.0">
+
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+
+<link rel="stylesheet" href="//cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@5.15.1/css/all.min.css">
+  <link rel="stylesheet" href="//cdn.jsdelivr.net/npm/animate.css@3.1.1/animate.min.css">
+
+<script class="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"example.com","root":"/","images":"/images","scheme":"Gemini","version":"8.2.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12},"copycode":false,"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"fadeInDown","post_body":"fadeInDown","coll_header":"fadeInLeft","sidebar":"fadeInUp"}},"prism":false,"i18n":{"placeholder":"搜索...","empty":"没有找到任何搜索结果：${query}","hits_time":"找到 ${hits} 个搜索结果（用时 ${time} 毫秒）","hits":"找到 ${hits} 个搜索结果"}};
+  </script>
+<meta name="description" content="概述SimpleDB的整体架构如下图所示，下层组件为上层组件提供服务：   磁盘和文件管理 将文件块作为磁盘访问的最基本单元，缩短磁盘访问时间。 文件块中当前只支持int和string类型的读写。  内存管理 通过维护缓冲池来固定最常使用的用户数据块，目前支持Naive缓冲页替换算法。  事务管理 支持日志来恢复数据库，采用的是undo-only恢复算法。 运用xlock和slock来控制多事务对">
+<meta property="og:type" content="article">
+<meta property="og:title" content="simpleDB 设计学习">
+<meta property="og:url" content="http://example.com/2022/01/15/simpleDB-%E8%AE%BE%E8%AE%A1%E5%AD%A6%E4%B9%A0/index.html">
+<meta property="og:site_name" content="我住8楼">
+<meta property="og:description" content="概述SimpleDB的整体架构如下图所示，下层组件为上层组件提供服务：   磁盘和文件管理 将文件块作为磁盘访问的最基本单元，缩短磁盘访问时间。 文件块中当前只支持int和string类型的读写。  内存管理 通过维护缓冲池来固定最常使用的用户数据块，目前支持Naive缓冲页替换算法。  事务管理 支持日志来恢复数据库，采用的是undo-only恢复算法。 运用xlock和slock来控制多事务对">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="http://example.com/2022/01/15/simpleDB-%E8%AE%BE%E8%AE%A1%E5%AD%A6%E4%B9%A0/image-20220115221709538.png">
+<meta property="og:image" content="http://example.com/2022/01/15/simpleDB-%E8%AE%BE%E8%AE%A1%E5%AD%A6%E4%B9%A0/file.png">
+<meta property="og:image" content="http://example.com/2022/01/15/simpleDB-%E8%AE%BE%E8%AE%A1%E5%AD%A6%E4%B9%A0/Transaction.png">
+<meta property="og:image" content="http://example.com/2022/01/15/simpleDB-%E8%AE%BE%E8%AE%A1%E5%AD%A6%E4%B9%A0/Transaction-16424289141261.png">
+<meta property="og:image" content="http://example.com/2022/01/15/simpleDB-%E8%AE%BE%E8%AE%A1%E5%AD%A6%E4%B9%A0/Metadata.png">
+<meta property="og:image" content="http://example.com/2022/01/15/simpleDB-%E8%AE%BE%E8%AE%A1%E5%AD%A6%E4%B9%A0/Scan.png">
+<meta property="og:image" content="http://example.com/2022/01/15/simpleDB-%E8%AE%BE%E8%AE%A1%E5%AD%A6%E4%B9%A0/Parser.png">
+<meta property="og:image" content="http://example.com/2022/01/15/simpleDB-%E8%AE%BE%E8%AE%A1%E5%AD%A6%E4%B9%A0/Planner.png">
+<meta property="og:image" content="http://example.com/2022/01/15/simpleDB-%E8%AE%BE%E8%AE%A1%E5%AD%A6%E4%B9%A0/RemoteDriver-16426906056651.png">
+<meta property="og:image" content="http://example.com/2022/01/15/simpleDB-%E8%AE%BE%E8%AE%A1%E5%AD%A6%E4%B9%A0/BTreeIndex.png">
+<meta property="article:published_time" content="2022-01-15T14:12:40.000Z">
+<meta property="article:modified_time" content="2022-01-25T00:48:10.972Z">
+<meta property="article:author" content="Jason Chao">
+<meta property="article:tag" content="database">
+<meta property="article:tag" content="simpleDB">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http://example.com/2022/01/15/simpleDB-%E8%AE%BE%E8%AE%A1%E5%AD%A6%E4%B9%A0/image-20220115221709538.png">
+
+
+<link rel="canonical" href="http://example.com/2022/01/15/simpleDB-%E8%AE%BE%E8%AE%A1%E5%AD%A6%E4%B9%A0/">
+
+
+<script class="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'zh-CN'
+  };
+</script>
+<title>simpleDB 设计学习 | 我住8楼</title><meta name="robots" content="noindex">
+  
+
+
+
+
+  <noscript>
+  <style>
+  body { margin-top: 2rem; }
+
+  .use-motion .menu-item,
+  .use-motion .sidebar,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header {
+    visibility: visible;
+  }
+
+  .use-motion .header,
+  .use-motion .site-brand-container .toggle,
+  .use-motion .footer { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle,
+  .use-motion .custom-logo-image {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line {
+    transform: scaleX(1);
+  }
+
+  .search-pop-overlay, .sidebar-nav { display: none; }
+  .sidebar-panel { display: block; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" class="use-motion">
+  <div class="headband"></div>
+
+  <main class="main">
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏" role="button">
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <i class="logo-line"></i>
+      <h1 class="site-title">我住8楼</h1>
+      <i class="logo-line"></i>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+    </div>
+  </div>
+</div>
+
+
+
+<nav class="site-nav">
+  <ul class="main-menu menu">
+        <li class="menu-item menu-item-home"><a href="/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a></li>
+        <li class="menu-item menu-item-tags"><a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>标签</a></li>
+        <li class="menu-item menu-item-categories"><a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>分类</a></li>
+        <li class="menu-item menu-item-archives"><a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档</a></li>
+  </ul>
+</nav>
+
+
+
+
+</div>
+        
+  
+  <div class="toggle sidebar-toggle" role="button">
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+  </div>
+
+  <aside class="sidebar">
+
+    <div class="sidebar-inner sidebar-nav-active sidebar-toc-active">
+      <ul class="sidebar-nav">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <div class="sidebar-panel-container">
+        <!--noindex-->
+        <div class="post-toc-wrap sidebar-panel">
+            <div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#%E6%A6%82%E8%BF%B0"><span class="nav-number">1.</span> <span class="nav-text">概述</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E7%A3%81%E7%9B%98%E5%92%8C%E6%96%87%E4%BB%B6%E7%AE%A1%E7%90%86"><span class="nav-number">1.1.</span> <span class="nav-text">磁盘和文件管理</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%86%85%E5%AD%98%E7%AE%A1%E7%90%86"><span class="nav-number">1.2.</span> <span class="nav-text">内存管理</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E4%BA%8B%E5%8A%A1%E7%AE%A1%E7%90%86"><span class="nav-number">1.3.</span> <span class="nav-text">事务管理</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E8%AE%B0%E5%BD%95%E7%AE%A1%E7%90%86"><span class="nav-number">1.4.</span> <span class="nav-text">记录管理</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%85%83%E6%95%B0%E6%8D%AE%E7%AE%A1%E7%90%86"><span class="nav-number">1.5.</span> <span class="nav-text">元数据管理</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%9F%A5%E8%AF%A2%E5%A4%84%E7%90%86"><span class="nav-number">1.6.</span> <span class="nav-text">查询处理</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#SQL%E8%A7%A3%E6%9E%90"><span class="nav-number">1.7.</span> <span class="nav-text">SQL解析</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#SQL-Planning"><span class="nav-number">1.8.</span> <span class="nav-text">SQL Planning</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#C-S-%E9%80%9A%E4%BF%A1"><span class="nav-number">1.9.</span> <span class="nav-text">C&#x2F;S 通信</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E7%B4%A2%E5%BC%95"><span class="nav-number">1.10.</span> <span class="nav-text">索引</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E7%89%A9%E5%8C%96%E5%92%8C%E6%8E%92%E5%BA%8F"><span class="nav-number">1.11.</span> <span class="nav-text">物化和排序</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E7%A3%81%E7%9B%98%E5%92%8C%E6%96%87%E4%BB%B6%E7%AE%A1%E7%90%86-1"><span class="nav-number">2.</span> <span class="nav-text">磁盘和文件管理</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E5%86%85%E5%AD%98%E7%AE%A1%E7%90%86-1"><span class="nav-number">3.</span> <span class="nav-text">内存管理</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E4%BA%8B%E5%8A%A1%E7%AE%A1%E7%90%86-1"><span class="nav-number">4.</span> <span class="nav-text">事务管理</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E8%AE%B0%E5%BD%95%E7%AE%A1%E7%90%86-1"><span class="nav-number">5.</span> <span class="nav-text">记录管理</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E5%85%83%E6%95%B0%E6%8D%AE%E7%AE%A1%E7%90%86-1"><span class="nav-number">6.</span> <span class="nav-text">元数据管理</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E6%9F%A5%E8%AF%A2%E5%A4%84%E7%90%86-1"><span class="nav-number">7.</span> <span class="nav-text">查询处理</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#SQL%E8%A7%A3%E6%9E%90-1"><span class="nav-number">8.</span> <span class="nav-text">SQL解析</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#SQL-Planning-1"><span class="nav-number">9.</span> <span class="nav-text">SQL Planning</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E6%95%B0%E6%8D%AE%E5%BA%93%E6%9C%8D%E5%8A%A1"><span class="nav-number">10.</span> <span class="nav-text">数据库服务</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E7%B4%A2%E5%BC%95-1"><span class="nav-number">11.</span> <span class="nav-text">索引</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E7%89%A9%E5%8C%96%E5%92%8C%E6%8E%92%E5%BA%8F-1"><span class="nav-number">12.</span> <span class="nav-text">物化和排序</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E5%A4%9A%E7%BC%93%E5%86%B2%E5%8C%BA"><span class="nav-number">13.</span> <span class="nav-text">多缓冲区</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E6%9F%A5%E8%AF%A2%E4%BC%98%E5%8C%96"><span class="nav-number">14.</span> <span class="nav-text">查询优化</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E5%8F%82%E8%80%83"><span class="nav-number">15.</span> <span class="nav-text">参考</span></a></li></ol></div>
+        </div>
+        <!--/noindex-->
+
+        <div class="site-overview-wrap sidebar-panel">
+          <div class="site-author site-overview-item animated" itemprop="author" itemscope itemtype="http://schema.org/Person">
+  <p class="site-author-name" itemprop="name">Jason Chao</p>
+  <div class="site-description" itemprop="description"></div>
+</div>
+<div class="site-state-wrap site-overview-item animated">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">27</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+          
+        <span class="site-state-item-count">2</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+          
+        <span class="site-state-item-count">24</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+
+
+
+        </div>
+      </div>
+    </div>
+  </aside>
+  <div class="sidebar-dimmer"></div>
+
+
+    </header>
+
+    
+  <div class="back-to-top" role="button">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+<noscript>
+  <div class="noscript-warning">Theme NexT works best with JavaScript enabled</div>
+</noscript>
+
+
+    <div class="main-inner post posts-expand">
+
+
+  
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="http://example.com/2022/01/15/simpleDB-%E8%AE%BE%E8%AE%A1%E5%AD%A6%E4%B9%A0/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="Jason Chao">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="我住8楼">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          simpleDB 设计学习
+        </h1>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">发表于</span>
+
+      <time title="创建时间：2022-01-15 22:12:40" itemprop="dateCreated datePublished" datetime="2022-01-15T22:12:40+08:00">2022-01-15</time>
+    </span>
+      <span class="post-meta-item">
+        <span class="post-meta-item-icon">
+          <i class="far fa-calendar-check"></i>
+        </span>
+        <span class="post-meta-item-text">更新于</span>
+        <time title="修改时间：2022-01-25 08:48:10" itemprop="dateModified" datetime="2022-01-25T08:48:10+08:00">2022-01-25</time>
+      </span>
+
+  
+</div>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+        <h1 id="概述"><a href="#概述" class="headerlink" title="概述"></a>概述</h1><p>SimpleDB的整体架构如下图所示，下层组件为上层组件提供服务：</p>
+<img src="/2022/01/15/simpleDB-%E8%AE%BE%E8%AE%A1%E5%AD%A6%E4%B9%A0/image-20220115221709538.png" class="" title="image-20220115221709538">
+
+<h2 id="磁盘和文件管理"><a href="#磁盘和文件管理" class="headerlink" title="磁盘和文件管理"></a>磁盘和文件管理</h2><ul>
+<li>将文件块作为磁盘访问的最基本单元，缩短磁盘访问时间。</li>
+<li>文件块中当前只支持int和string类型的读写。</li>
+</ul>
+<h2 id="内存管理"><a href="#内存管理" class="headerlink" title="内存管理"></a>内存管理</h2><ul>
+<li>通过维护缓冲池来固定最常使用的用户数据块，目前支持Naive缓冲页替换算法。</li>
+</ul>
+<h2 id="事务管理"><a href="#事务管理" class="headerlink" title="事务管理"></a>事务管理</h2><ul>
+<li>支持日志来恢复数据库，采用的是undo-only恢复算法。</li>
+<li>运用xlock和slock来控制多事务对块的并发访问。</li>
+<li>事务对锁一直持有，直到事务commit或rollback。</li>
+</ul>
+<h2 id="记录管理"><a href="#记录管理" class="headerlink" title="记录管理"></a>记录管理</h2><ul>
+<li>当前支持定长字段，定长记录。</li>
+<li>一个记录文件中存储的是同类(homogeneous)的记录。</li>
+<li>当前支持非跨块的记录(non spanned records)。</li>
+<li>给客户端提供记录文件粒度的记录增、删、查、改方法，隐藏了底层的块、页细节。</li>
+</ul>
+<h2 id="元数据管理"><a href="#元数据管理" class="headerlink" title="元数据管理"></a>元数据管理</h2><ul>
+<li>SimpleDB实现了4类元数据：<ol>
+<li>1.表的元数据，描述的是某张表的信息，例如该表每条记录的长度，每个字段的偏移量，类型。</li>
+<li>2.视图的元数据，描述的是每个视图的属性，例如视图的名称和定义。</li>
+<li>3.索引的元数据，描述的是每个索引的信息，包含索引名、被索引的表名、被索引的字段名。</li>
+<li>4.数据统计的元数据，描述的是每张表的占用块数，已经各字段的值分布情况。</li>
+</ol>
+</li>
+<li>表的元数据存放在系统的catalog表tblcat和fldcat中，一张来存放表粒度的信息（例如记录长度），另一种表来存放表中各字段信息（例如字段名、字段长度、字段的类型）。表名和字段名最长字符限定为20。</li>
+<li>视图的元数据存放在系统的catalog表viewcat中，视图的定义最长字符数我们限定成了150。</li>
+<li>索引的元数据存放在系统的catalog表idxcay中，包含索引名、被索引的表名、被索引的字段名。</li>
+<li>数据统计信息没有用表来存，而是在系统每次启动的时候重新计算出，对于小型的数据库，这一统计计算时间不是很长，因此不会拖长整个系统的启动时间。</li>
+</ul>
+<h2 id="查询处理"><a href="#查询处理" class="headerlink" title="查询处理"></a>查询处理</h2><ul>
+<li>基于流水线的方式实现Scan。目前支持TableScan、SelectScan、ProductScan和ProjectScan,分别对应SQL语句中的表、谓词筛选、笛卡尔积和输出Select列名。</li>
+<li>对于一个SQL，可能存在多个等效的查询树，planner会比较这些查询树对应的Scan的执行代价，选择代价最低的那个。</li>
+<li>目前支持形如”A = c”和”A = B”形式的谓词，前者代表例如<code>where StuId=1</code>的形式，而后者代表例如<code>where Stu.StuId = Exam.Id</code>的形式。</li>
+</ul>
+<h2 id="SQL解析"><a href="#SQL解析" class="headerlink" title="SQL解析"></a>SQL解析</h2><ul>
+<li>SimpleDB中只支持SQL中的子集，具体有：<ol>
+<li>1.简单的查询，单表多表均支持</li>
+<li>2.增删改记录</li>
+<li>3.创建表、视图、索引</li>
+<li>4.只支持where谓词，不支持group by等    </li>
+</ol>
+</li>
+<li>采用递归下降解析法(recursive descent)解析SQL语句。</li>
+</ul>
+<h2 id="SQL-Planning"><a href="#SQL-Planning" class="headerlink" title="SQL Planning"></a>SQL Planning</h2><ul>
+<li>目前实现了最简单的planning算法（包括query planning算法和update planning算法），没有作SQL语义验证和plan代价分析。</li>
+<li>设计了好了Planner的接口，增强代码的plug-and-play capability。</li>
+</ul>
+<h2 id="C-S-通信"><a href="#C-S-通信" class="headerlink" title="C/S 通信"></a>C/S 通信</h2><ul>
+<li>通过Java中的RMI机制来实现客户端和服务端之间的通信。</li>
+<li>服务端的每个远程实现类对象都在一个独自的线程中执行，等待客户端通过存根对象发送消息，SimpleDB启动代码会创建一个<code>RemoteDriver</code>类型的远程实现对象，并把这个对象的存根对象注册到RMI的注册表中。</li>
+<li>当客户端想要连接到数据库系统时，会先通过RMI注册表得到存根对象，并按照JDBC提供接口进行数据访问，目前实现了<code>SimpleConnection</code>,<code>SimpleStatement</code>等，分别对应JDBC中的<code>Connection</code>,<code>Statement</code>。</li>
+</ul>
+<h2 id="索引"><a href="#索引" class="headerlink" title="索引"></a>索引</h2><ul>
+<li>实现了<code>静态hash索引</code>和<code>B树索引</code>两种方式</li>
+</ul>
+<h2 id="物化和排序"><a href="#物化和排序" class="headerlink" title="物化和排序"></a>物化和排序</h2><ul>
+<li>物化视图</li>
+<li>排序</li>
+</ul>
+<h1 id="磁盘和文件管理-1"><a href="#磁盘和文件管理-1" class="headerlink" title="磁盘和文件管理"></a>磁盘和文件管理</h1><img src="/2022/01/15/simpleDB-%E8%AE%BE%E8%AE%A1%E5%AD%A6%E4%B9%A0/file.png" class="" title="file">
+
+<ul>
+<li>数据库的内容必须保持持久性，以便在数据库系统或计算机出现故障时不会丢失数据。本节研究了两种特别有用的硬件技术：<code>磁盘驱动器(disk drives)</code>和<code>闪存驱动器(flash drives)</code>。</li>
+<li>磁盘顺序访问速度大于随机访问速度，主要有几个参数：容量、转速、传输速率、寻道时间。磁盘的访问延迟估算=寻道时间+旋转时间+传输时间。其中旋转时间可以由旋转半圈的时间来估算。</li>
+<li>磁盘有块级接口和文件接口两种。</li>
+<li>块级接口需要操作系统管理块是否被分配的信息，一般有磁盘映射和空闲列表两种策略。</li>
+<li>文件级接口需要文件系统管理块分配，文件系统分配块时有三种策略：连续分配，基于扩展的分配，索引分配。</li>
+</ul>
+<h1 id="内存管理-1"><a href="#内存管理-1" class="headerlink" title="内存管理"></a>内存管理</h1><ul>
+<li><p>数据库系统必须努力最小化磁盘访问次数。因此，它仔细管理用于保存磁盘块的内存页。管理这些页的数据库组件是<code>日志管理器（log manager）</code>和<code>缓冲管理器（buffer manager）</code>。</p>
+</li>
+<li><p>日志管理器负责将日志记录保存在日志文件中。由于日志记录始终附加在日志文件中，并且从未修改，因此日志管理器可以非常高效。它只需要分配一个页，并且具有一种简单的算法，可以将该页写入磁盘的次数最少。</p>
+</li>
+<li><p>缓冲管理器分配一些页，称为<code>缓冲池（buffer pool）</code>，以用来处理用户数据。缓冲管理器应客户端的请求将缓冲区固定和取消固定到磁盘块。固定后，客户端访问缓冲区的页面，并在完成后取消固定缓冲区。</p>
+</li>
+<li><p>在两种情况下，修改后的缓冲区将被写入磁盘：①替换页时，②恢复管理器需要将页存储在磁盘上时。</p>
+</li>
+<li><p>当客户端要求将缓冲区固定到块时，缓冲管理器选择适当的缓冲区。如果该块已经在缓冲区中，则使用该缓冲区；否则，缓冲管理器将替换现有缓冲区的内容。</p>
+</li>
+<li><p>确定替换哪个缓冲区的算法称为缓冲区替换策略。 四种有趣的替换策略是： ①FIFO：选择最近一段时间内，被替换次数最少的未固定缓冲区。 ②LRU：选择最近一段时间内，被取消固定次数最少的未固定缓冲区。 ③时钟：从最后替换的缓冲区开始顺序扫描，选择的第一个未固定的缓冲区</p>
+</li>
+</ul>
+<h1 id="事务管理-1"><a href="#事务管理-1" class="headerlink" title="事务管理"></a>事务管理</h1><img src="/2022/01/15/simpleDB-%E8%AE%BE%E8%AE%A1%E5%AD%A6%E4%B9%A0/Transaction.png" class="" title="Transaction">
+
+<ul>
+<li><p>当客户端程序能够随意运行时，数据可能会丢失或损坏。数据库系统强制客户端程序使用事务。</p>
+</li>
+<li><p>事务是被看做为一整个造作的数据库操作集合，满足ACID原则，即原子性(atomicity),一致性(consistency),独立性(isolation),持久性(durability)。</p>
+</li>
+<li><p>恢复管理器是确保原子性和持久性的部分，它辅助读取并处理数据库的日志文件，它的功能有3个：①写日志记录 ②回滚事务 ③系统崩溃后恢复数据库。</p>
+</li>
+<li><p>每个事务在开始时会有一个开始日志记录，在修改数据时会有一个更新日志记录，在事务完成时会有一个提交日志记录或混回滚日志记录。此外，恢复管理器可以写入一个检查点日志记录，来提高下次读取日志文件时的效率。</p>
+</li>
+<li><p>恢复管理器通过从后往前读日志记录来回滚事务，使用的是事务对应的更新日志记录来撤销相应的修改。</p>
+</li>
+<li><p>恢复管理器会在系统崩溃后恢复系统。</p>
+</li>
+<li><p>undo-redo恢复算法会undo那些未提交事务所作出的修改，会redo那些已经提交但是没有持久化到磁盘的修改。</p>
+</li>
+<li><p>undo-only恢复算法假设已经提交的事务所作出的修改，在事务提交前已经被flush到磁盘上，因此只需undo那些未提交事务所作出的修改。</p>
+</li>
+<li><p>redo-only算法假设修改过的缓冲区直到事务提交后才会flush到磁盘。该算法需要事务保持修改后的缓冲区固定，直到完成为止，但是避免了undo那些未提交事务所作出的修改。</p>
+</li>
+<li><p><code>预写日志(write-ahead logging)</code>策略要求在修改数据页前把更新日志记录flush到磁盘上，预写日志保证对数据库的修改总是存在于日志文件中，因此也总是可以undo。</p>
+</li>
+<li><p>将检查点记录添加到日志中，以减少恢复算法中需要考虑的日志记录数。</p>
+</li>
+<li><p>恢复管理器可以选择不同粒度的日志数据项，如值、记录、块、文件等，具体粒度的选择需要权衡，大粒度会导致更少的日志记录数，但是单个日志记录的大小会很大。对应地，并发控制器可以选择不同粒度的并发数据项，大粒度会更导致维护更少的锁，小粒度会增强系统的并发性。</p>
+</li>
+</ul>
+<h1 id="记录管理-1"><a href="#记录管理-1" class="headerlink" title="记录管理"></a>记录管理</h1><img src="/2022/01/15/simpleDB-%E8%AE%BE%E8%AE%A1%E5%AD%A6%E4%B9%A0/Transaction-16424289141261.png" class="" title="Transaction">
+
+<p>当我们设计一个记录管理器的时候，我们需要解决下面这些问题：</p>
+<ul>
+<li>每一条记录都可以确保一个块就能放下吗？</li>
+<li>一个块中的所有记录都应该来自同一个表吗？</li>
+<li>每个字段应该用定长的字节数来表示吗？</li>
+<li>一个记录中的各个字段的值应该保存在哪里？</li>
+</ul>
+<p>总结：</p>
+<ul>
+<li><p>记录管理器是数据库系统中负责将记录存储到文件中的部分，它至少有以下的职责：</p>
+<ol>
+<li>在一条记录中修改某些字段</li>
+<li>在一个记录块中修改某些记录。</li>
+<li>提供面向记录文件的记录访问方法。</li>
+</ol>
+</li>
+<li><p>很关键的一个问题是是否支持变长的字段。定长记录可以比较容易地实现，因为每条记录的每个字段都会在相同的位置出现，而更新一个变长的字段就可能导致记录的长度顶出一个块的长度，因此需要<code>溢出块（overflow block）</code>,在simpleDB中，我们还是选取了定长记录的实现策略。</p>
+</li>
+<li><p>SQL有3中不同类型的字符串：char、varchar和clob：</p>
+<ol>
+<li>char类型最自然地可以用一个定长的字段来实现。</li>
+<li>varchar类型最自然地可以用一个变长的字段来实现。</li>
+<li>clob类型最自然地可以用一个定长的字段来实现，只不过这个字符串的字面量会保存在另一个辅助文件中。</li>
+</ol>
+</li>
+<li><p>实现变长记录的一个很常用的技术就是构造一个ID表，ID表中的每个entry都指向一条记录的起始位置，一条记录可以通过只改变ID表中entry的值来实现在页中移动。</p>
+</li>
+<li><p>变长记录带来的另一个问题就是是否支持跨块（spanned record）的记录，跨块记录可以避免浪费空间（记录之间的外部碎片），但是跨块记录比较难实现。</p>
+</li>
+<li><p>另一个需要考虑的问题就是在记录文件中是否支持非同类记录，非同类记录允许将来自不同表的记录聚集在同一个块上。 群集可以导致联结查询更加高效，但往往会使单表查询变得代价更高。 记录管理器可以通过在每个记录的开头存储一个标识字段来实现非同类记录， 标识表示该记录所属的表。</p>
+</li>
+<li><p>第四个问题是如何确定记录中每个字段的偏移量。 记录管理器可能需要填充字段，以便它们在适当的字节边界上对齐。 定长记录中的字段对于每个记录具来说有相同的偏移量。而在可变长度记录中，可能需要遍历待搜索字段前面的那些字段。</p>
+</li>
+</ul>
+<h1 id="元数据管理-1"><a href="#元数据管理-1" class="headerlink" title="元数据管理"></a>元数据管理</h1><img src="/2022/01/15/simpleDB-%E8%AE%BE%E8%AE%A1%E5%AD%A6%E4%B9%A0/Metadata.png" class="" title="Metadata">
+
+<ul>
+<li><p>元数据是关于数据库的信息，但是不包括表中的具体数据内容。</p>
+</li>
+<li><p>元数据管理器负责存储和检测数据库的元数据。</p>
+</li>
+<li><p>SimpleDB实现了4类元数据：</p>
+<pre><code>1. 表的元数据，描述的是某张表的信息，例如该表每条记录的长度，每个字段的偏移量，类型等等。
+ 2. 视图的元数据，描述的是每个视图的属性，例如视图的名称和定义。
+ 3. 索引的元数据，描述的是每个索引的信息，包含索引名、被索引的表名、被索引的字段名。
+ 4. 数据统计的元数据，描述的是每张表的占用块数，已经各字段的值分布情况。
+</code></pre>
+</li>
+</ul>
+<p>元数据管理器会把元数据存放在系统的catalog中，其实也就是几张表，这些表和普通表一样，也可以被查询。</p>
+<ul>
+<li><p>表的元数据被存放在两张catalog表中，一张来存放表粒度的信息（例如记录长度），另一种表来存放表中各字段信息（例如字段名、字段长度、字段的类型）。</p>
+</li>
+<li><p>视图元数据也被存放在一张catalog表中，在simpleDB中，视图的定义最长字符数我们限定成了150。</p>
+</li>
+<li><p>数据统计元数据描述的是每张表的占用块数，已经各字段的值分布情况。很多商业数据库的元数据管理器会维持很多更细节、更有综合性的数据统计情况，例如表中各字段的值和范围的直方图统计情况，以及不同表之前字段值的相关性，等等。</p>
+</li>
+<li><p>最基本的数据统计信息包含下面这3个功能：</p>
+<pre><code>1. 表T占用的块数
+ 2. 表T的记录条数
+ 3. 表T中字段F的不同值的数量。
+</code></pre>
+</li>
+<li><p>数据统计元数据也可以存放在catalog表中，或者可以每次在系统启动时重新计算出。第一种方法避免了因为统计时间过长而影响系统启动时间，但是第一种方法可能会降低系统的并发性。</p>
+</li>
+<li><p>索引元数据，描述的是每个索引的信息，包含索引名、被索引的表名、被索引的字段名。</p>
+</li>
+</ul>
+<h1 id="查询处理-1"><a href="#查询处理-1" class="headerlink" title="查询处理"></a>查询处理</h1><img src="/2022/01/15/simpleDB-%E8%AE%BE%E8%AE%A1%E5%AD%A6%E4%B9%A0/Scan.png" class="" title="Scan">
+
+<ul>
+<li><p>一个<code>scan</code>对象代表了一棵关系代数查询树。每一种关系代数操作都有一个<code>Scan</code>接口的具体实现，且每个操作在查询树中代表一个结点；对于涉及具体表的操作，则在树中是叶子结点。</p>
+</li>
+<li><p><code>Scan</code>接口的方法和<code>RecordFile</code>类很相似，客户端遍历scan，当前记录不断向前移动，客户端可以提取相应的字段值。<code>Scan</code>接口的具体实现类会负责移动指向当前记录的“游标”，移动到合适的位置，比较字段值（例如<code>SelectScan</code>类）。</p>
+</li>
+<li><p>当一个scan中的每条记录r都在某个数据库表中存在一条对应的r′r’r′记录时，我们称这个scan是可更新的。</p>
+</li>
+<li><p>每个具体的<code>Scan</code>接口实现类中，都会存在相应的关系代数操作实现：</p>
+<ul>
+<li>一个select scan会检查underlying的scan对象中的每条记录，如果符合谓词，则返回这条记录；否则不断往下遍历。 </li>
+<li>一个product scan返回的是两个scan对象中所有记录的笛卡尔积。</li>
+<li> 一个table scan对象会打开指定表的Record File对象，而record file对象会将块固定缓冲区，而在读取相应值的时候又会获取相应的锁。</li>
+</ul>
+</li>
+<li><p>上述这些scan的实现方式被称为基于流水线式的实现，术语”流水线”代表的是查询树自顶向下的方法调用流，以及自底向上的结果返回流。一个查询树的非叶子结点会不断地向子结点forward方法调用，并且只有在叶子结点（也就是table scan）才会真正去访问RecordFile对象，涉及底层的页换入换出、块读写等操作；反过来，一旦叶子结点得到一个记录，就会不断向父结点backward回结果。</p>
+</li>
+<li><p>一条SQL语句可能对应多个查询树，为了构造最高效的查询树，数据库系统必须先估计一下遍历查询树（也就是scan）的代价。为了更好地估计某个scan sss的执行代价，有下面几个量需要着重关注：</p>
+<ul>
+<li> B(s)代表遍历s需要的块访问次数。 </li>
+<li>R(s)代表s的输出记录条数。 </li>
+<li>V(s,F)代表s的所有输出记录中，F字段所有可能取值的数量。</li>
+</ul>
+</li>
+<li><p>数据中planner组件负责创建执行代价最低的scan对象，为了比较各个输出结果等价的scan对象的执行代价，planner会创建多个plan对象。plan和scan在概念上几乎是一模一样的，它们都代表着一棵查询树，区别在于，plan中还有相关的评估函数，来评估执行代价，也就是上述的B(s), R(s)和V(s,F),这些评估函数不会访问数据库表中的实际记录，而是访问表的元数据(metadata)。planner会最终选择评估代价最下的plan对象，并调用<code>open()</code>方法来创建一个对应的实际的scan对象。</p>
+</li>
+</ul>
+<h1 id="SQL解析-1"><a href="#SQL解析-1" class="headerlink" title="SQL解析"></a>SQL解析</h1><img src="/2022/01/15/simpleDB-%E8%AE%BE%E8%AE%A1%E5%AD%A6%E4%B9%A0/Parser.png" class="" title="Parser">
+
+<p>语法vs语义</p>
+<ol>
+<li>语言的<code>语法(syntax)</code>是一组描述字符串的规则，这些字符串可能是有意义的语句。</li>
+<li>语言的<code>语义(semantics)</code>指定了语法正确的字符串的实际含义。</li>
+</ol>
+<p>对于sql来说，语义需要系统的元数据来确定语句里的字段是否有意义。</p>
+<ul>
+<li><p>一个语言的<code>语法(syntax)</code>描述的是可能有意义的字符串语句的规则；</p>
+</li>
+<li><p><code>解析器(parser)</code>是负责确保某个字符串是语法正确的组件；</p>
+</li>
+<li><p><code>词法分析器(lexical analyzer)</code>其实也是解析器的一部分，它负责的是将输入字符串分成一系列的token流；</p>
+</li>
+<li><p>每个token都有一个类型和对应的值，SimpleDB的词法分析器支持五种类型的token：</p>
+<ul>
+<li>单字符分隔符，例如，逗号;</li>
+<li>整形常量，例如123;</li>
+<li>字符串型常量，例如“joe”;</li>
+<li>关键字，例如select、from、where等;</li>
+<li>标识符，例如STUDENT,x, glop34a等。</li>
+</ul>
+</li>
+<li><p>每种token都有两个方法，一个判断当前token是否满足指定的类型，另一个则用来让词法分析器“吃掉”当前的token，并移动到下一个token；</p>
+</li>
+<li><p>一个语言的<code>语法(grammar)</code>描述的是一组各种token之间可以怎样合法组合的规则集：</p>
+<ul>
+<li>一条语法规则的左边指明了<code>句法类型(syntactic category)</code>,这只是一个语言中的一个概念而已，类似主谓宾这些。</li>
+<li>一条语法规则的右边指明了句法类型的字符串<code>模式(patterns)</code>。</li>
+</ul>
+</li>
+<li><p>某个字符串对应的<code>解析树(parsing tree)</code>中，中间结点对应的是句法类型，而叶子节点对应的是token。</p>
+</li>
+<li><p><code>解析算法(parsing algorithm)</code>为语法上合法的字符串构造一棵解析树。解析算法的复杂度与它支持的语法的复杂度成比例， 一种简单的解析算法称为<code>递归下降解析法(recursive descent)</code>。</p>
+</li>
+<li><p>递归下降解析法中，每条语法规则都对应有一个方法，每个方法又会调用语法规则右边的相应句法类型的方法。</p>
+</li>
+<li><p>递归下降解析器中的每个方法都会提取其读取的token的值，然后将其返回。一个SQL解析器应从SQL语句中提取必要的信息，例如表名，字段名，谓词和常量等，而具体提取什么内容取还是决于它是哪种SQL语句：</p>
+<ul>
+<li>对于一条插入语句，需要提取表名、所有字段名和各字段的取值；</li>
+<li>对于一条删除语句，需要提取表名和谓词；</li>
+<li>对于一条修改语句，需要提取表名、修改的字段名、一个包含修改后的字段取值的表达式和一个谓词；</li>
+<li>对于一个创建表语句，需要提取表名和schema信息；</li>
+<li>对于一个创建视图语句，需要提取表名和定义；</li>
+<li>对于一个创建索引语句，需要提取索引名，表名，以及被索引的字段名。</li>
+</ul>
+</li>
+</ul>
+<h1 id="SQL-Planning-1"><a href="#SQL-Planning-1" class="headerlink" title="SQL Planning"></a>SQL Planning</h1><img src="/2022/01/15/simpleDB-%E8%AE%BE%E8%AE%A1%E5%AD%A6%E4%B9%A0/Planner.png" class="" title="Planner">
+
+
+
+<ul>
+<li><p><code>planner</code>是数据库系统中负责将一个字符串类型的SQL语句转化为具体的plan的组件。</p>
+</li>
+<li><p>planner需要通过检查下面的信息，来验证SQL语句的语义： </p>
+<ul>
+<li>SQL语句中的表和字段名是否已经存在于catalog中； </li>
+<li>SQL语句中的字段是否有歧义； </li>
+<li>SQL语句中涉及字段的操作是否是类型匹配； </li>
+<li>SQL语句中涉及的常量是否和对应字段的类型及大小匹配。</li>
+</ul>
+</li>
+<li><p>最朴素的query planning算法的流程如下：</p>
+<ol>
+<li><code>为from语句中的每个表T创建一个plan；</code></li>
+</ol>
+<p>​     <code>a) 如果T是一个实际存储的表，则为该表创建一个的Table plan；</code></p>
+<p>​     <code>b) 如果T是一个视图，那么该视图对应的plan对象则是，递归调用定义该视图的SQL语句所对应的plan对象</code></p>
+<ol start="2">
+<li><code>按照from语句中给定表名的顺序，依次求product操作后的结果；</code></li>
+<li><code>按照where语句中给定的谓词，选择满足谓词的记录；</code></li>
+<li><code>按照select语句中给定的字段名，project出结果。</code></li>
+</ol>
+</li>
+</ul>
+<ul>
+<li><p>商业数据库系统中都存在分析各种等效plan执行代价的组件，这往往也是一个商业数据库系统的竞争力所在，我们将在第24章中讨论这些细节。</p>
+</li>
+<li><p>SimpleDB中只支持SQL语句中的一小部分，不支持包含具体计算表达式的SQL，不支持sort，不支持group by，不支持子查询，也不支持重命名。于是，除去上述的不支持的特性后，SimpleDB支持的SQL语句则可以只用<code>select</code>,<code>project</code>和<code>product</code>三种关系运算来构建一棵查询树。</p>
+</li>
+<li><p>对应删除和修改记录方法的实现很类似，planner都会先创建一个select scan，然后遍历所有满足谓词的记录，并对遍历过程中的所有记录执行相应的删除或修改字段操作。</p>
+</li>
+<li><p>插入SQL语句的实现相对来说比较简单，planner只要创建一个underlying表的TableScan对象，找到一个插入位置，然后把各字段的值插入即可。</p>
+</li>
+<li><p>创建表、视图和索引时不需要访问任何记录（这里值的是非catalog表的记录），因此不需要一个scan。只要使用parser解析得到的信息，然后简单地调用元数据管理器的方法<code>createTable()</code>，<code>createView()</code>和<code>createIndex()</code>来完成工作，它们的返回值为0，表示没有记录受到影响。</p>
+</li>
+</ul>
+<h1 id="数据库服务"><a href="#数据库服务" class="headerlink" title="数据库服务"></a>数据库服务</h1><img src="/2022/01/15/simpleDB-%E8%AE%BE%E8%AE%A1%E5%AD%A6%E4%B9%A0/RemoteDriver-16426906056651.png" class="" title="RemoteDriver">
+
+<ul>
+<li><p>大致上有两种访问数据库的方式：</p>
+<ul>
+<li>通过服务器，间接访问数据库；</li>
+<li>直接访问数据集，即嵌入型数据库系统。</li>
+</ul>
+</li>
+<li><p>嵌入型数据库系统”的策略更适合于例如GPS导航系统或传感器系统这样的场景，因为数据在这个系统中是私有的。</p>
+</li>
+<li><p>SimpleDB通过Java中的RMI机制来实现客户端和服务端之间的通信。每个JDBC中的接口都存在一个对应的RMI接口，二者的区别主要在于后者抛出的是<code>RemoteException</code>(RMI的规定)，而前者抛出的是<code>SQLException</code>(JDBC的规定)。</p>
+</li>
+<li><p>服务端的每个远程实现类对象都在一个独自的线程中执行，等待客户端存根对象来联系。SimpleDB启动代码会创建一个<code>RemoteDriver</code>类型的远程实现对象，并把这个对象的存根对象注册到RMI的注册表中。当JDBC客户端想要连接到数据库系统时，客户端会先通过RMI注册表得到这个存根对象。</p>
+</li>
+<li><p><code>SimpleDriver</code>类中的<code>connect()</code>方法会调用<code>RemoteDriver</code>类中的<code>connect()</code>方法来获得一个<code>RemoteConnection</code>类型的对象，并把它包装成<code>Connection</code>类型。</p>
+</li>
+<li><p>JDBC的客户端不会直接使用存根对象，因为这些存根对象实现的是remote接口而不是JDBC接口，相反，客户端的对象是对存根对象的包装，例如，<code>SimpleConnection</code>对应<code>RemoteConnection</code>,<code>SimpleStatement</code>对应<code>RemoteStatement</code>等。</p>
+</li>
+</ul>
+<h1 id="索引-1"><a href="#索引-1" class="headerlink" title="索引"></a>索引</h1><img src="/2022/01/15/simpleDB-%E8%AE%BE%E8%AE%A1%E5%AD%A6%E4%B9%A0/BTreeIndex.png" class="" title="BTreeIndex">
+
+<ul>
+<li><p>给定一个表的某个字段A，关于字段A的索引说白了也就是一些记录而已，只不过每一条索引记录都和表T中的一条数据记录对应。每条索引记录包含2个字段：<code>dataval</code>和<code>datarid</code>，前者是表中某条记录字段A的取值，而后者则是表中某条记录在底层文件中的具体存储位置（文件块号+记录数）；</p>
+</li>
+<li><p>索引可以用来改善select和join操作的效率。在建立好所以之后，我们不再需要对整个数据记录文件进行全盘扫描，而是：</p>
+<ul>
+<li>先根据给定的字段取值去扫描索引文件，从而找到每条数据记录的datarid；</li>
+<li>再根据数据记录的datarid直接定位到数据记录在文件中的位置。</li>
+</ul>
+<p>通过这种方式，数据库系统可以直接访问到匹配的数据记录，节省了大量的搜索时间；</p>
+</li>
+</ul>
+<ul>
+<li><p>索引的存在使得我们可以只通过较少的磁盘访问就能定位到待匹配的记录。我们讨论了3种不同的实现策略：<code>静态hash索引</code>，<code>可扩展hash索引</code>和<code>B树索引</code>；</p>
+</li>
+<li><p>静态hash索引将索引记录存储在固定数量的桶中，每个桶对应一个文件。hash函数可以将每条索引记录匹配到对应的桶中，为了搜索某条索引记录，我们首先根据dataval经过hash函数得到对应的桶，再在桶中进行遍历，找到所有满足的索引记录。如果一个索引包含B个文件块和N个桶，那么每个桶大概为B/N个块，因此访问一次索引需要大概B/N此块访问；</p>
+</li>
+<li><p>可扩展hash索引允许桶之间共享文件块。 这是对静态哈希的改进，因为它允许很多桶存在，却又无需特别大的索引文件。 块共享通过桶目录(<code>bucket directory</code>)来实现的。 可以将桶目录视为一个整型数组Dir； 如果索引记录对应的hash值为b，即储在桶b中，则该记录将存储在桶文件的块Dir [b]中。 当新的索引记录无法容纳在某个块中时，那么这个块将被拆分，并且桶目录会更新，块中的记录也会重新hash。</p>
+</li>
+<li><p>B树将索引记录存储在按dataval排序的文件中， B树还具有目录记录文件。 每个索引块都有一个对应的目录记录，这个目录记录包含该块中第一个索引记录的dataval和一个指向该块的指针， 这些目录记录是B树中的第0级目录。 同样地，每个目录块也有自己的目录记录，即B树的下一级目录。 顶层目录由单个块组成，称为B树的根。 给定一个dataval，我们可以通过检查目录树每一级上的一个块来搜索目录； 通过此搜索，我们可以找到包含所需索引记录的索引块。</p>
+</li>
+<li><p>B树索引非常有效。 除非其表非常大，否则任何所需的数据记录都可以通过不超过5个磁盘访问来检索。 如果商业数据库系统仅实现一种索引策略，则几乎可以肯定，里面使用了B树。</p>
+</li>
+</ul>
+<h1 id="物化和排序-1"><a href="#物化和排序-1" class="headerlink" title="物化和排序"></a>物化和排序</h1><h1 id="多缓冲区"><a href="#多缓冲区" class="headerlink" title="多缓冲区"></a>多缓冲区</h1><h1 id="查询优化"><a href="#查询优化" class="headerlink" title="查询优化"></a>查询优化</h1><h1 id="参考"><a href="#参考" class="headerlink" title="参考"></a>参考</h1><ol>
+<li><a target="_blank" rel="noopener" href="https://929910266.gitbook.io/simpledb/">https://929910266.gitbook.io/simpledb/</a></li>
+<li>database design and implement</li>
+</ol>
+<!-- flag of hidden posts -->
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/database/" rel="tag"># database</a>
+              <a href="/tags/simpleDB/" rel="tag"># simpleDB</a>
+          </div>
+
+        
+
+    </footer>
+  </article>
+</div>
+
+
+
+
+
+
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      const activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      const commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+</div>
+  </main>
+
+  <footer class="footer">
+    <div class="footer-inner">
+
+
+<div class="copyright">
+  &copy; 2021 – 
+  <span itemprop="copyrightYear">2022</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Jason Chao</span>
+</div>
+  <div class="powered-by">由 <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://theme-next.js.org/" class="theme-link" rel="noopener" target="_blank">NexT.Gemini</a> 强力驱动
+  </div>
+
+    </div>
+  </footer>
+
+  
+  <script src="//cdn.jsdelivr.net/npm/animejs@3.2.1/lib/anime.min.js"></script>
+<script src="/js/utils.js"></script><script src="/js/motion.js"></script><script src="/js/next-boot.js"></script>
+
+  
+
+
+
+
+
+
+  
+
+
+
+
+
+</body>
+</html>

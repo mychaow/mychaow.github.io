@@ -1,0 +1,941 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 5.3.0">
+
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+
+<link rel="stylesheet" href="//cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@5.15.1/css/all.min.css">
+  <link rel="stylesheet" href="//cdn.jsdelivr.net/npm/animate.css@3.1.1/animate.min.css">
+
+<script class="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"example.com","root":"/","images":"/images","scheme":"Gemini","version":"8.2.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12},"copycode":false,"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"fadeInDown","post_body":"fadeInDown","coll_header":"fadeInLeft","sidebar":"fadeInUp"}},"prism":false,"i18n":{"placeholder":"搜索...","empty":"没有找到任何搜索结果：${query}","hits_time":"找到 ${hits} 个搜索结果（用时 ${time} 毫秒）","hits":"找到 ${hits} 个搜索结果"}};
+  </script>
+<meta name="description" content="代码概述    体系架构  系统表在关系数据库中，为了实现数据库系统的控制，必须提供数据字典的功能。数据字典不仅存储各种对象的描述信息，而且存储系统管理所需的各种对象的细节信息。从内容看，数据字典包含数据库系统中所有对象及其属性的描述信息、对象之间关系的描述信息、对象属性的自然语义含义以及数据字典变化的历史（即数据库的状态）。数据字典是关系数据库系统管理控制信息的核心，在PG中，系统表扮演着数据字">
+<meta property="og:type" content="article">
+<meta property="og:title" content="postgresql数据库内核分析-1">
+<meta property="og:url" content="http://example.com/2022/02/05/postgresql%E6%95%B0%E6%8D%AE%E5%BA%93%E5%86%85%E6%A0%B8%E5%88%86%E6%9E%90-1/index.html">
+<meta property="og:site_name" content="我住8楼">
+<meta property="og:description" content="代码概述    体系架构  系统表在关系数据库中，为了实现数据库系统的控制，必须提供数据字典的功能。数据字典不仅存储各种对象的描述信息，而且存储系统管理所需的各种对象的细节信息。从内容看，数据字典包含数据库系统中所有对象及其属性的描述信息、对象之间关系的描述信息、对象属性的自然语义含义以及数据字典变化的历史（即数据库的状态）。数据字典是关系数据库系统管理控制信息的核心，在PG中，系统表扮演着数据字">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="http://example.com/2022/02/05/postgresql%E6%95%B0%E6%8D%AE%E5%BA%93%E5%86%85%E6%A0%B8%E5%88%86%E6%9E%90-1/%E4%BC%81%E4%B8%9A%E5%BE%AE%E4%BF%A1%E6%88%AA%E5%9B%BE_1644054327395.png">
+<meta property="og:image" content="http://example.com/2022/02/05/postgresql%E6%95%B0%E6%8D%AE%E5%BA%93%E5%86%85%E6%A0%B8%E5%88%86%E6%9E%90-1/%E4%BC%81%E4%B8%9A%E5%BE%AE%E4%BF%A1%E6%88%AA%E5%9B%BE_16440542906768.png">
+<meta property="og:image" content="http://example.com/2022/02/05/postgresql%E6%95%B0%E6%8D%AE%E5%BA%93%E5%86%85%E6%A0%B8%E5%88%86%E6%9E%90-1/%E4%BC%81%E4%B8%9A%E5%BE%AE%E4%BF%A1%E6%88%AA%E5%9B%BE_16440544475163.png">
+<meta property="og:image" content="http://example.com/2022/02/05/postgresql%E6%95%B0%E6%8D%AE%E5%BA%93%E5%86%85%E6%A0%B8%E5%88%86%E6%9E%90-1/%E4%BC%81%E4%B8%9A%E5%BE%AE%E4%BF%A1%E6%88%AA%E5%9B%BE_16440553989224.png">
+<meta property="og:image" content="http://example.com/2022/02/05/postgresql%E6%95%B0%E6%8D%AE%E5%BA%93%E5%86%85%E6%A0%B8%E5%88%86%E6%9E%90-1/%E4%BC%81%E4%B8%9A%E5%BE%AE%E4%BF%A1%E6%88%AA%E5%9B%BE_1644055428124.png">
+<meta property="og:image" content="http://example.com/2022/02/05/postgresql%E6%95%B0%E6%8D%AE%E5%BA%93%E5%86%85%E6%A0%B8%E5%88%86%E6%9E%90-1/%E4%BC%81%E4%B8%9A%E5%BE%AE%E4%BF%A1%E6%88%AA%E5%9B%BE_16440555491586.png">
+<meta property="og:image" content="http://example.com/2022/02/05/postgresql%E6%95%B0%E6%8D%AE%E5%BA%93%E5%86%85%E6%A0%B8%E5%88%86%E6%9E%90-1/%E4%BC%81%E4%B8%9A%E5%BE%AE%E4%BF%A1%E6%88%AA%E5%9B%BE_16440560688136.png">
+<meta property="og:image" content="http://example.com/2022/02/05/postgresql%E6%95%B0%E6%8D%AE%E5%BA%93%E5%86%85%E6%A0%B8%E5%88%86%E6%9E%90-1/%E4%BC%81%E4%B8%9A%E5%BE%AE%E4%BF%A1%E6%88%AA%E5%9B%BE_16440566176946.png">
+<meta property="og:image" content="http://example.com/2022/02/05/postgresql%E6%95%B0%E6%8D%AE%E5%BA%93%E5%86%85%E6%A0%B8%E5%88%86%E6%9E%90-1/%E4%BC%81%E4%B8%9A%E5%BE%AE%E4%BF%A1%E6%88%AA%E5%9B%BE_16440568689644.png">
+<meta property="og:image" content="http://example.com/2022/02/05/postgresql%E6%95%B0%E6%8D%AE%E5%BA%93%E5%86%85%E6%A0%B8%E5%88%86%E6%9E%90-1/%E4%BC%81%E4%B8%9A%E5%BE%AE%E4%BF%A1%E6%88%AA%E5%9B%BE_16440570675647.png">
+<meta property="og:image" content="http://example.com/2022/02/05/postgresql%E6%95%B0%E6%8D%AE%E5%BA%93%E5%86%85%E6%A0%B8%E5%88%86%E6%9E%90-1/%E4%BC%81%E4%B8%9A%E5%BE%AE%E4%BF%A1%E6%88%AA%E5%9B%BE_16440732867081.png">
+<meta property="og:image" content="http://example.com/2022/02/05/postgresql%E6%95%B0%E6%8D%AE%E5%BA%93%E5%86%85%E6%A0%B8%E5%88%86%E6%9E%90-1/%E4%BC%81%E4%B8%9A%E5%BE%AE%E4%BF%A1%E6%88%AA%E5%9B%BE_16440736601679.png">
+<meta property="og:image" content="http://example.com/2022/02/05/postgresql%E6%95%B0%E6%8D%AE%E5%BA%93%E5%86%85%E6%A0%B8%E5%88%86%E6%9E%90-1/%E4%BC%81%E4%B8%9A%E5%BE%AE%E4%BF%A1%E6%88%AA%E5%9B%BE_16440739952125.png">
+<meta property="og:image" content="http://example.com/2022/02/05/postgresql%E6%95%B0%E6%8D%AE%E5%BA%93%E5%86%85%E6%A0%B8%E5%88%86%E6%9E%90-1/%E4%BC%81%E4%B8%9A%E5%BE%AE%E4%BF%A1%E6%88%AA%E5%9B%BE_16442194931535.png">
+<meta property="og:image" content="http://example.com/2022/02/05/postgresql%E6%95%B0%E6%8D%AE%E5%BA%93%E5%86%85%E6%A0%B8%E5%88%86%E6%9E%90-1/%E4%BC%81%E4%B8%9A%E5%BE%AE%E4%BF%A1%E6%88%AA%E5%9B%BE_164422060277.png">
+<meta property="og:image" content="http://example.com/2022/02/05/postgresql%E6%95%B0%E6%8D%AE%E5%BA%93%E5%86%85%E6%A0%B8%E5%88%86%E6%9E%90-1/%E4%BC%81%E4%B8%9A%E5%BE%AE%E4%BF%A1%E6%88%AA%E5%9B%BE_16442831691062.png">
+<meta property="og:image" content="http://example.com/2022/02/05/postgresql%E6%95%B0%E6%8D%AE%E5%BA%93%E5%86%85%E6%A0%B8%E5%88%86%E6%9E%90-1/%E4%BC%81%E4%B8%9A%E5%BE%AE%E4%BF%A1%E6%88%AA%E5%9B%BE_16443309222249.png">
+<meta property="og:image" content="http://example.com/2022/02/05/postgresql%E6%95%B0%E6%8D%AE%E5%BA%93%E5%86%85%E6%A0%B8%E5%88%86%E6%9E%90-1/%E4%BC%81%E4%B8%9A%E5%BE%AE%E4%BF%A1%E6%88%AA%E5%9B%BE_16443314488516.png">
+<meta property="og:image" content="http://example.com/2022/02/05/postgresql%E6%95%B0%E6%8D%AE%E5%BA%93%E5%86%85%E6%A0%B8%E5%88%86%E6%9E%90-1/%E4%BC%81%E4%B8%9A%E5%BE%AE%E4%BF%A1%E6%88%AA%E5%9B%BE_16443314736797.png">
+<meta property="og:image" content="http://example.com/2022/02/05/postgresql%E6%95%B0%E6%8D%AE%E5%BA%93%E5%86%85%E6%A0%B8%E5%88%86%E6%9E%90-1/%E4%BC%81%E4%B8%9A%E5%BE%AE%E4%BF%A1%E6%88%AA%E5%9B%BE_16443323906738.png">
+<meta property="og:image" content="http://example.com/2022/02/05/postgresql%E6%95%B0%E6%8D%AE%E5%BA%93%E5%86%85%E6%A0%B8%E5%88%86%E6%9E%90-1/%E4%BC%81%E4%B8%9A%E5%BE%AE%E4%BF%A1%E6%88%AA%E5%9B%BE_1644367911926.png">
+<meta property="og:image" content="http://example.com/2022/02/05/postgresql%E6%95%B0%E6%8D%AE%E5%BA%93%E5%86%85%E6%A0%B8%E5%88%86%E6%9E%90-1/%E4%BC%81%E4%B8%9A%E5%BE%AE%E4%BF%A1%E6%88%AA%E5%9B%BE_16443327491023.png">
+<meta property="og:image" content="http://example.com/2022/02/05/postgresql%E6%95%B0%E6%8D%AE%E5%BA%93%E5%86%85%E6%A0%B8%E5%88%86%E6%9E%90-1/%E4%BC%81%E4%B8%9A%E5%BE%AE%E4%BF%A1%E6%88%AA%E5%9B%BE_16443685466221.png">
+<meta property="og:image" content="http://example.com/2022/02/05/postgresql%E6%95%B0%E6%8D%AE%E5%BA%93%E5%86%85%E6%A0%B8%E5%88%86%E6%9E%90-1/%E4%BC%81%E4%B8%9A%E5%BE%AE%E4%BF%A1%E6%88%AA%E5%9B%BE_16444160624175.png">
+<meta property="og:image" content="http://example.com/2022/02/05/postgresql%E6%95%B0%E6%8D%AE%E5%BA%93%E5%86%85%E6%A0%B8%E5%88%86%E6%9E%90-1/%E4%BC%81%E4%B8%9A%E5%BE%AE%E4%BF%A1%E6%88%AA%E5%9B%BE_16444161928461.png">
+<meta property="og:image" content="http://example.com/2022/02/05/postgresql%E6%95%B0%E6%8D%AE%E5%BA%93%E5%86%85%E6%A0%B8%E5%88%86%E6%9E%90-1/%E4%BC%81%E4%B8%9A%E5%BE%AE%E4%BF%A1%E6%88%AA%E5%9B%BE_16444171083493.png">
+<meta property="og:image" content="http://example.com/2022/02/05/postgresql%E6%95%B0%E6%8D%AE%E5%BA%93%E5%86%85%E6%A0%B8%E5%88%86%E6%9E%90-1/%E4%BC%81%E4%B8%9A%E5%BE%AE%E4%BF%A1%E6%88%AA%E5%9B%BE_16444179548845.png">
+<meta property="og:image" content="http://example.com/2022/02/05/postgresql%E6%95%B0%E6%8D%AE%E5%BA%93%E5%86%85%E6%A0%B8%E5%88%86%E6%9E%90-1/%E4%BC%81%E4%B8%9A%E5%BE%AE%E4%BF%A1%E6%88%AA%E5%9B%BE_16444180334538.png">
+<meta property="og:image" content="http://example.com/2022/02/05/postgresql%E6%95%B0%E6%8D%AE%E5%BA%93%E5%86%85%E6%A0%B8%E5%88%86%E6%9E%90-1/%E4%BC%81%E4%B8%9A%E5%BE%AE%E4%BF%A1%E6%88%AA%E5%9B%BE_16444181166810.png">
+<meta property="og:image" content="http://example.com/2022/02/05/postgresql%E6%95%B0%E6%8D%AE%E5%BA%93%E5%86%85%E6%A0%B8%E5%88%86%E6%9E%90-1/%E4%BC%81%E4%B8%9A%E5%BE%AE%E4%BF%A1%E6%88%AA%E5%9B%BE_16445066552235.png">
+<meta property="og:image" content="http://example.com/2022/02/05/postgresql%E6%95%B0%E6%8D%AE%E5%BA%93%E5%86%85%E6%A0%B8%E5%88%86%E6%9E%90-1/%E4%BC%81%E4%B8%9A%E5%BE%AE%E4%BF%A1%E6%88%AA%E5%9B%BE_16445067395840.png">
+<meta property="og:image" content="http://example.com/2022/02/05/postgresql%E6%95%B0%E6%8D%AE%E5%BA%93%E5%86%85%E6%A0%B8%E5%88%86%E6%9E%90-1/%E4%BC%81%E4%B8%9A%E5%BE%AE%E4%BF%A1%E6%88%AA%E5%9B%BE_16445074611249.png">
+<meta property="og:image" content="http://example.com/2022/02/05/postgresql%E6%95%B0%E6%8D%AE%E5%BA%93%E5%86%85%E6%A0%B8%E5%88%86%E6%9E%90-1/%E4%BC%81%E4%B8%9A%E5%BE%AE%E4%BF%A1%E6%88%AA%E5%9B%BE_16445076245097.png">
+<meta property="og:image" content="http://example.com/2022/02/05/postgresql%E6%95%B0%E6%8D%AE%E5%BA%93%E5%86%85%E6%A0%B8%E5%88%86%E6%9E%90-1/image-20220211222725128.png">
+<meta property="og:image" content="http://example.com/2022/02/05/postgresql%E6%95%B0%E6%8D%AE%E5%BA%93%E5%86%85%E6%A0%B8%E5%88%86%E6%9E%90-1/image-20220211225535076.png">
+<meta property="og:image" content="http://example.com/2022/02/05/postgresql%E6%95%B0%E6%8D%AE%E5%BA%93%E5%86%85%E6%A0%B8%E5%88%86%E6%9E%90-1/image-20220211231634268.png">
+<meta property="og:image" content="http://example.com/2022/02/05/postgresql%E6%95%B0%E6%8D%AE%E5%BA%93%E5%86%85%E6%A0%B8%E5%88%86%E6%9E%90-1/image-20220212160144315.png">
+<meta property="og:image" content="http://example.com/2022/02/05/postgresql%E6%95%B0%E6%8D%AE%E5%BA%93%E5%86%85%E6%A0%B8%E5%88%86%E6%9E%90-1/image-20220212160346885.png">
+<meta property="og:image" content="http://example.com/2022/02/05/postgresql%E6%95%B0%E6%8D%AE%E5%BA%93%E5%86%85%E6%A0%B8%E5%88%86%E6%9E%90-1/image-20220212162215592.png">
+<meta property="og:image" content="http://example.com/2022/02/05/postgresql%E6%95%B0%E6%8D%AE%E5%BA%93%E5%86%85%E6%A0%B8%E5%88%86%E6%9E%90-1/image-20220212165641993.png">
+<meta property="og:image" content="http://example.com/2022/02/05/postgresql%E6%95%B0%E6%8D%AE%E5%BA%93%E5%86%85%E6%A0%B8%E5%88%86%E6%9E%90-1/image-20220212170953198.png">
+<meta property="og:image" content="http://example.com/2022/02/05/postgresql%E6%95%B0%E6%8D%AE%E5%BA%93%E5%86%85%E6%A0%B8%E5%88%86%E6%9E%90-1/%E4%BC%81%E4%B8%9A%E5%BE%AE%E4%BF%A1%E6%88%AA%E5%9B%BE_16446706059283.png">
+<meta property="og:image" content="http://example.com/2022/02/05/postgresql%E6%95%B0%E6%8D%AE%E5%BA%93%E5%86%85%E6%A0%B8%E5%88%86%E6%9E%90-1/%E4%BC%81%E4%B8%9A%E5%BE%AE%E4%BF%A1%E6%88%AA%E5%9B%BE_16449363957644.png">
+<meta property="og:image" content="http://example.com/2022/02/05/postgresql%E6%95%B0%E6%8D%AE%E5%BA%93%E5%86%85%E6%A0%B8%E5%88%86%E6%9E%90-1/%E4%BC%81%E4%B8%9A%E5%BE%AE%E4%BF%A1%E6%88%AA%E5%9B%BE_16449364265376.png">
+<meta property="og:image" content="http://example.com/2022/02/05/postgresql%E6%95%B0%E6%8D%AE%E5%BA%93%E5%86%85%E6%A0%B8%E5%88%86%E6%9E%90-1/%E4%BC%81%E4%B8%9A%E5%BE%AE%E4%BF%A1%E6%88%AA%E5%9B%BE_16449366236231.png">
+<meta property="og:image" content="http://example.com/2022/02/05/postgresql%E6%95%B0%E6%8D%AE%E5%BA%93%E5%86%85%E6%A0%B8%E5%88%86%E6%9E%90-1/%E4%BC%81%E4%B8%9A%E5%BE%AE%E4%BF%A1%E6%88%AA%E5%9B%BE_16449369964149.png">
+<meta property="og:image" content="http://example.com/2022/02/05/postgresql%E6%95%B0%E6%8D%AE%E5%BA%93%E5%86%85%E6%A0%B8%E5%88%86%E6%9E%90-1/%E4%BC%81%E4%B8%9A%E5%BE%AE%E4%BF%A1%E6%88%AA%E5%9B%BE_16450509033519.png">
+<meta property="og:image" content="http://example.com/2022/02/05/postgresql%E6%95%B0%E6%8D%AE%E5%BA%93%E5%86%85%E6%A0%B8%E5%88%86%E6%9E%90-1/%E4%BC%81%E4%B8%9A%E5%BE%AE%E4%BF%A1%E6%88%AA%E5%9B%BE_16450520588009.png">
+<meta property="og:image" content="http://example.com/2022/02/05/postgresql%E6%95%B0%E6%8D%AE%E5%BA%93%E5%86%85%E6%A0%B8%E5%88%86%E6%9E%90-1/%E4%BC%81%E4%B8%9A%E5%BE%AE%E4%BF%A1%E6%88%AA%E5%9B%BE_16450521938381.png">
+<meta property="og:image" content="http://example.com/2022/02/05/postgresql%E6%95%B0%E6%8D%AE%E5%BA%93%E5%86%85%E6%A0%B8%E5%88%86%E6%9E%90-1/%E4%BC%81%E4%B8%9A%E5%BE%AE%E4%BF%A1%E6%88%AA%E5%9B%BE_16450523438407.png">
+<meta property="og:image" content="http://example.com/2022/02/05/postgresql%E6%95%B0%E6%8D%AE%E5%BA%93%E5%86%85%E6%A0%B8%E5%88%86%E6%9E%90-1/%E4%BC%81%E4%B8%9A%E5%BE%AE%E4%BF%A1%E6%88%AA%E5%9B%BE_1645052427146.png">
+<meta property="og:image" content="http://example.com/2022/02/05/postgresql%E6%95%B0%E6%8D%AE%E5%BA%93%E5%86%85%E6%A0%B8%E5%88%86%E6%9E%90-1/%E4%BC%81%E4%B8%9A%E5%BE%AE%E4%BF%A1%E6%88%AA%E5%9B%BE_16450525064383.png">
+<meta property="og:image" content="http://example.com/2022/02/05/postgresql%E6%95%B0%E6%8D%AE%E5%BA%93%E5%86%85%E6%A0%B8%E5%88%86%E6%9E%90-1/%E4%BC%81%E4%B8%9A%E5%BE%AE%E4%BF%A1%E6%88%AA%E5%9B%BE_16456246215392.png">
+<meta property="og:image" content="http://example.com/2022/02/05/postgresql%E6%95%B0%E6%8D%AE%E5%BA%93%E5%86%85%E6%A0%B8%E5%88%86%E6%9E%90-1/%E4%BC%81%E4%B8%9A%E5%BE%AE%E4%BF%A1%E6%88%AA%E5%9B%BE_16456253047948.png">
+<meta property="og:image" content="http://example.com/2022/02/05/postgresql%E6%95%B0%E6%8D%AE%E5%BA%93%E5%86%85%E6%A0%B8%E5%88%86%E6%9E%90-1/%E4%BC%81%E4%B8%9A%E5%BE%AE%E4%BF%A1%E6%88%AA%E5%9B%BE_16458832687601.png">
+<meta property="og:image" content="http://example.com/2022/02/05/postgresql%E6%95%B0%E6%8D%AE%E5%BA%93%E5%86%85%E6%A0%B8%E5%88%86%E6%9E%90-1/%E4%BC%81%E4%B8%9A%E5%BE%AE%E4%BF%A1%E6%88%AA%E5%9B%BE_16461472572683.png">
+<meta property="og:image" content="http://example.com/2022/02/05/postgresql%E6%95%B0%E6%8D%AE%E5%BA%93%E5%86%85%E6%A0%B8%E5%88%86%E6%9E%90-1/%E4%BC%81%E4%B8%9A%E5%BE%AE%E4%BF%A1%E6%88%AA%E5%9B%BE_16460567021995.png">
+<meta property="og:image" content="http://example.com/2022/02/05/postgresql%E6%95%B0%E6%8D%AE%E5%BA%93%E5%86%85%E6%A0%B8%E5%88%86%E6%9E%90-1/%E4%BC%81%E4%B8%9A%E5%BE%AE%E4%BF%A1%E6%88%AA%E5%9B%BE_16460555045729.png">
+<meta property="og:image" content="http://example.com/2022/02/05/postgresql%E6%95%B0%E6%8D%AE%E5%BA%93%E5%86%85%E6%A0%B8%E5%88%86%E6%9E%90-1/%E4%BC%81%E4%B8%9A%E5%BE%AE%E4%BF%A1%E6%88%AA%E5%9B%BE_16460611263672.png">
+<meta property="og:image" content="http://example.com/2022/02/05/postgresql%E6%95%B0%E6%8D%AE%E5%BA%93%E5%86%85%E6%A0%B8%E5%88%86%E6%9E%90-1/%E4%BC%81%E4%B8%9A%E5%BE%AE%E4%BF%A1%E6%88%AA%E5%9B%BE_16460961895226.png">
+<meta property="og:image" content="http://example.com/2022/02/05/postgresql%E6%95%B0%E6%8D%AE%E5%BA%93%E5%86%85%E6%A0%B8%E5%88%86%E6%9E%90-1/%E4%BC%81%E4%B8%9A%E5%BE%AE%E4%BF%A1%E6%88%AA%E5%9B%BE_16460961567301.png">
+<meta property="og:image" content="http://example.com/2022/02/05/postgresql%E6%95%B0%E6%8D%AE%E5%BA%93%E5%86%85%E6%A0%B8%E5%88%86%E6%9E%90-1/%E4%BC%81%E4%B8%9A%E5%BE%AE%E4%BF%A1%E6%88%AA%E5%9B%BE_16461445008863.png">
+<meta property="og:image" content="http://example.com/2022/02/05/postgresql%E6%95%B0%E6%8D%AE%E5%BA%93%E5%86%85%E6%A0%B8%E5%88%86%E6%9E%90-1/%E4%BC%81%E4%B8%9A%E5%BE%AE%E4%BF%A1%E6%88%AA%E5%9B%BE_16461454112055.png">
+<meta property="og:image" content="http://example.com/2022/02/05/postgresql%E6%95%B0%E6%8D%AE%E5%BA%93%E5%86%85%E6%A0%B8%E5%88%86%E6%9E%90-1/%E4%BC%81%E4%B8%9A%E5%BE%AE%E4%BF%A1%E6%88%AA%E5%9B%BE_16461454428872.png">
+<meta property="og:image" content="http://example.com/2022/02/05/postgresql%E6%95%B0%E6%8D%AE%E5%BA%93%E5%86%85%E6%A0%B8%E5%88%86%E6%9E%90-1/%E4%BC%81%E4%B8%9A%E5%BE%AE%E4%BF%A1%E6%88%AA%E5%9B%BE_16461454672511.png">
+<meta property="og:image" content="http://example.com/2022/02/05/postgresql%E6%95%B0%E6%8D%AE%E5%BA%93%E5%86%85%E6%A0%B8%E5%88%86%E6%9E%90-1/%E4%BC%81%E4%B8%9A%E5%BE%AE%E4%BF%A1%E6%88%AA%E5%9B%BE_16461455087841.png">
+<meta property="og:image" content="http://example.com/2022/02/05/postgresql%E6%95%B0%E6%8D%AE%E5%BA%93%E5%86%85%E6%A0%B8%E5%88%86%E6%9E%90-1/%E4%BC%81%E4%B8%9A%E5%BE%AE%E4%BF%A1%E6%88%AA%E5%9B%BE_16461455719083.png">
+<meta property="og:image" content="http://example.com/2022/02/05/postgresql%E6%95%B0%E6%8D%AE%E5%BA%93%E5%86%85%E6%A0%B8%E5%88%86%E6%9E%90-1/%E4%BC%81%E4%B8%9A%E5%BE%AE%E4%BF%A1%E6%88%AA%E5%9B%BE_16461456591875.png">
+<meta property="article:published_time" content="2022-02-05T09:42:42.000Z">
+<meta property="article:modified_time" content="2022-03-01T15:08:04.364Z">
+<meta property="article:author" content="Jason Chao">
+<meta property="article:tag" content="database">
+<meta property="article:tag" content="postgresql">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http://example.com/2022/02/05/postgresql%E6%95%B0%E6%8D%AE%E5%BA%93%E5%86%85%E6%A0%B8%E5%88%86%E6%9E%90-1/%E4%BC%81%E4%B8%9A%E5%BE%AE%E4%BF%A1%E6%88%AA%E5%9B%BE_1644054327395.png">
+
+
+<link rel="canonical" href="http://example.com/2022/02/05/postgresql%E6%95%B0%E6%8D%AE%E5%BA%93%E5%86%85%E6%A0%B8%E5%88%86%E6%9E%90-1/">
+
+
+<script class="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'zh-CN'
+  };
+</script>
+<title>postgresql数据库内核分析-1 | 我住8楼</title><meta name="robots" content="noindex">
+  
+
+
+
+
+  <noscript>
+  <style>
+  body { margin-top: 2rem; }
+
+  .use-motion .menu-item,
+  .use-motion .sidebar,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header {
+    visibility: visible;
+  }
+
+  .use-motion .header,
+  .use-motion .site-brand-container .toggle,
+  .use-motion .footer { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle,
+  .use-motion .custom-logo-image {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line {
+    transform: scaleX(1);
+  }
+
+  .search-pop-overlay, .sidebar-nav { display: none; }
+  .sidebar-panel { display: block; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" class="use-motion">
+  <div class="headband"></div>
+
+  <main class="main">
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏" role="button">
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <i class="logo-line"></i>
+      <h1 class="site-title">我住8楼</h1>
+      <i class="logo-line"></i>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+    </div>
+  </div>
+</div>
+
+
+
+<nav class="site-nav">
+  <ul class="main-menu menu">
+        <li class="menu-item menu-item-home"><a href="/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a></li>
+        <li class="menu-item menu-item-tags"><a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>标签</a></li>
+        <li class="menu-item menu-item-categories"><a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>分类</a></li>
+        <li class="menu-item menu-item-archives"><a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档</a></li>
+  </ul>
+</nav>
+
+
+
+
+</div>
+        
+  
+  <div class="toggle sidebar-toggle" role="button">
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+  </div>
+
+  <aside class="sidebar">
+
+    <div class="sidebar-inner sidebar-nav-active sidebar-toc-active">
+      <ul class="sidebar-nav">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <div class="sidebar-panel-container">
+        <!--noindex-->
+        <div class="post-toc-wrap sidebar-panel">
+            <div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#%E4%BB%A3%E7%A0%81%E6%A6%82%E8%BF%B0"><span class="nav-number">1.</span> <span class="nav-text">代码概述</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E4%BD%93%E7%B3%BB%E6%9E%B6%E6%9E%84"><span class="nav-number">2.</span> <span class="nav-text">体系架构</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E7%B3%BB%E7%BB%9F%E8%A1%A8"><span class="nav-number">2.1.</span> <span class="nav-text">系统表</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%95%B0%E6%8D%AE%E9%9B%86%E7%B0%87"><span class="nav-number">2.2.</span> <span class="nav-text">数据集簇</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#postgre-bki"><span class="nav-number">2.2.1.</span> <span class="nav-text">postgre.bki</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Initdb%E6%89%A7%E8%A1%8C%E6%B5%81%E7%A8%8B"><span class="nav-number">2.2.2.</span> <span class="nav-text">Initdb执行流程</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E7%B3%BB%E7%BB%9F%E6%95%B0%E6%8D%AE%E5%BA%93"><span class="nav-number">2.2.3.</span> <span class="nav-text">系统数据库</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#pg%E7%9A%84%E8%BF%9B%E7%A8%8B%E7%BB%93%E6%9E%84"><span class="nav-number">2.3.</span> <span class="nav-text">pg的进程结构</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%AE%88%E6%8A%A4%E8%BF%9B%E7%A8%8BPostMaster"><span class="nav-number">2.4.</span> <span class="nav-text">守护进程PostMaster</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E8%BE%85%E5%8A%A9%E8%BF%9B%E7%A8%8B"><span class="nav-number">2.5.</span> <span class="nav-text">辅助进程</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%9C%8D%E5%8A%A1%E8%BF%9B%E7%A8%8BPostgres"><span class="nav-number">2.6.</span> <span class="nav-text">服务进程Postgres</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E5%AD%98%E5%82%A8%E7%AE%A1%E7%90%86"><span class="nav-number">3.</span> <span class="nav-text">存储管理</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%AD%98%E5%82%A8%E7%AE%A1%E7%90%86%E5%99%A8%E7%9A%84%E4%BD%93%E7%B3%BB%E7%BB%93%E6%9E%84"><span class="nav-number">3.1.</span> <span class="nav-text">存储管理器的体系结构</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%A4%96%E5%AD%98%E7%AE%A1%E7%90%86"><span class="nav-number">3.2.</span> <span class="nav-text">外存管理</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E8%A1%A8%E5%92%8C%E5%85%83%E7%BB%84%E7%9A%84%E7%BB%84%E7%BB%87%E5%BD%A2%E5%BC%8F"><span class="nav-number">3.2.1.</span> <span class="nav-text">表和元组的组织形式</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E7%A3%81%E7%9B%98%E7%AE%A1%E7%90%86%E5%99%A8"><span class="nav-number">3.2.2.</span> <span class="nav-text">磁盘管理器</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#VFD%E6%9C%BA%E5%88%B6"><span class="nav-number">3.2.3.</span> <span class="nav-text">VFD机制</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E7%A9%BA%E9%97%B2%E7%A9%BA%E9%97%B4%E6%98%A0%E5%B0%84%E8%A1%A8"><span class="nav-number">3.2.4.</span> <span class="nav-text">空闲空间映射表</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%8F%AF%E8%A7%81%E6%80%A7%E6%98%A0%E5%B0%84%E8%A1%A8"><span class="nav-number">3.2.5.</span> <span class="nav-text">可见性映射表</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%A4%A7%E6%95%B0%E6%8D%AE%E5%AD%98%E5%82%A8"><span class="nav-number">3.2.6.</span> <span class="nav-text">大数据存储</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#TOAST-%EF%BC%88The-Oversized-Attribute-Storage-Technique%EF%BC%89"><span class="nav-number">3.2.6.1.</span> <span class="nav-text">TOAST （The Oversized Attribute Storage Technique）</span></a><ol class="nav-child"><li class="nav-item nav-level-5"><a class="nav-link" href="#%E5%AE%9E%E7%8E%B0%E5%8E%9F%E7%90%86"><span class="nav-number">3.2.6.1.1.</span> <span class="nav-text">实现原理</span></a></li></ol></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E5%A4%A7%E5%AF%B9%E8%B1%A1%E5%AD%98%E5%82%A8"><span class="nav-number">3.2.6.2.</span> <span class="nav-text">大对象存储</span></a></li></ol></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%86%85%E5%AD%98%E7%AE%A1%E7%90%86"><span class="nav-number">3.3.</span> <span class="nav-text">内存管理</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%86%85%E5%AD%98%E4%B8%8A%E4%B8%8B%E6%96%87"><span class="nav-number">3.3.1.</span> <span class="nav-text">内存上下文</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E9%AB%98%E9%80%9F%E7%BC%93%E5%AD%98"><span class="nav-number">3.3.2.</span> <span class="nav-text">高速缓存</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#Cache%E5%90%8C%E6%AD%A5"><span class="nav-number">3.3.2.1.</span> <span class="nav-text">Cache同步</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E7%BC%93%E5%86%B2%E6%B1%A0%E7%AE%A1%E7%90%86"><span class="nav-number">3.3.3.</span> <span class="nav-text">缓冲池管理</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#%E5%85%B1%E4%BA%AB%E7%BC%93%E5%86%B2%E5%8C%BA"><span class="nav-number">3.3.3.1.</span> <span class="nav-text">共享缓冲区</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E6%9C%AC%E5%9C%B0%E7%BC%93%E5%86%B2%E5%8C%BA"><span class="nav-number">3.3.3.2.</span> <span class="nav-text">本地缓冲区</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#IPC"><span class="nav-number">3.3.4.</span> <span class="nav-text">IPC</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E8%A1%A8%E6%93%8D%E4%BD%9C%E5%92%8C%E5%85%83%E7%BB%84%E6%93%8D%E4%BD%9C"><span class="nav-number">3.4.</span> <span class="nav-text">表操作和元组操作</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#%E8%A1%A8%E6%93%8D%E4%BD%9C"><span class="nav-number">3.4.0.1.</span> <span class="nav-text">表操作</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E5%85%83%E7%BB%84%E6%93%8D%E4%BD%9C"><span class="nav-number">3.4.0.2.</span> <span class="nav-text">元组操作</span></a></li></ol></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Vacuum%E6%9C%BA%E5%88%B6"><span class="nav-number">3.5.</span> <span class="nav-text">Vacuum机制</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#ResourceOwner%E8%B5%84%E6%BA%90%E8%B7%9F%E8%B8%AA"><span class="nav-number">3.6.</span> <span class="nav-text">ResourceOwner资源跟踪</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E7%B4%A2%E5%BC%95"><span class="nav-number">4.</span> <span class="nav-text">索引</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%A6%82%E8%BF%B0"><span class="nav-number">4.1.</span> <span class="nav-text">概述</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#B%E6%A0%91%E7%B4%A2%E5%BC%95"><span class="nav-number">4.2.</span> <span class="nav-text">B树索引</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Hash%E7%B4%A2%E5%BC%95"><span class="nav-number">4.3.</span> <span class="nav-text">Hash索引</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E6%9F%A5%E8%AF%A2%E7%BC%96%E8%AF%91"><span class="nav-number">5.</span> <span class="nav-text">查询编译</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%9F%A5%E8%AF%A2%E5%88%86%E6%9E%90"><span class="nav-number">5.1.</span> <span class="nav-text">查询分析</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E8%AF%AD%E4%B9%89%E5%88%86%E6%9E%90"><span class="nav-number">5.1.1.</span> <span class="nav-text">语义分析</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%9F%A5%E8%AF%A2%E9%87%8D%E5%86%99"><span class="nav-number">5.1.2.</span> <span class="nav-text">查询重写</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%9F%A5%E8%AF%A2%E8%A7%84%E5%88%92"><span class="nav-number">5.1.3.</span> <span class="nav-text">查询规划</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#%E9%A2%84%E5%A4%84%E7%90%86"><span class="nav-number">5.1.3.1.</span> <span class="nav-text">预处理</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E7%94%9F%E6%88%90%E8%B7%AF%E5%BE%84"><span class="nav-number">5.1.3.2.</span> <span class="nav-text">生成路径</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E7%94%9F%E6%88%90%E8%AE%A1%E5%88%92"><span class="nav-number">5.1.3.3.</span> <span class="nav-text">生成计划</span></a></li></ol></li></ol></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E6%9F%A5%E8%AF%A2%E6%89%A7%E8%A1%8C"><span class="nav-number">6.</span> <span class="nav-text">查询执行</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%9F%A5%E8%AF%A2%E6%89%A7%E8%A1%8C%E7%AD%96%E7%95%A5"><span class="nav-number">6.1.</span> <span class="nav-text">查询执行策略</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E4%BA%8B%E5%8A%A1%E5%A4%84%E7%90%86%E4%B8%8E%E5%B9%B6%E5%8F%91%E6%8E%A7%E5%88%B6"><span class="nav-number">7.</span> <span class="nav-text">事务处理与并发控制</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E4%BA%8B%E5%8A%A1%E7%B3%BB%E7%BB%9F%E4%B8%8A%E5%B1%82-%E4%BA%8B%E5%8A%A1%E5%9D%97"><span class="nav-number">7.1.</span> <span class="nav-text">事务系统上层-事务块</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E4%BA%8B%E5%8A%A1%E7%B3%BB%E7%BB%9F%E7%9A%84%E5%BA%95%E5%B1%82"><span class="nav-number">7.2.</span> <span class="nav-text">事务系统的底层</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E4%BA%8B%E5%8A%A1%E4%BF%9D%E5%AD%98%E7%82%B9%E5%92%8C%E5%AD%90%E4%BA%8B%E5%8A%A1"><span class="nav-number">7.3.</span> <span class="nav-text">事务保存点和子事务</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E4%B8%A4%E9%98%B6%E6%AE%B5%E6%8F%90%E4%BA%A4"><span class="nav-number">7.4.</span> <span class="nav-text">两阶段提交</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E9%A2%84%E6%8F%90%E4%BA%A4%E9%98%B6%E6%AE%B5"><span class="nav-number">7.4.1.</span> <span class="nav-text">预提交阶段</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%85%A8%E5%B1%80%E6%8F%90%E4%BA%A4%E9%98%B6%E6%AE%B5"><span class="nav-number">7.4.2.</span> <span class="nav-text">全局提交阶段</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%B9%B6%E5%8F%91%E6%8E%A7%E5%88%B6"><span class="nav-number">7.5.</span> <span class="nav-text">并发控制</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E4%B8%89%E7%A7%8D%E9%94%81"><span class="nav-number">7.6.</span> <span class="nav-text">三种锁</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#spinlock"><span class="nav-number">7.6.1.</span> <span class="nav-text">spinlock</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#LWLock"><span class="nav-number">7.6.2.</span> <span class="nav-text">LWLock</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#RegularLock"><span class="nav-number">7.6.3.</span> <span class="nav-text">RegularLock</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E9%94%81%E7%AE%A1%E7%90%86%E6%9C%BA%E5%88%B6"><span class="nav-number">7.7.</span> <span class="nav-text">锁管理机制</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%AD%BB%E9%94%81%E5%A4%84%E7%90%86"><span class="nav-number">7.8.</span> <span class="nav-text">死锁处理</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%A4%9A%E7%89%88%E6%9C%AC%E5%B9%B6%E5%8F%91%E6%8E%A7%E5%88%B6"><span class="nav-number">7.9.</span> <span class="nav-text">多版本并发控制</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%97%A5%E5%BF%97%E7%AE%A1%E7%90%86"><span class="nav-number">7.10.</span> <span class="nav-text">日志管理</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E5%8F%82%E8%80%83"><span class="nav-number">8.</span> <span class="nav-text">参考</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E9%99%84%E5%BD%95"><span class="nav-number">9.</span> <span class="nav-text">附录</span></a></li></ol></div>
+        </div>
+        <!--/noindex-->
+
+        <div class="site-overview-wrap sidebar-panel">
+          <div class="site-author site-overview-item animated" itemprop="author" itemscope itemtype="http://schema.org/Person">
+  <p class="site-author-name" itemprop="name">Jason Chao</p>
+  <div class="site-description" itemprop="description"></div>
+</div>
+<div class="site-state-wrap site-overview-item animated">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">27</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+          
+        <span class="site-state-item-count">2</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+          
+        <span class="site-state-item-count">24</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+
+
+
+        </div>
+      </div>
+    </div>
+  </aside>
+  <div class="sidebar-dimmer"></div>
+
+
+    </header>
+
+    
+  <div class="back-to-top" role="button">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+<noscript>
+  <div class="noscript-warning">Theme NexT works best with JavaScript enabled</div>
+</noscript>
+
+
+    <div class="main-inner post posts-expand">
+
+
+  
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="http://example.com/2022/02/05/postgresql%E6%95%B0%E6%8D%AE%E5%BA%93%E5%86%85%E6%A0%B8%E5%88%86%E6%9E%90-1/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="Jason Chao">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="我住8楼">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          postgresql数据库内核分析-1
+        </h1>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">发表于</span>
+
+      <time title="创建时间：2022-02-05 17:42:42" itemprop="dateCreated datePublished" datetime="2022-02-05T17:42:42+08:00">2022-02-05</time>
+    </span>
+      <span class="post-meta-item">
+        <span class="post-meta-item-icon">
+          <i class="far fa-calendar-check"></i>
+        </span>
+        <span class="post-meta-item-text">更新于</span>
+        <time title="修改时间：2022-03-01 23:08:04" itemprop="dateModified" datetime="2022-03-01T23:08:04+08:00">2022-03-01</time>
+      </span>
+
+  
+</div>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+        <h1 id="代码概述"><a href="#代码概述" class="headerlink" title="代码概述"></a>代码概述</h1><img src="/2022/02/05/postgresql%E6%95%B0%E6%8D%AE%E5%BA%93%E5%86%85%E6%A0%B8%E5%88%86%E6%9E%90-1/%E4%BC%81%E4%B8%9A%E5%BE%AE%E4%BF%A1%E6%88%AA%E5%9B%BE_1644054327395.png" class="" title="img">
+
+<img src="/2022/02/05/postgresql%E6%95%B0%E6%8D%AE%E5%BA%93%E5%86%85%E6%A0%B8%E5%88%86%E6%9E%90-1/%E4%BC%81%E4%B8%9A%E5%BE%AE%E4%BF%A1%E6%88%AA%E5%9B%BE_16440542906768.png" class="" title="img">
+
+<h1 id="体系架构"><a href="#体系架构" class="headerlink" title="体系架构"></a>体系架构</h1><img src="/2022/02/05/postgresql%E6%95%B0%E6%8D%AE%E5%BA%93%E5%86%85%E6%A0%B8%E5%88%86%E6%9E%90-1/%E4%BC%81%E4%B8%9A%E5%BE%AE%E4%BF%A1%E6%88%AA%E5%9B%BE_16440544475163.png" class="" title="img">
+
+<h2 id="系统表"><a href="#系统表" class="headerlink" title="系统表"></a>系统表</h2><p>在关系数据库中，为了实现数据库系统的控制，必须提供数据字典的功能。数据字典不仅存储各种对象的描述信息，而且存储系统管理所需的各种对象的细节信息。从内容看，数据字典包含数据库系统中所有对象及其属性的描述信息、对象之间关系的描述信息、对象属性的自然语义含义以及数据字典变化的历史（即数据库的状态）。数据字典是关系数据库系统管理控制信息的核心，在PG中，<strong>系统表</strong>扮演着<strong>数据字典</strong>的角色。</p>
+<p>pg中每个数据库都有一套自己的系统表，其中大多数的系统表都是在数据库创建时从模板数据库中拷贝过来的。只有少数系统表是所有数据库共享的。</p>
+<p>系统表的代码：</p>
+<ol>
+<li>位于src/include/catalog目录下有若干个以”pg_xxx”命名的“.h”文件，相应定义了名为pg_xxx的系统表。</li>
+<li>位于src/backend/catalog目录下有若干个以”pg_xxx”命名的“.c”文件，定义了对pg_xxx操作的函数。</li>
+</ol>
+<img src="/2022/02/05/postgresql%E6%95%B0%E6%8D%AE%E5%BA%93%E5%86%85%E6%A0%B8%E5%88%86%E6%9E%90-1/%E4%BC%81%E4%B8%9A%E5%BE%AE%E4%BF%A1%E6%88%AA%E5%9B%BE_16440553989224.png" class="" title="img">
+
+<img src="/2022/02/05/postgresql%E6%95%B0%E6%8D%AE%E5%BA%93%E5%86%85%E6%A0%B8%E5%88%86%E6%9E%90-1/%E4%BC%81%E4%B8%9A%E5%BE%AE%E4%BF%A1%E6%88%AA%E5%9B%BE_1644055428124.png" class="" title="img">
+
+<h2 id="数据集簇"><a href="#数据集簇" class="headerlink" title="数据集簇"></a>数据集簇</h2><p>使用pg数据库之前，需要使用initdb来初始化数据库。initdb会在PGDATA环境变量下创建如下目录来存放pg的相关数据。</p>
+<img src="/2022/02/05/postgresql%E6%95%B0%E6%8D%AE%E5%BA%93%E5%86%85%E6%A0%B8%E5%88%86%E6%9E%90-1/%E4%BC%81%E4%B8%9A%E5%BE%AE%E4%BF%A1%E6%88%AA%E5%9B%BE_16440555491586.png" class="" title="img">
+
+<h3 id="postgre-bki"><a href="#postgre-bki" class="headerlink" title="postgre.bki"></a>postgre.bki</h3><p>在编译过程中产生的，用于生成系统表的脚本。编译时genbki.sh通过读取src/include/catalog目录下pg_*.h文件创建，并且通常存放在安装树的share子目录下。主要读取以下两个宏定义：</p>
+<ol>
+<li>定义CATALOG宏。用于以统一的方式去定义系统表的结构以及用以描述系统表数据结构。</li>
+<li>通过宏DATA，DESCR来定义insert操作，可以有多个，用于定义系统表中初始记录。</li>
+</ol>
+<h3 id="Initdb执行流程"><a href="#Initdb执行流程" class="headerlink" title="Initdb执行流程"></a>Initdb执行流程</h3><img src="/2022/02/05/postgresql%E6%95%B0%E6%8D%AE%E5%BA%93%E5%86%85%E6%A0%B8%E5%88%86%E6%9E%90-1/%E4%BC%81%E4%B8%9A%E5%BE%AE%E4%BF%A1%E6%88%AA%E5%9B%BE_16440560688136.png" class="" title="img">
+
+<h3 id="系统数据库"><a href="#系统数据库" class="headerlink" title="系统数据库"></a>系统数据库</h3><p>初始有三个数据库：</p>
+<ul>
+<li>template1：数据库创建默认的模板，内容可以被用户修改</li>
+<li>template0：初始template1的备份</li>
+<li>postgres：用于给初始用户提供一个可连接的数据库，就像linux的用户主目录一样。</li>
+</ul>
+<h2 id="pg的进程结构"><a href="#pg的进程结构" class="headerlink" title="pg的进程结构"></a>pg的进程结构</h2><p>pg是多进程模型数据库，系统操作主要是守护进程postmaster和工作进程postgres两种进程来完成系统功能。</p>
+<img src="/2022/02/05/postgresql%E6%95%B0%E6%8D%AE%E5%BA%93%E5%86%85%E6%A0%B8%E5%88%86%E6%9E%90-1/%E4%BC%81%E4%B8%9A%E5%BE%AE%E4%BF%A1%E6%88%AA%E5%9B%BE_16440566176946.png" class="" title="img">
+
+<h2 id="守护进程PostMaster"><a href="#守护进程PostMaster" class="headerlink" title="守护进程PostMaster"></a>守护进程PostMaster</h2><p>postMaster负责接收来自客户端的链接，然后创建工作进程postgres进行服务。除此之外，postmaster还创建一些公共依赖的子进程，例如日志写入，数据清理等进程。</p>
+<img src="/2022/02/05/postgresql%E6%95%B0%E6%8D%AE%E5%BA%93%E5%86%85%E6%A0%B8%E5%88%86%E6%9E%90-1/%E4%BC%81%E4%B8%9A%E5%BE%AE%E4%BF%A1%E6%88%AA%E5%9B%BE_16440568689644.png" class="" title="img">
+
+<img src="/2022/02/05/postgresql%E6%95%B0%E6%8D%AE%E5%BA%93%E5%86%85%E6%A0%B8%E5%88%86%E6%9E%90-1/%E4%BC%81%E4%B8%9A%E5%BE%AE%E4%BF%A1%E6%88%AA%E5%9B%BE_16440570675647.png" class="" title="img">
+
+
+
+<h2 id="辅助进程"><a href="#辅助进程" class="headerlink" title="辅助进程"></a>辅助进程</h2><p>有一些辅助进程用来完成特定功能，支撑PG系统的运行和管理工作。</p>
+<ol>
+<li>systemLogger系统日志进程，可以统一管理日志输出，并控制日志滚动</li>
+<li>BgWriter后台写进程，将脏页刷写到磁盘中，并发起checkpoint</li>
+<li>WalWriter预写式日志写进程</li>
+<li>PgArch预写式日志归档进程</li>
+<li>AutoVacuum系统自动清理进程，多版本数据清理</li>
+<li>PgStat统计数据收集进程</li>
+</ol>
+<h2 id="服务进程Postgres"><a href="#服务进程Postgres" class="headerlink" title="服务进程Postgres"></a>服务进程Postgres</h2><img src="/2022/02/05/postgresql%E6%95%B0%E6%8D%AE%E5%BA%93%E5%86%85%E6%A0%B8%E5%88%86%E6%9E%90-1/%E4%BC%81%E4%B8%9A%E5%BE%AE%E4%BF%A1%E6%88%AA%E5%9B%BE_16440732867081.png" class="" title="img">
+
+
+
+<h1 id="存储管理"><a href="#存储管理" class="headerlink" title="存储管理"></a>存储管理</h1><h2 id="存储管理器的体系结构"><a href="#存储管理器的体系结构" class="headerlink" title="存储管理器的体系结构"></a>存储管理器的体系结构</h2><img src="/2022/02/05/postgresql%E6%95%B0%E6%8D%AE%E5%BA%93%E5%86%85%E6%A0%B8%E5%88%86%E6%9E%90-1/%E4%BC%81%E4%B8%9A%E5%BE%AE%E4%BF%A1%E6%88%AA%E5%9B%BE_16440736601679.png" class="" title="img">
+
+<p>存储管理器的主要任务：</p>
+<ol>
+<li>缓冲池管理</li>
+<li>cache机制</li>
+<li>虚拟文件描述符管理，避免因为操作系统对进程打开文件个数限制出错</li>
+<li>空闲空间管理</li>
+<li>进程间通信机制，<em>为什么放这管理呢？因为进程模型需要使用共享内存导致的？</em></li>
+<li>大数据存储管理，包括大对象机制和TOAST机制，前者是用户要存储一个大对象（例如图片、音频等文件），后者是为了存储变长字符串。</li>
+</ol>
+<p>Pg文件存储方式：</p>
+<ol>
+<li>分页管理</li>
+<li>行式存储</li>
+<li>单记录不跨行</li>
+<li>大数据列单独存储</li>
+<li>使用空间映射表文件FSM进行空间管理和分配（应该是页级别）</li>
+</ol>
+<img src="/2022/02/05/postgresql%E6%95%B0%E6%8D%AE%E5%BA%93%E5%86%85%E6%A0%B8%E5%88%86%E6%9E%90-1/%E4%BC%81%E4%B8%9A%E5%BE%AE%E4%BF%A1%E6%88%AA%E5%9B%BE_16440739952125.png" class="" title="img">
+
+<p>元组访问流程：</p>
+<ol>
+<li>首先需要获取表的基本信息及元组的模式信息，因为表很少被改动，因此会缓存表模式信息避免频繁访问系统表</li>
+<li>读取元组所在文件块来获得元组的数据，先从共享缓冲池里获取，如果有就返回，没有就进入下一步</li>
+<li>从存储介质读取元组数据，并写入缓冲区中。缓冲区与存储介质的交互是通过存储介质管理器（SMGR）来进行的。</li>
+<li>在磁盘管理器和物理文件之间还存在一层虚拟文件描述符机制（VFD），为了防止进程打开的文件数超过操作系统限制而引起不可知的错误。</li>
+<li>写入元组时，需要找到空闲的缓冲块。使用空闲空间映射表FSM附加文件来记录每个表文件块的空闲空间大小。</li>
+<li>PG使用标记删除方式来进行数据删除，最后通过VACUUM机制来清理空间。为了加快查找删除的空间，同样附加了一个文件可见性映射表VM来记录哪些元组被删除了。</li>
+<li>对于大数据存储，实现了大对象机制和TOAST机制。</li>
+</ol>
+<h2 id="外存管理"><a href="#外存管理" class="headerlink" title="外存管理"></a>外存管理</h2><img src="/2022/02/05/postgresql%E6%95%B0%E6%8D%AE%E5%BA%93%E5%86%85%E6%A0%B8%E5%88%86%E6%9E%90-1/%E4%BC%81%E4%B8%9A%E5%BE%AE%E4%BF%A1%E6%88%AA%E5%9B%BE_16442194931535.png" class="" title="img">
+
+<h3 id="表和元组的组织形式"><a href="#表和元组的组织形式" class="headerlink" title="表和元组的组织形式"></a>表和元组的组织形式</h3><p>同一个表中元组按创建顺序依次插入到表文件中，进行清理操作清除被被删除的元组后，元组也可以无序的方式插入到具有空闲空间的文件块中。元组之间不进行关联，这样的表文件被称为堆文件。pg中有四种堆文件：</p>
+<ol>
+<li>普通堆文件（ordinary cataloged heap)</li>
+<li>临时堆文件(temporary heap)，会话中有效，会话结束就被删除</li>
+<li>序列（sequence relation)，元组值会自动增长</li>
+<li>toast 表，变长数据存储</li>
+</ol>
+<img src="/2022/02/05/postgresql%E6%95%B0%E6%8D%AE%E5%BA%93%E5%86%85%E6%A0%B8%E5%88%86%E6%9E%90-1/%E4%BC%81%E4%B8%9A%E5%BE%AE%E4%BF%A1%E6%88%AA%E5%9B%BE_164422060277.png" class="" title="img">
+
+<p>堆文件组织结构主要包含5种数据类型，如下：</p>
+<ul>
+<li>PageHeaderData是长度为20字节的页头数据，包含该文件块的一般信息，如：<ul>
+<li>空闲空间的起止位置</li>
+<li>Special space的开始位置</li>
+<li>项指针的开始位置</li>
+<li>标志信息，如是否存在空闲项指针，是否所有的元组都可见</li>
+</ul>
+</li>
+<li>Linp是ItemIdData类型的数组，由Ip_off，lp_flags（未使用、已经使用、HOT重定向、死亡四种状态）, lp_len三个属性组成。ItemIdData占4个字节，其用来指向文件块中的一个元组。</li>
+<li>FreeSpace指未分配的空间，新插入页面中的元组及其对应的Linp元素都从这部分分配</li>
+<li>Tuple是元组数据，ItemIdData的lp_off指向单个tuple的位置</li>
+<li>Special space用于存放与索引方法相关的特定数据，不同的索引方法在specialspace中存放不同的数据。普通表文件中未使用该空间，索引文件中才使用该空间。</li>
+</ul>
+<img src="/2022/02/05/postgresql%E6%95%B0%E6%8D%AE%E5%BA%93%E5%86%85%E6%A0%B8%E5%88%86%E6%9E%90-1/%E4%BC%81%E4%B8%9A%E5%BE%AE%E4%BF%A1%E6%88%AA%E5%9B%BE_16442831691062.png" class="" title="img">
+
+<p>再看下tuple的详细结构：</p>
+<ul>
+<li>HeapTupleHeaderData<ul>
+<li>t_choice<ul>
+<li>t_heap：用于记录对元组执行插入/删除操作的事务ID和命令ID，用于并发控制时检查元组对事务的可见性</li>
+<li>t_datum：当一个新元组在内存中形成时，并不关心事务可见性，只需要用t_datum来记录长度等信息，一旦元组插入表文件中时，就需要填充为t_heap来写入表文件</li>
+</ul>
+</li>
+<li>t_ctid：用于记录当前元组的物理位置。如果元组被更新，则记录的是新版本元组的物理位置。</li>
+<li>t_infomask2，低11位表示当前元组的属性个数，其他为用于包括用于HOT技术及元组可见性的标志位</li>
+<li>t_infomask，用于标识元组当前的状态，例如元组是否有OID、是否有空属性等，每一位都对应不同的状态，共16种状态</li>
+<li>t_hoff，表示该元组头的大小</li>
+<li>_bits[] 数组用于标识该元组哪些字段为空</li>
+</ul>
+</li>
+</ul>
+<p>HOT技术：</p>
+<ul>
+<li>问题：pg中对元组采用多版本技术存储，对于每个更新操作都会产生一个新版本，版本之间从老到新形成一条版本链。此外，还会更新索引，即产生一个新版本索引。这一技术比较浪费存储空间，因为旧版本空间只会在vacuum时被回收</li>
+<li>解决方案：<ul>
+<li>当更新的元组满足以下两个条件时，成为HOT元组<ul>
+<li>所有索引的属性都没有被修改（值变化才算修改，如果update前后值相同，则认为是没有修改）</li>
+<li>更新的元组新版本与旧版本在同一个文件块内</li>
+</ul>
+</li>
+<li>HOT元组会被打上HEAP_ONLY_TUPLE标志，而HOT元组的上一个版本则被打上HEAP_HOT_UPDATED标志。更新一条HOT元组则不会在索引中引入新版本，当通过索引获取元组时首先会找到同一个块中最老的版本，然后顺着版本链往后找，知道遇到HOT元组为止。此时减少了索引的大小。</li>
+</ul>
+</li>
+</ul>
+<p>如果版本链从新的到老的呢？每次都要更新索引指向新的header，如果加一层中间层，例如索引指向一个固定中间地址，每次header更新后将地址填充到这个地址，索引就不用变了。</p>
+<h3 id="磁盘管理器"><a href="#磁盘管理器" class="headerlink" title="磁盘管理器"></a>磁盘管理器</h3><p>mdfdVec各个字段含义如下：</p>
+<ol>
+<li>mdfd_vfd：该文件所对应的VFD</li>
+<li>mdfd_segno：较大的表文件会被切成多个文件，因此使用该字段表示这是表文件的第几段</li>
+<li>mdfd_chain：指向同一表文件的下一段的MdfsVec，通过这个字段可以把表文件的各段链接起来<ol>
+<li>为空不表示只有一段，可能后续段没有打开，pg中对于大文件是逐段打开的</li>
+</ol>
+</li>
+</ol>
+<img src="/2022/02/05/postgresql%E6%95%B0%E6%8D%AE%E5%BA%93%E5%86%85%E6%A0%B8%E5%88%86%E6%9E%90-1/%E4%BC%81%E4%B8%9A%E5%BE%AE%E4%BF%A1%E6%88%AA%E5%9B%BE_16443309222249.png" class="" title="img">
+
+<h3 id="VFD机制"><a href="#VFD机制" class="headerlink" title="VFD机制"></a>VFD机制</h3><img src="/2022/02/05/postgresql%E6%95%B0%E6%8D%AE%E5%BA%93%E5%86%85%E6%A0%B8%E5%88%86%E6%9E%90-1/%E4%BC%81%E4%B8%9A%E5%BE%AE%E4%BF%A1%E6%88%AA%E5%9B%BE_16443314488516.png" class="" title="img">
+
+<p>vfd字段含义：</p>
+<ul>
+<li>fd，记录该vfd所对应的真实fd，如果vfd没有被打开时，为vfd_closed(-1)。</li>
+<li>fdstate表示该虚拟文件描述符的标记位：如果第0位为1，即为fd_dirty，表示该文件内容修改过但是没有刷到磁盘，因此，关闭时需要同步到磁盘；如果第1位为1，即为fd_temporary, 表明该文件在关闭时要被删除。</li>
+<li>nextFree 指向下一个空闲的VFD，数据类型File是一个整数，表示VFD在VFD数组中的下标</li>
+<li>lruMoreRecently指向比该VFD最近更常用的虚拟文件描述符</li>
+<li>lruLessRecently指向比该VFD最近更不常用的虚拟文件描述符</li>
+<li>seekPos记录该VFD的当前读写指针的位置</li>
+<li>fileName表示该VFD对应文件的文件名</li>
+<li>fileFlags表示该文件打开时的标志</li>
+<li>fileMode表示该文件创建时所指定模式</li>
+</ul>
+<img src="/2022/02/05/postgresql%E6%95%B0%E6%8D%AE%E5%BA%93%E5%86%85%E6%A0%B8%E5%88%86%E6%9E%90-1/%E4%BC%81%E4%B8%9A%E5%BE%AE%E4%BF%A1%E6%88%AA%E5%9B%BE_16443314736797.png" class="" title="img">
+
+<p>pg使用LRU池来管理VFD，当未超过系统设置的FD个数之前不会替换VFD。当超过时，就踢出最不常用的VFD，进行关闭。</p>
+<img src="/2022/02/05/postgresql%E6%95%B0%E6%8D%AE%E5%BA%93%E5%86%85%E6%A0%B8%E5%88%86%E6%9E%90-1/%E4%BC%81%E4%B8%9A%E5%BE%AE%E4%BF%A1%E6%88%AA%E5%9B%BE_16443323906738.png" class="" title="img">
+
+<h3 id="空闲空间映射表"><a href="#空闲空间映射表" class="headerlink" title="空闲空间映射表"></a>空闲空间映射表</h3><p>使用一个字节来表示一个表文件块中空闲空间大小，该字节取值跟空闲空间大小的对应关系如下图所示：</p>
+<img src="/2022/02/05/postgresql%E6%95%B0%E6%8D%AE%E5%BA%93%E5%86%85%E6%A0%B8%E5%88%86%E6%9E%90-1/%E4%BC%81%E4%B8%9A%E5%BE%AE%E4%BF%A1%E6%88%AA%E5%9B%BE_1644367911926.png" class="" title="img">
+
+<p>如下图所示，使用3层树的方式来加速查找整个表文件中空闲块。</p>
+<ul>
+<li>第0层和第1层是辅助层</li>
+<li>第2层用于实际存放各表块的空闲空间值</li>
+<li>FSM块内构成一个局部的最大堆二叉树（看起来更像一个败者树）<ul>
+<li>第2层FSM块最大堆二叉树的每个叶子节点表示一个表块的空闲空间值</li>
+<li>第1层FSM块中的叶子节点从左至右的顺序对应第2层FSM块的根节点</li>
+<li>第0层FSM块中的叶子节点从左至右的顺序对应第1层FSM块的根节点</li>
+</ul>
+</li>
+</ul>
+<img src="/2022/02/05/postgresql%E6%95%B0%E6%8D%AE%E5%BA%93%E5%86%85%E6%A0%B8%E5%88%86%E6%9E%90-1/%E4%BC%81%E4%B8%9A%E5%BE%AE%E4%BF%A1%E6%88%AA%E5%9B%BE_16443327491023.png" class="" title="img">
+
+<p>检索具有指定空闲空间的表块时，有两步：</p>
+<ol>
+<li>fsm_search检索FSM块3层树结构来找到一个具有指定空间的FSM块</li>
+<li>fsm_search_avail检索指定FSM块内二叉树找到对应的表块</li>
+</ol>
+<h3 id="可见性映射表"><a href="#可见性映射表" class="headerlink" title="可见性映射表"></a>可见性映射表</h3><p>vacuum有两种模式：</p>
+<ol>
+<li>快速清理lazy vacuum，vm文件在此过程被使用，为每一个表块设置一个bit，记录是否该表块存在无效元组。vm文件损坏也不影响vacuum，它只是一个hint。</li>
+<li>完全清理 full vacuum</li>
+</ol>
+<img src="/2022/02/05/postgresql%E6%95%B0%E6%8D%AE%E5%BA%93%E5%86%85%E6%A0%B8%E5%88%86%E6%9E%90-1/%E4%BC%81%E4%B8%9A%E5%BE%AE%E4%BF%A1%E6%88%AA%E5%9B%BE_16443685466221.png" class="" title="img">
+
+<h3 id="大数据存储"><a href="#大数据存储" class="headerlink" title="大数据存储"></a>大数据存储</h3><h4 id="TOAST-（The-Oversized-Attribute-Storage-Technique）"><a href="#TOAST-（The-Oversized-Attribute-Storage-Technique）" class="headerlink" title="TOAST （The Oversized Attribute Storage Technique）"></a>TOAST （The Oversized Attribute Storage Technique）</h4><h5 id="实现原理"><a href="#实现原理" class="headerlink" title="实现原理"></a>实现原理</h5><p>一部分类型（例如text类型）才支持toast机制，只有存储超过blocksize/4字节的数据时才会触发该机制。toast机制一般会对原始数据进行压缩和线外存储（即把数据存储在其他表中）。</p>
+<p>有四种不同的存储数据策略：</p>
+<ul>
+<li>plain，避免压缩和线外存储</li>
+<li>extended：允许压缩和线外存储，默认的</li>
+<li>external：允许线外存储，不许压缩</li>
+<li>main：允许压缩，但是不许线外存储</li>
+</ul>
+<p>toast表跟原始表一一对应，其结构如下：</p>
+<img src="/2022/02/05/postgresql%E6%95%B0%E6%8D%AE%E5%BA%93%E5%86%85%E6%A0%B8%E5%88%86%E6%9E%90-1/%E4%BC%81%E4%B8%9A%E5%BE%AE%E4%BF%A1%E6%88%AA%E5%9B%BE_16444160624175.png" class="" title="img">
+
+<p>toast属性值在表文件里存储的是toast指针，定义如下：</p>
+<img src="/2022/02/05/postgresql%E6%95%B0%E6%8D%AE%E5%BA%93%E5%86%85%E6%A0%B8%E5%88%86%E6%9E%90-1/%E4%BC%81%E4%B8%9A%E5%BE%AE%E4%BF%A1%E6%88%AA%E5%9B%BE_16444161928461.png" class="" title="img">
+
+<h4 id="大对象存储"><a href="#大对象存储" class="headerlink" title="大对象存储"></a>大对象存储</h4><p>用户可以控制，最大支持2GB，主要有三种：</p>
+<ul>
+<li>二进制大对象BLOB</li>
+<li>字符大对象CLOB</li>
+<li>双字节字符大对象DBCLOB</li>
+</ul>
+<p>大对象都会被切分成多个页面（2KB，能触发toast机制，还是避免触发toast机制？看起来更像是避免触发）存储到pg_largeobject系统表中，可以容忍页面丢失（填充为0）。</p>
+<img src="/2022/02/05/postgresql%E6%95%B0%E6%8D%AE%E5%BA%93%E5%86%85%E6%A0%B8%E5%88%86%E6%9E%90-1/%E4%BC%81%E4%B8%9A%E5%BE%AE%E4%BF%A1%E6%88%AA%E5%9B%BE_16444171083493.png" class="" title="img">
+
+<h2 id="内存管理"><a href="#内存管理" class="headerlink" title="内存管理"></a>内存管理</h2><h3 id="内存上下文"><a href="#内存上下文" class="headerlink" title="内存上下文"></a>内存上下文</h3><p>类似操作系统给每个进程分配内存资源一样，内存上下文相当于pg给每个查询分配的内存资源一样。</p>
+<p>每个进程内部的内存上下文组成一个树状结构。</p>
+<img src="/2022/02/05/postgresql%E6%95%B0%E6%8D%AE%E5%BA%93%E5%86%85%E6%A0%B8%E5%88%86%E6%9E%90-1/%E4%BC%81%E4%B8%9A%E5%BE%AE%E4%BF%A1%E6%88%AA%E5%9B%BE_16444179548845.png" class="" title="img">
+
+<p>每个节点只能有一个父节点，可以有多个子节点。定义如下图所示。</p>
+<img src="/2022/02/05/postgresql%E6%95%B0%E6%8D%AE%E5%BA%93%E5%86%85%E6%A0%B8%E5%88%86%E6%9E%90-1/%E4%BC%81%E4%B8%9A%E5%BE%AE%E4%BF%A1%E6%88%AA%E5%9B%BE_16444180334538.png" class="" title="img">
+
+<p>每个内存上下文有一系列函数对其进行操作，例如分配和回收，如下图所示。</p>
+<img src="/2022/02/05/postgresql%E6%95%B0%E6%8D%AE%E5%BA%93%E5%86%85%E6%A0%B8%E5%88%86%E6%9E%90-1/%E4%BC%81%E4%B8%9A%E5%BE%AE%E4%BF%A1%E6%88%AA%E5%9B%BE_16444181166810.png" class="" title="img">
+
+<p>当前只有一个实现方式AllocSetContext的实现方式，其字段如下。</p>
+<img src="/2022/02/05/postgresql%E6%95%B0%E6%8D%AE%E5%BA%93%E5%86%85%E6%A0%B8%E5%88%86%E6%9E%90-1/%E4%BC%81%E4%B8%9A%E5%BE%AE%E4%BF%A1%E6%88%AA%E5%9B%BE_16445066552235.png" class="" title="img">
+
+<p>AllocaSet数据结构是用来记录</p>
+<img src="/2022/02/05/postgresql%E6%95%B0%E6%8D%AE%E5%BA%93%E5%86%85%E6%A0%B8%E5%88%86%E6%9E%90-1/%E4%BC%81%E4%B8%9A%E5%BE%AE%E4%BF%A1%E6%88%AA%E5%9B%BE_16445067395840.png" class="" title="img">
+
+<p>AllocBlockData是内存拥有者，通过一个单向链表链接起来。</p>
+<img src="/2022/02/05/postgresql%E6%95%B0%E6%8D%AE%E5%BA%93%E5%86%85%E6%A0%B8%E5%88%86%E6%9E%90-1/%E4%BC%81%E4%B8%9A%E5%BE%AE%E4%BF%A1%E6%88%AA%E5%9B%BE_16445074611249.png" class="" title="img">
+
+<p>在内存块内进行内存分配，每个内存小块称为内存片，如下结构管理。</p>
+<img src="/2022/02/05/postgresql%E6%95%B0%E6%8D%AE%E5%BA%93%E5%86%85%E6%A0%B8%E5%88%86%E6%9E%90-1/%E4%BC%81%E4%B8%9A%E5%BE%AE%E4%BF%A1%E6%88%AA%E5%9B%BE_16445076245097.png" class="" title="img">
+
+<p>FreeList是一个大小为11的空闲链表数组，不同链表上的分配大小都是固定的2的指数，范围是8~8k。如果超过8k，就会申请一个独立的内存块，而不是继续从FreeList里取分片进行分配。</p>
+<h3 id="高速缓存"><a href="#高速缓存" class="headerlink" title="高速缓存"></a>高速缓存</h3><p>数据访问表时，需要频繁访问表模式，也就是访问系统表的元组。为了提高查询效率。有两种缓存：</p>
+<ol>
+<li>relcache<ol>
+<li>表模式缓存，存放的是RelationData，所有对表的操作其实也是基于RelationData数据结构的操作</li>
+</ol>
+</li>
+<li>syscache<ol>
+<li>系统表元组缓存，是一个数组，为每张系统表都创建了一个Catcache结构</li>
+</ol>
+</li>
+</ol>
+<img src="/2022/02/05/postgresql%E6%95%B0%E6%8D%AE%E5%BA%93%E5%86%85%E6%A0%B8%E5%88%86%E6%9E%90-1/image-20220211222725128.png" class="" title="image-20220211222725128">
+
+<p>SysCache里的缓存是采用hash的方式来进行检索的。</p>
+<img src="/2022/02/05/postgresql%E6%95%B0%E6%8D%AE%E5%BA%93%E5%86%85%E6%A0%B8%E5%88%86%E6%9E%90-1/image-20220211225535076.png" class="" title="image-20220211225535076">
+
+<h4 id="Cache同步"><a href="#Cache同步" class="headerlink" title="Cache同步"></a>Cache同步</h4><p>每个进程都有自己的cache，同一个系统表在不同的进程都有对应的cache，如果有数据修改，需要通过共享消息队列的方式传递给其他进程将无效的元组清理掉。</p>
+<img src="/2022/02/05/postgresql%E6%95%B0%E6%8D%AE%E5%BA%93%E5%86%85%E6%A0%B8%E5%88%86%E6%9E%90-1/image-20220211231634268.png" class="" title="image-20220211231634268">
+
+<h3 id="缓冲池管理"><a href="#缓冲池管理" class="headerlink" title="缓冲池管理"></a>缓冲池管理</h3><h4 id="共享缓冲区"><a href="#共享缓冲区" class="headerlink" title="共享缓冲区"></a>共享缓冲区</h4><p>任何对表、元组、索引等的访问都在缓冲池里进行，pg使用一个共享内存缓冲池来做缓存。</p>
+<p>每个缓存块使用sbufdesc来进行管理。</p>
+<img src="/2022/02/05/postgresql%E6%95%B0%E6%8D%AE%E5%BA%93%E5%86%85%E6%A0%B8%E5%88%86%E6%9E%90-1/image-20220212160144315.png" class="" title="image-20220212160144315">
+
+<p>使用buftag作为缓冲块的唯一标志。会基于这个来做一个hash表加快查找。</p>
+<img src="/2022/02/05/postgresql%E6%95%B0%E6%8D%AE%E5%BA%93%E5%86%85%E6%A0%B8%E5%88%86%E6%9E%90-1/image-20220212160346885.png" class="" title="image-20220212160346885">
+
+
+
+<p>替换策略：</p>
+<ol>
+<li>一般策略<ol>
+<li>不用的缓冲区通过freenext字段连成一个链表，分配从这个列表里分配</li>
+<li>如果没有就开始执行clock-sweep策略，即把缓冲区视为环形缓冲区，时针循环周而往复的循环，如缓冲区满足unpinned(ref_count == 0) &amp;&amp; usage_count == 0的条件，则选中该缓冲；否则，usage_count减一，继续循环，直至找到满足条件的buffer为止。选中的buffer一定是buffers中较少使用的那个。不过也会有个计数器记录循环了多少次缓冲区，防止真的死循环下去。</li>
+</ol>
+</li>
+<li>缓冲环策略，对于一次性使用的缓存，使用一个固定大小的缓存，用完后重新从头开始二次缓存，达到不影响正常缓存的作用，典型的有vacuum进行回收时，只读一次数据。</li>
+</ol>
+<h4 id="本地缓冲区"><a href="#本地缓冲区" class="headerlink" title="本地缓冲区"></a>本地缓冲区</h4><p>本进程使用的，主要是临时表或操作的数据对其他进程不可见的特殊情况下使用。并且不需要加锁。<em>进程内部不是多线程么？应该还是要加锁的吧？非多线程，就是单线程的</em></p>
+<img src="/2022/02/05/postgresql%E6%95%B0%E6%8D%AE%E5%BA%93%E5%86%85%E6%A0%B8%E5%88%86%E6%9E%90-1/image-20220212162215592.png" class="" title="image-20220212162215592">
+
+<h3 id="IPC"><a href="#IPC" class="headerlink" title="IPC"></a>IPC</h3><p>pg使用共享内存的方式来实现进程间通信的，pg的ipc机制提供以下功能：</p>
+<ul>
+<li>进程和postgremaster的通信机制</li>
+<li>统一管理进程的相关变量和函数</li>
+<li>提供了SI Message机制，即无效缓存消息传递机制</li>
+<li>有关消除的函数</li>
+</ul>
+<h2 id="表操作和元组操作"><a href="#表操作和元组操作" class="headerlink" title="表操作和元组操作"></a>表操作和元组操作</h2><h4 id="表操作"><a href="#表操作" class="headerlink" title="表操作"></a>表操作</h4><p>对表的扫描有两种方式：</p>
+<ol>
+<li>顺序扫描<ol>
+<li>正常扫描，即从0开始进行扫描</li>
+<li>同步扫描，即记录下每个表上一次扫描的位置，如果有新的扫描，可以从该位置开始进行扫描然后折回到该位置之前，即尽量共享之前的扫描缓存</li>
+</ol>
+</li>
+<li>索引扫描</li>
+</ol>
+<img src="/2022/02/05/postgresql%E6%95%B0%E6%8D%AE%E5%BA%93%E5%86%85%E6%A0%B8%E5%88%86%E6%9E%90-1/image-20220212165641993.png" class="" title="image-20220212165641993">
+
+<h4 id="元组操作"><a href="#元组操作" class="headerlink" title="元组操作"></a>元组操作</h4><h2 id="Vacuum机制"><a href="#Vacuum机制" class="headerlink" title="Vacuum机制"></a>Vacuum机制</h2><p>两种方式：</p>
+<ul>
+<li>full vacuum，会对表进行完全清理，即无效空间会归还给操作系统</li>
+<li>lazy vaccum，仅标记无效数据空间为可用，只是做表文件内部空间整理。但是末尾如果有空闲的页面是可以返回给操作系统的。</li>
+</ul>
+<img src="/2022/02/05/postgresql%E6%95%B0%E6%8D%AE%E5%BA%93%E5%86%85%E6%A0%B8%E5%88%86%E6%9E%90-1/image-20220212170953198.png" class="" title="image-20220212170953198">
+
+<h2 id="ResourceOwner资源跟踪"><a href="#ResourceOwner资源跟踪" class="headerlink" title="ResourceOwner资源跟踪"></a>ResourceOwner资源跟踪</h2><p>事务跟踪资源，以便在结束时进行释放，主要包括：</p>
+<ul>
+<li>父节点、子节点的ResourceOwner指针，用于构建资源跟踪器之间的树状结构</li>
+<li>占用的共享缓冲区数组和持有的缓冲区pin锁个数</li>
+<li>Cache的引用次数以及占用的Cache中存储的数据链表</li>
+<li>TupleDesc引用次数以及占用的TupleDesc数组</li>
+<li>Snapshot引用次数以及占用的snapshot数组</li>
+</ul>
+<h1 id="索引"><a href="#索引" class="headerlink" title="索引"></a>索引</h1><h2 id="概述"><a href="#概述" class="headerlink" title="概述"></a>概述</h2><p>索引方式：</p>
+<ul>
+<li>唯一索引，可以指定多个属性的组合唯一</li>
+<li>主键索引</li>
+<li>多属性索引</li>
+<li>部分索引，一般是表的子集做索引</li>
+<li>表达式索引，从表的一个或多个属性计算出来的值作为索引</li>
+</ul>
+<p>索引类型：</p>
+<ul>
+<li>B树索引，适合比较查询和范围查询</li>
+<li>Hash索引，适合等于查询</li>
+<li>GiST索引，同样搜索树索引框架，在这种索引框架上可以实现不同的索引策略</li>
+<li>GIN索引，倒排索引框架，支持用户自定义索引策略</li>
+</ul>
+<p>索引相关系统表有多个：</p>
+<ul>
+<li>pg_am，记录的是索引类型，当前只有四个元组，对应上面四种索引类型</li>
+<li>pg_class，每创建一个索引，都会在pg_class和pg_index里插入一个元组</li>
+<li>pg_index，记录的是与索引相关的属性</li>
+<li>pg_opclass,  管理每种索引类型的索引方法在操作特定数据类型的时候需要使用的操作集合</li>
+<li>pg_opfamily，定义了一个操作符的集合</li>
+<li>pg_amop, 存储每个索引操作符集合与具体的操作符的关联信息</li>
+<li>pg_amproc, 存储每个索引操作符集合与其相关联的支持过程和函数的关联信息</li>
+</ul>
+<p>索引接口，共13个，可以只实现其中部分：</p>
+<img src="/2022/02/05/postgresql%E6%95%B0%E6%8D%AE%E5%BA%93%E5%86%85%E6%A0%B8%E5%88%86%E6%9E%90-1/%E4%BC%81%E4%B8%9A%E5%BE%AE%E4%BF%A1%E6%88%AA%E5%9B%BE_16446706059283.png" class="" title="img">
+
+<h2 id="B树索引"><a href="#B树索引" class="headerlink" title="B树索引"></a>B树索引</h2><p>基于论文Efficient Locking for Concurrent Operations  on B-Trees 来实现的B-link Tree结构。</p>
+<h2 id="Hash索引"><a href="#Hash索引" class="headerlink" title="Hash索引"></a>Hash索引</h2><h1 id="查询编译"><a href="#查询编译" class="headerlink" title="查询编译"></a>查询编译</h1><p>PG中sql执行流程如下图所示：</p>
+<img src="/2022/02/05/postgresql%E6%95%B0%E6%8D%AE%E5%BA%93%E5%86%85%E6%A0%B8%E5%88%86%E6%9E%90-1/%E4%BC%81%E4%B8%9A%E5%BE%AE%E4%BF%A1%E6%88%AA%E5%9B%BE_16449363957644.png" class="" title="img">
+
+<p>下图是每个模块的主要功能。</p>
+<img src="/2022/02/05/postgresql%E6%95%B0%E6%8D%AE%E5%BA%93%E5%86%85%E6%A0%B8%E5%88%86%E6%9E%90-1/%E4%BC%81%E4%B8%9A%E5%BE%AE%E4%BF%A1%E6%88%AA%E5%9B%BE_16449364265376.png" class="" title="img">
+
+<h2 id="查询分析"><a href="#查询分析" class="headerlink" title="查询分析"></a>查询分析</h2><p>流程如下：</p>
+<img src="/2022/02/05/postgresql%E6%95%B0%E6%8D%AE%E5%BA%93%E5%86%85%E6%A0%B8%E5%88%86%E6%9E%90-1/%E4%BC%81%E4%B8%9A%E5%BE%AE%E4%BF%A1%E6%88%AA%E5%9B%BE_16449366236231.png" class="" title="img">
+
+<h3 id="语义分析"><a href="#语义分析" class="headerlink" title="语义分析"></a>语义分析</h3><p>根据命令类型分7种情况处理。</p>
+<img src="/2022/02/05/postgresql%E6%95%B0%E6%8D%AE%E5%BA%93%E5%86%85%E6%A0%B8%E5%88%86%E6%9E%90-1/%E4%BC%81%E4%B8%9A%E5%BE%AE%E4%BF%A1%E6%88%AA%E5%9B%BE_16449369964149.png" class="" title="img">
+
+<h3 id="查询重写"><a href="#查询重写" class="headerlink" title="查询重写"></a>查询重写</h3><p>重写的核心是规则系统，规则系统的所有规则都记录在系统表pg_rewrite里，规则会动态添加到系统表里。</p>
+<p>根据不同属性，可以按两种方式分类：</p>
+<ul>
+<li>按照规则适用的命令类型分类，可以分为select、update、insert、delete四种</li>
+<li>按照规则执行动作的方式分类，可以分为instead、also规则</li>
+</ul>
+<img src="/2022/02/05/postgresql%E6%95%B0%E6%8D%AE%E5%BA%93%E5%86%85%E6%A0%B8%E5%88%86%E6%9E%90-1/%E4%BC%81%E4%B8%9A%E5%BE%AE%E4%BF%A1%E6%88%AA%E5%9B%BE_16450509033519.png" class="" title="img">
+
+<blockquote>
+<p>规则和触发器功效相似，都是在某种命令和条件下激活，并且可以执行原始查询之外的动作。</p>
+<p>规则和触发器的区别：</p>
+<ul>
+<li>触发器对每个元组进行触发；概念要简单些</li>
+<li>规则是对整个查询树进行修改或者生成额外的查询，因此如果一条sql涉及多个元组，规则比触发器效率高；某些约束不能用规则实现，例如外键。</li>
+</ul>
+</blockquote>
+<h3 id="查询规划"><a href="#查询规划" class="headerlink" title="查询规划"></a>查询规划</h3><img src="/2022/02/05/postgresql%E6%95%B0%E6%8D%AE%E5%BA%93%E5%86%85%E6%A0%B8%E5%88%86%E6%9E%90-1/%E4%BC%81%E4%B8%9A%E5%BE%AE%E4%BF%A1%E6%88%AA%E5%9B%BE_16450520588009.png" class="" title="img">
+
+<img src="/2022/02/05/postgresql%E6%95%B0%E6%8D%AE%E5%BA%93%E5%86%85%E6%A0%B8%E5%88%86%E6%9E%90-1/%E4%BC%81%E4%B8%9A%E5%BE%AE%E4%BF%A1%E6%88%AA%E5%9B%BE_16450521938381.png" class="" title="img">
+
+<p><strong>standard_planner</strong>的主要逻辑：</p>
+<img src="/2022/02/05/postgresql%E6%95%B0%E6%8D%AE%E5%BA%93%E5%86%85%E6%A0%B8%E5%88%86%E6%9E%90-1/%E4%BC%81%E4%B8%9A%E5%BE%AE%E4%BF%A1%E6%88%AA%E5%9B%BE_16450523438407.png" class="" title="img">
+
+<p><strong>subquery_planner</strong>的主要逻辑：</p>
+<img src="/2022/02/05/postgresql%E6%95%B0%E6%8D%AE%E5%BA%93%E5%86%85%E6%A0%B8%E5%88%86%E6%9E%90-1/%E4%BC%81%E4%B8%9A%E5%BE%AE%E4%BF%A1%E6%88%AA%E5%9B%BE_1645052427146.png" class="" title="img">
+
+<p><strong>grouping_planner</strong>的处理逻辑：</p>
+<img src="/2022/02/05/postgresql%E6%95%B0%E6%8D%AE%E5%BA%93%E5%86%85%E6%A0%B8%E5%88%86%E6%9E%90-1/%E4%BC%81%E4%B8%9A%E5%BE%AE%E4%BF%A1%E6%88%AA%E5%9B%BE_16450525064383.png" class="" title="img">
+
+<h4 id="预处理"><a href="#预处理" class="headerlink" title="预处理"></a>预处理</h4><ol>
+<li>提升子查询/子链接</li>
+<li>预处理表达式</li>
+<li>预处理having子句</li>
+</ol>
+<h4 id="生成路径"><a href="#生成路径" class="headerlink" title="生成路径"></a>生成路径</h4><p>每一棵表连接树都称之为一条路径。</p>
+<p>算法：</p>
+<ol>
+<li>动规</li>
+<li>遗传算法</li>
+</ol>
+<img src="/2022/02/05/postgresql%E6%95%B0%E6%8D%AE%E5%BA%93%E5%86%85%E6%A0%B8%E5%88%86%E6%9E%90-1/%E4%BC%81%E4%B8%9A%E5%BE%AE%E4%BF%A1%E6%88%AA%E5%9B%BE_16456246215392.png" class="" title="img">
+
+<h4 id="生成计划"><a href="#生成计划" class="headerlink" title="生成计划"></a>生成计划</h4><h1 id="查询执行"><a href="#查询执行" class="headerlink" title="查询执行"></a>查询执行</h1><p>四个模块：</p>
+<ul>
+<li>Portal模块，入口，根据输入计划选择相应处理模块(Executor or ProcessUtility)</li>
+<li>Executor处理元组的CRUD操作</li>
+<li>ProcessUtility处理其他情况，这些情况间的差距比较大，因为每种情况都实现了特定的处理流程</li>
+<li>辅助子系统，都是独立的，并且会被复用，例如表达式计算，投影计算等</li>
+</ul>
+<img src="/2022/02/05/postgresql%E6%95%B0%E6%8D%AE%E5%BA%93%E5%86%85%E6%A0%B8%E5%88%86%E6%9E%90-1/%E4%BC%81%E4%B8%9A%E5%BE%AE%E4%BF%A1%E6%88%AA%E5%9B%BE_16456253047948.png" class="" title="img">
+
+
+
+<h2 id="查询执行策略"><a href="#查询执行策略" class="headerlink" title="查询执行策略"></a>查询执行策略</h2><ul>
+<li>可优化语句：主要包括DML语句</li>
+<li>不可优化语句：主要包括DDL语句，也是功能型语句</li>
+</ul>
+<p>因为要缓存计算中间结果，支持四种执行策略：</p>
+<ul>
+<li>PORTAL_ONE_SELECT：处理仅包含一个select类型查询的sql语句，调用执行器执行</li>
+<li>PORTAL_ONE_RETURNING：处理带有一个RETURNING子句的INSERT/UPDATE/DELETE语句，调用执行器执行</li>
+<li>PORTAL_UTIL_SELECT：处理功能类型语句的sql，但是带有explain或show，需要将结果返回给用户，调用功能处理器执行</li>
+<li>PORTAL_MUTIL_QUERY：处理上述三种情况之外的其他查询</li>
+</ul>
+<img src="/2022/02/05/postgresql%E6%95%B0%E6%8D%AE%E5%BA%93%E5%86%85%E6%A0%B8%E5%88%86%E6%9E%90-1/%E4%BC%81%E4%B8%9A%E5%BE%AE%E4%BF%A1%E6%88%AA%E5%9B%BE_16458832687601.png" class="" title="img">
+
+<h1 id="事务处理与并发控制"><a href="#事务处理与并发控制" class="headerlink" title="事务处理与并发控制"></a>事务处理与并发控制</h1><p>事务模块跟其他模块的关系。</p>
+<img src="/2022/02/05/postgresql%E6%95%B0%E6%8D%AE%E5%BA%93%E5%86%85%E6%A0%B8%E5%88%86%E6%9E%90-1/%E4%BC%81%E4%B8%9A%E5%BE%AE%E4%BF%A1%E6%88%AA%E5%9B%BE_16461472572683.png" class="" title="img">
+
+<p>pg里事务分为两块：</p>
+<ul>
+<li>事务块为上层，封装多条语句</li>
+<li>事务为下层</li>
+</ul>
+<img src="/2022/02/05/postgresql%E6%95%B0%E6%8D%AE%E5%BA%93%E5%86%85%E6%A0%B8%E5%88%86%E6%9E%90-1/%E4%BC%81%E4%B8%9A%E5%BE%AE%E4%BF%A1%E6%88%AA%E5%9B%BE_16460567021995.png" class="" title="img">
+
+<h2 id="事务系统上层-事务块"><a href="#事务系统上层-事务块" class="headerlink" title="事务系统上层-事务块"></a>事务系统上层-事务块</h2><img src="/2022/02/05/postgresql%E6%95%B0%E6%8D%AE%E5%BA%93%E5%86%85%E6%A0%B8%E5%88%86%E6%9E%90-1/%E4%BC%81%E4%B8%9A%E5%BE%AE%E4%BF%A1%E6%88%AA%E5%9B%BE_16460555045729.png" class="" title="img">
+
+<h2 id="事务系统的底层"><a href="#事务系统的底层" class="headerlink" title="事务系统的底层"></a>事务系统的底层</h2><p>主要处理逻辑包括：</p>
+<ul>
+<li>资源和锁的获取和释放</li>
+<li>信号的处理</li>
+<li>日志记录等</li>
+</ul>
+<h2 id="事务保存点和子事务"><a href="#事务保存点和子事务" class="headerlink" title="事务保存点和子事务"></a>事务保存点和子事务</h2><p>采用栈来实现子事务。其实更像是一个链式结构，而不是嵌套结构。</p>
+<p>savepoint是来开启子事务的标志。</p>
+<img src="/2022/02/05/postgresql%E6%95%B0%E6%8D%AE%E5%BA%93%E5%86%85%E6%A0%B8%E5%88%86%E6%9E%90-1/%E4%BC%81%E4%B8%9A%E5%BE%AE%E4%BF%A1%E6%88%AA%E5%9B%BE_16460611263672.png" class="" title="img">
+
+<h2 id="两阶段提交"><a href="#两阶段提交" class="headerlink" title="两阶段提交"></a>两阶段提交</h2><p><strong>使用两阶段提交来支持分布式数据库的事务处理。</strong></p>
+<h3 id="预提交阶段"><a href="#预提交阶段" class="headerlink" title="预提交阶段"></a>预提交阶段</h3><img src="/2022/02/05/postgresql%E6%95%B0%E6%8D%AE%E5%BA%93%E5%86%85%E6%A0%B8%E5%88%86%E6%9E%90-1/%E4%BC%81%E4%B8%9A%E5%BE%AE%E4%BF%A1%E6%88%AA%E5%9B%BE_16460961895226.png" class="" title="img">
+
+<h3 id="全局提交阶段"><a href="#全局提交阶段" class="headerlink" title="全局提交阶段"></a>全局提交阶段</h3><img src="/2022/02/05/postgresql%E6%95%B0%E6%8D%AE%E5%BA%93%E5%86%85%E6%A0%B8%E5%88%86%E6%9E%90-1/%E4%BC%81%E4%B8%9A%E5%BE%AE%E4%BF%A1%E6%88%AA%E5%9B%BE_16460961567301.png" class="" title="img">
+
+<h2 id="并发控制"><a href="#并发控制" class="headerlink" title="并发控制"></a>并发控制</h2><p>支持两种隔离级别：</p>
+<ul>
+<li>读已提交：默认隔离级别。</li>
+<li>第二个事务会等第一个事务（该事务有更新跟第二个事务相关的元组）提交或回滚。如果提交，那第二个事务将重新计算查询搜索条件（其实就是会查最新的数据），如果元组符合条件，第二个更新操作将继续起操作，从已更新版本开始；如果回滚，那第二个事务继续执行。</li>
+<li>可串行化：模拟串行的事务执行。第二个事务会等第一个事务（该事务有更新跟第二个事务相关的元组）提交或回滚。如果提交，那第二个事务需要重新做；如果回滚，那第二个事务继续执行。</li>
+</ul>
+<h2 id="三种锁"><a href="#三种锁" class="headerlink" title="三种锁"></a>三种锁</h2><h3 id="spinlock"><a href="#spinlock" class="headerlink" title="spinlock"></a>spinlock</h3><h3 id="LWLock"><a href="#LWLock" class="headerlink" title="LWLock"></a>LWLock</h3><p>使用spinlock实现，有等待队列，无死锁检测，能自动释放锁</p>
+<h3 id="RegularLock"><a href="#RegularLock" class="headerlink" title="RegularLock"></a>RegularLock</h3><p>使用lwlock实现，有等待队列，有死锁检测，能自动释放锁</p>
+<p>锁类型：</p>
+<ul>
+<li>用户锁<ul>
+<li>应用于长期事务，用于提示应用程序某用户正在工作与某数据库元素上</li>
+</ul>
+</li>
+<li>默认锁</li>
+</ul>
+<p>锁模式：</p>
+<img src="/2022/02/05/postgresql%E6%95%B0%E6%8D%AE%E5%BA%93%E5%86%85%E6%A0%B8%E5%88%86%E6%9E%90-1/%E4%BC%81%E4%B8%9A%E5%BE%AE%E4%BF%A1%E6%88%AA%E5%9B%BE_16461445008863.png" class="" title="img">
+
+<p>存储：</p>
+<ul>
+<li>LOCK：存储每个可锁的对象</li>
+<li>PROCLOCK：存储进程和锁之间的关系，在死锁检测和消除中频繁使用</li>
+<li>LOCALLOCK：本地锁表，只对当前进程可见，记录当前进程可锁对象和锁模式，有助于快速处理加锁操作</li>
+</ul>
+<h2 id="锁管理机制"><a href="#锁管理机制" class="headerlink" title="锁管理机制"></a>锁管理机制</h2><img src="/2022/02/05/postgresql%E6%95%B0%E6%8D%AE%E5%BA%93%E5%86%85%E6%A0%B8%E5%88%86%E6%9E%90-1/%E4%BC%81%E4%B8%9A%E5%BE%AE%E4%BF%A1%E6%88%AA%E5%9B%BE_16461454112055.png" class="" title="img">
+
+<img src="/2022/02/05/postgresql%E6%95%B0%E6%8D%AE%E5%BA%93%E5%86%85%E6%A0%B8%E5%88%86%E6%9E%90-1/%E4%BC%81%E4%B8%9A%E5%BE%AE%E4%BF%A1%E6%88%AA%E5%9B%BE_16461454428872.png" class="" title="img">
+
+<img src="/2022/02/05/postgresql%E6%95%B0%E6%8D%AE%E5%BA%93%E5%86%85%E6%A0%B8%E5%88%86%E6%9E%90-1/%E4%BC%81%E4%B8%9A%E5%BE%AE%E4%BF%A1%E6%88%AA%E5%9B%BE_16461454672511.png" class="" title="img">
+
+<img src="/2022/02/05/postgresql%E6%95%B0%E6%8D%AE%E5%BA%93%E5%86%85%E6%A0%B8%E5%88%86%E6%9E%90-1/%E4%BC%81%E4%B8%9A%E5%BE%AE%E4%BF%A1%E6%88%AA%E5%9B%BE_16461455087841.png" class="" title="img">
+
+<img src="/2022/02/05/postgresql%E6%95%B0%E6%8D%AE%E5%BA%93%E5%86%85%E6%A0%B8%E5%88%86%E6%9E%90-1/%E4%BC%81%E4%B8%9A%E5%BE%AE%E4%BF%A1%E6%88%AA%E5%9B%BE_16461455719083.png" class="" title="img">
+
+<h2 id="死锁处理"><a href="#死锁处理" class="headerlink" title="死锁处理"></a>死锁处理</h2><img src="/2022/02/05/postgresql%E6%95%B0%E6%8D%AE%E5%BA%93%E5%86%85%E6%A0%B8%E5%88%86%E6%9E%90-1/%E4%BC%81%E4%B8%9A%E5%BE%AE%E4%BF%A1%E6%88%AA%E5%9B%BE_16461456591875.png" class="" title="img">
+
+<ul>
+<li>soft Edge: 相关事务都等待同一个锁，前后关系，可以调整</li>
+<li>hard Edge: 有一个事务持有另外一个事务需要的锁</li>
+</ul>
+<h2 id="多版本并发控制"><a href="#多版本并发控制" class="headerlink" title="多版本并发控制"></a>多版本并发控制</h2><h2 id="日志管理"><a href="#日志管理" class="headerlink" title="日志管理"></a>日志管理</h2><ul>
+<li>xlog，事务日志</li>
+<li>clog，事务提交日志，提高判断一个事务状态的效率</li>
+<li>subtrans, 子事务日志，记录每个事务的父事务ID</li>
+<li>multixact，组合事务日志，</li>
+</ul>
+<h1 id="参考"><a href="#参考" class="headerlink" title="参考"></a>参考</h1><ol>
+<li><a target="_blank" rel="noopener" href="https://www.vldb.org/pvldb/vol10/p781-Wu.pdf">An Empirical Evaluation of In-Memory Multi-Version Concurrency Control</a></li>
+<li><a target="_blank" rel="noopener" href="https://www.csd.uoc.gr/~hy460/pdf/p650-lehman.pdf">Efficient Locking for Concurrent Operations  on B-Trees </a></li>
+</ol>
+<h1 id="附录"><a href="#附录" class="headerlink" title="附录"></a>附录</h1><p>前 言<br>第1章 postgresql系统概述<br>1.1 postgresql简介及发展历程<br>1.2 postgresql的特性<br>1.3 postgresql的应用<br>1.4 postgresql代码结构<br>1.5 安装postgresql<br>1.6 postgresql数据库命令</p>
+<p>第2章 postgresql的体系结构<br>2.1 系统表<br>2.1.1 主要系统表功能及依赖关系<br>2.1.2 系统视图<br>2.2 数据集簇<br>2.2.1 initdb的使用<br>2.2.2 postgres.bki<br>2.2.3 initdb的执行过程<br>2.2.4 系统数据库<br>2.3 postgresql进程结构<br>2.4 守护进程postmaster<br>2.4.1 初始化内存上下文<br>2.4.2 配置参数<br>2.4.3 创建监听套接字<br>2.4.4 注册信号处理函数<br>2.4.5 辅助进程启动<br>2.4.6 装载客户端认证文件<br>2.4.7 循环等待客户连接请求<br>2.5 辅助进程<br>2.5.1 syslogger系统日志进程<br>2.5.2 bgwriter后台写进程<br>2.5.3 walwriter预写式日志写进程<br>2.5.4 pgarch预写式日志归档进程<br>2.5.5 autovacuum系统自动清理进程<br>2.5.6 pgstat统计数据收集进程<br>2.6 服务进程postgres<br>2.6.1 初始化内存环境<br>2.6.2 配置运行参数和处理客户端传递的guc参数<br>2.6.3 设置信号处理和信号屏蔽<br>2.6.4 初始化postgres的运行环境<br>2.6.5 创建内存上下文并设置查询取消跳跃点<br>2.6.6 循环等待处理查询<br>2.6.7 简单查询的执行流程<br>2.7 小结</p>
+<p>第3章 存储管理<br>3.1 存储管理器的体系结构<br>3.2 外存管理<br>3.2.1 表和元组的组织方式<br>3.2.2 磁盘管理器<br>3.2.3 vfd机制<br>3.2.4 空闲空间映射表<br>3.2.5 可见性映射表<br>3.2.6 大数据存储<br>3.3 内存管理<br>3.3.1 内存上下文概述<br>3.3.2 高速缓存<br>3.3.3 缓冲池管理<br>3.3.4 ipc<br>3.4 表操作与元组操作<br>3.4.1 表操作<br>3.4.2 元组操作<br>3.5 vacuum机制<br>3.5.1 vacuum操作<br>3.5.2 lazy vacuum<br>3.5.3 full vacuum<br>3.6 resourceowner资源跟踪<br>3.7 小结</p>
+<p>第4章 索引<br>4.1 概述<br>4.1.1 索引方式<br>4.1.2 索引类型<br>4.1.3 索引相关系统表<br>4.1.4 索引的操作函数<br>4.2 b-tree索引<br>4.2.1 b-tree索引的组织结构<br>4.2.2 b-tree索引的操作<br>4.3 hash索引<br>4.3.1 hash索引的组织结构<br>4.3.2 hash索引的实现<br>4.4 gist索引<br>4.4.1 gist的扩展性<br>4.4.2 gist索引的组织结构<br>4.4.3 gist索引的实现<br>4.4.4 gist索引实例<br>4.5 gin索引<br>4.5.1 gin索引的扩展性<br>4.5.2 gin索引的组织结构<br>4.5.3 gin索引的操作<br>4.6 tsearch2全文搜索<br>4.6.1 全文索引的创建<br>4.6.2 全文索引的查询<br>4.6.3 查询结果处理<br>4.7 小结</p>
+<p>第5章 查询编译<br>5.1 概述<br>5.2 查询分析<br>5.2.1 lex和yacc简介<br>5.2.2 词法和语法分析<br>5.2.3 语义分析<br>5.3 查询重写<br>5.3.1 规则系统<br>5.3.2 查询重写的处理操作<br>5.4 查询规划<br>5.4.1 总体处理流程<br>5.4.2 预处理<br>5.4.3 生成路径<br>5.4.4 生成可优化的min/max聚集计划<br>5.4.5 生成普通计划<br>5.4.6 生成完整计划<br>5.4.7 整理计划树<br>5.4.8 实例分析<br>5.5 代价估计<br>5.5.1 代价估算公式<br>5.5.2 选择度<br>5.5.3 单个表的扫描代价<br>5.5.4 两个表的连接代价<br>5.6 postgresql中的遗传算法<br>5.6.1 个体编码方式及种群初始化<br>5.6.2 适应值<br>5.6.3 父体选择策略<br>5.6.4 杂交算子<br>5.6.5 变异算子<br>5.6.6 终止条件<br>5.6.7 基于排列生成路径<br>5.6.8 实例分析<br>5.7 小结</p>
+<p>第6章 查询执行<br>6.1 查询执行策略<br>6.1.1 可优化语句和数据定义语句<br>6.1.2 四种执行策略<br>6.1.3 策略选择的实现<br>6.1.4 portal执行的过程<br>6.2 数据定义语句执行<br>6.2.1 数据定义语句执行流程<br>6.2.2 执行实例<br>6.2.3 主要的功能处理器函数<br>6.3 可优化语句执行<br>6.3.1 物理代数与处理模型<br>6.3.2 物理操作符的数据结构<br>6.3.3 执行器的运行<br>6.3.4 执行实例<br>6.4 计划节点<br>6.4.1 控制节点<br>6.4.2 扫描节点<br>6.4.3 物化节点<br>6.4.4 连接节点<br>6.5 其他子功能介绍<br>6.5.1 元组操作<br>6.5.2 表达式计算<br>6.5.3 投影操作<br>6.6 小结</p>
+<p>第7章 事务处理与并发控制<br>7.1 事务系统简介<br>7.2 事务系统的上层<br>7.2.1 事务块状态<br>7.2.2 事务块操作<br>7.3 事务系统的底层<br>7.3.1 事务状态<br>7.3.2 事务操作函数<br>7.3.3 简单查询事务执行过程实例<br>7.4 事务保存点和子事务<br>7.4.1 保存点实现原理<br>7.4.2 子事务<br>7.5 两阶段提交<br>7.5.1 预提交阶段<br>7.5.2 全局提交阶段<br>7.6 postgresql的并发控制<br>7.7 postgresql中的三种锁<br>7.7.1 spinlock<br>7.7.2 lwlock<br>7.7.3 regularlock<br>7.8 锁管理机制<br>7.8.1 表粒度的锁操作<br>7.8.2 页粒度的锁操作<br>7.8.3 元组粒度的锁操作<br>7.8.4 事务粒度的锁操作<br>7.8.5 一般对象的锁操作<br>7.9 死锁处理机制<br>7.9.1 死锁处理相关数据结构<br>7.9.2 死锁处理相关操作<br>7.10 多版本并发控制<br>7.10.1 mvcc相关数据结构<br>7.10.2 mvcc相关操作<br>7.10.3 mvcc与快照<br>7.11 日志管理<br>7.11.1 slru缓冲池<br>7.11.2 clog日志管理器<br>7.11.3 subtrans日志管理器<br>7.11.4 multixact日志管理器<br>7.11.5 xlog日志管理器<br>7.11.6 日志管理器总结<br>7.12 小结</p>
+<p>第8章 数据库安全<br>8.1 postgresql安全简介<br>8.2 用户标识和认证<br>8.2.1 客户端配置文件<br>8.2.2 认证方法<br>8.2.3 客户端认证<br>8.3 基于角色的权限管理<br>8.3.1 用户和角色<br>8.3.2 角色相关的系统表<br>8.3.3 角色管理<br>8.4 对象访问控制<br>8.4.1 访问控制列表<br>8.4.2 对象权限管理<br>8.4.3 对象权限检查<br>8.5 小结<br>附录a 用eclipse开发和调试postgresql</p>
+<!-- flag of hidden posts -->
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/database/" rel="tag"># database</a>
+              <a href="/tags/postgresql/" rel="tag"># postgresql</a>
+          </div>
+
+        
+
+    </footer>
+  </article>
+</div>
+
+
+
+
+
+
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      const activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      const commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+</div>
+  </main>
+
+  <footer class="footer">
+    <div class="footer-inner">
+
+
+<div class="copyright">
+  &copy; 2021 – 
+  <span itemprop="copyrightYear">2022</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Jason Chao</span>
+</div>
+  <div class="powered-by">由 <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://theme-next.js.org/" class="theme-link" rel="noopener" target="_blank">NexT.Gemini</a> 强力驱动
+  </div>
+
+    </div>
+  </footer>
+
+  
+  <script src="//cdn.jsdelivr.net/npm/animejs@3.2.1/lib/anime.min.js"></script>
+<script src="/js/utils.js"></script><script src="/js/motion.js"></script><script src="/js/next-boot.js"></script>
+
+  
+
+
+
+
+
+
+  
+
+
+
+
+
+</body>
+</html>

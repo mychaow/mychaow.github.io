@@ -23,15 +23,15 @@
     var NexT = window.NexT || {};
     var CONFIG = {"hostname":"example.com","root":"/","images":"/images","scheme":"Gemini","version":"8.2.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12},"copycode":false,"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"fadeInDown","post_body":"fadeInDown","coll_header":"fadeInLeft","sidebar":"fadeInUp"}},"prism":false,"i18n":{"placeholder":"搜索...","empty":"没有找到任何搜索结果：${query}","hits_time":"找到 ${hits} 个搜索结果（用时 ${time} 毫秒）","hits":"找到 ${hits} 个搜索结果"}};
   </script>
-<meta name="description" content="问题数据库已经提供多种类型内建函数来满足常用业务需求，当内建函数无法支撑业务实现时，用户想要能将自己的业务处理逻辑加到数据库的数据处理框架下。 有两个好处：  处理逻辑复用 计算靠近数据，降低网络资源消耗，提高处理效率  需求目前使用比较常见的有hive的自定义函数功能，其支持三种自定义函数：  UDF（User Defined Function）用户自定义函数，一进一出 UDAF（User De">
+<meta name="description" content="问题时序数据库可以应用于多种场景，例如交通、公共服务、金融、电力、新能源等，针对不同的业务场景，对数据的处理逻辑也会有不同的方式。而通用的时序数据库提供的内置函数一般具有业务通用性，对于具有业务特性的处理逻辑一般情况下都是在业务侧做，会有更多的资源开销。如果数据库能提供更灵活的处理框架能将处理逻辑下推，就可以获得更好的性能。 将用户自己的业务处理逻辑加到数据库的数据处理框架下，会带来两个好处：">
 <meta property="og:type" content="article">
 <meta property="og:title" content="时序数据库用户自定义函数简介">
 <meta property="og:url" content="http://example.com/2021/12/23/%E6%97%B6%E5%BA%8F%E6%95%B0%E6%8D%AE%E5%BA%93%E7%94%A8%E6%88%B7%E8%87%AA%E5%AE%9A%E4%B9%89%E5%87%BD%E6%95%B0%E7%AE%80%E4%BB%8B/index.html">
 <meta property="og:site_name" content="我住8楼">
-<meta property="og:description" content="问题数据库已经提供多种类型内建函数来满足常用业务需求，当内建函数无法支撑业务实现时，用户想要能将自己的业务处理逻辑加到数据库的数据处理框架下。 有两个好处：  处理逻辑复用 计算靠近数据，降低网络资源消耗，提高处理效率  需求目前使用比较常见的有hive的自定义函数功能，其支持三种自定义函数：  UDF（User Defined Function）用户自定义函数，一进一出 UDAF（User De">
+<meta property="og:description" content="问题时序数据库可以应用于多种场景，例如交通、公共服务、金融、电力、新能源等，针对不同的业务场景，对数据的处理逻辑也会有不同的方式。而通用的时序数据库提供的内置函数一般具有业务通用性，对于具有业务特性的处理逻辑一般情况下都是在业务侧做，会有更多的资源开销。如果数据库能提供更灵活的处理框架能将处理逻辑下推，就可以获得更好的性能。 将用户自己的业务处理逻辑加到数据库的数据处理框架下，会带来两个好处：">
 <meta property="og:locale" content="zh_CN">
 <meta property="article:published_time" content="2021-12-23T07:45:09.000Z">
-<meta property="article:modified_time" content="2021-12-23T08:58:32.602Z">
+<meta property="article:modified_time" content="2022-01-28T03:30:27.795Z">
 <meta property="article:author" content="Jason Chao">
 <meta property="article:tag" content="tsdb">
 <meta name="twitter:card" content="summary">
@@ -159,7 +159,7 @@
       <div class="sidebar-panel-container">
         <!--noindex-->
         <div class="post-toc-wrap sidebar-panel">
-            <div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#%E9%97%AE%E9%A2%98"><span class="nav-number">1.</span> <span class="nav-text">问题</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E9%9C%80%E6%B1%82"><span class="nav-number">2.</span> <span class="nav-text">需求</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E8%AE%BE%E8%AE%A1"><span class="nav-number">3.</span> <span class="nav-text">设计</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E4%BD%BF%E7%94%A8"><span class="nav-number">4.</span> <span class="nav-text">使用</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E5%8F%82%E8%80%83"><span class="nav-number">5.</span> <span class="nav-text">参考</span></a></li></ol></div>
+            <div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#%E9%97%AE%E9%A2%98"><span class="nav-number">1.</span> <span class="nav-text">问题</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E8%B0%83%E7%A0%94"><span class="nav-number">2.</span> <span class="nav-text">调研</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E8%AE%BE%E8%AE%A1"><span class="nav-number">3.</span> <span class="nav-text">设计</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E4%BD%BF%E7%94%A8"><span class="nav-number">4.</span> <span class="nav-text">使用</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E5%8F%82%E8%80%83"><span class="nav-number">5.</span> <span class="nav-text">参考</span></a></li></ol></div>
         </div>
         <!--/noindex-->
 
@@ -173,7 +173,7 @@
       <div class="site-state-item site-state-posts">
           <a href="/archives/">
         
-          <span class="site-state-item-count">22</span>
+          <span class="site-state-item-count">27</span>
           <span class="site-state-item-name">日志</span>
         </a>
       </div>
@@ -186,7 +186,7 @@
       <div class="site-state-item site-state-tags">
             <a href="/tags/">
           
-        <span class="site-state-item-count">22</span>
+        <span class="site-state-item-count">24</span>
         <span class="site-state-item-name">标签</span></a>
       </div>
   </nav>
@@ -248,10 +248,16 @@
         <i class="far fa-calendar"></i>
       </span>
       <span class="post-meta-item-text">发表于</span>
-      
 
-      <time title="创建时间：2021-12-23 15:45:09 / 修改时间：16:58:32" itemprop="dateCreated datePublished" datetime="2021-12-23T15:45:09+08:00">2021-12-23</time>
+      <time title="创建时间：2021-12-23 15:45:09" itemprop="dateCreated datePublished" datetime="2021-12-23T15:45:09+08:00">2021-12-23</time>
     </span>
+      <span class="post-meta-item">
+        <span class="post-meta-item-icon">
+          <i class="far fa-calendar-check"></i>
+        </span>
+        <span class="post-meta-item-text">更新于</span>
+        <time title="修改时间：2022-01-28 11:30:27" itemprop="dateModified" datetime="2022-01-28T11:30:27+08:00">2022-01-28</time>
+      </span>
 
   
 </div>
@@ -263,21 +269,87 @@
     
     
     <div class="post-body" itemprop="articleBody">
-        <h1 id="问题"><a href="#问题" class="headerlink" title="问题"></a>问题</h1><p>数据库已经提供多种类型内建函数来满足常用业务需求，当内建函数无法支撑业务实现时，用户想要能将自己的业务处理逻辑加到数据库的数据处理框架下。</p>
-<p>有两个好处：</p>
+        <h1 id="问题"><a href="#问题" class="headerlink" title="问题"></a>问题</h1><p>时序数据库可以应用于多种场景，例如交通、公共服务、金融、电力、新能源等，针对不同的业务场景，对数据的处理逻辑也会有不同的方式。而通用的时序数据库提供的内置函数一般具有业务通用性，对于具有业务特性的处理逻辑一般情况下都是在业务侧做，会有更多的资源开销。如果数据库能提供更灵活的处理框架能将处理逻辑下推，就可以获得更好的性能。</p>
+<p>将用户自己的业务处理逻辑加到数据库的数据处理框架下，会带来两个好处：</p>
 <ol>
 <li>处理逻辑复用</li>
 <li>计算靠近数据，降低网络资源消耗，提高处理效率</li>
 </ol>
-<h1 id="需求"><a href="#需求" class="headerlink" title="需求"></a>需求</h1><p>目前使用比较常见的有hive的自定义函数功能，其支持三种自定义函数：</p>
+<h1 id="调研"><a href="#调研" class="headerlink" title="调研"></a>调研</h1><p>大数据处理框架目前使用比较常见的有hive的自定义函数功能，其支持三种自定义函数：</p>
 <ol>
 <li>UDF（User Defined Function）用户自定义函数，一进一出</li>
 <li>UDAF（User Defined Aggregation Function）用户自定义聚集函数，多进一出；类似于：count/max/min/avg</li>
-<li>UDTF（（User Defined Table-Generating Functions）用户自定义表生成函\数，一进多出；类似于：explode</li>
+<li>UDTF（（User Defined Table-Generating Functions）用户自定义表生成函数，一进多出；类似于：explode</li>
 </ol>
-<p>和其他两种类型相比，表生成函数的知名度较低。</p>
-<p>时序</p>
-<h1 id="设计"><a href="#设计" class="headerlink" title="设计"></a>设计</h1><h1 id="使用"><a href="#使用" class="headerlink" title="使用"></a>使用</h1><h1 id="参考"><a href="#参考" class="headerlink" title="参考"></a>参考</h1><!-- flag of hidden posts -->
+<p>在时序数据场景中比较常见的需求是对原始数据进行一些变形、过滤或扩增，并控制数据最终的输出。</p>
+<p>本时序数据库当前支持两种用户自定义函数类型：</p>
+<ol>
+<li>UDTF（User Defined Timeseries Generating Function)，该类函数允许接收多条时间线，最终输出一条时间线，生成的时间线可以有任意多的数据点，本文主要也是介绍此类自定义函数。</li>
+<li>UDAF (User Defined Aggregation Function)，类似hive的UDAF，一般配合分组查询，暂未实现。</li>
+</ol>
+<h1 id="设计"><a href="#设计" class="headerlink" title="设计"></a>设计</h1><p>UDTF需要支持的能力：</p>
+<ol>
+<li><strong>可配置</strong>：可以获取用户指定的一些信息，例如指定采样频率等，获得对处理逻辑更多的控制，从而获得更大的灵活性</li>
+<li><strong>多输入</strong>：可以获取任意时间线的数据作为输入，也可以支持通配符*来代替所有时间线; 可以指定单行数据处理，也可以指定窗口内数据处理。</li>
+<li><strong>多输出</strong>：可以输出一行或者多行数据。</li>
+</ol>
+<p>为了支持上述三种能力，设计6种接口，如下表所示：</p>
+<table>
+<thead>
+<tr>
+<th align="left">接口定义</th>
+<th align="left">描述</th>
+<th>是否必须</th>
+</tr>
+</thead>
+<tbody><tr>
+<td align="left"><code>void validate(UDFParameterValidator validator) throws Exception</code></td>
+<td align="left">在初始化方法<code>beforeStart</code>调用前执行，用于检测<code>UDFParameters</code>中用户输入的参数是否合法。</td>
+<td>否</td>
+</tr>
+<tr>
+<td align="left"><code>void beforeStart(UDFParameters parameters, UDTFConfigurations configurations) throws Exception</code></td>
+<td align="left">初始化方法，在 UDTF 处理输入数据前，调用用户自定义的初始化行为。用户每执行一次 UDTF 查询，框架就会构造一个新的 UDF 类实例，该方法在每个 UDF 类实例被初始化时调用一次。在每一个 UDF 类实例的生命周期内，该方法只会被调用一次。</td>
+<td>是</td>
+</tr>
+<tr>
+<td align="left"><code>void transform(Row row, PointCollector collector) throws Exception</code></td>
+<td align="left">这个方法由框架调用。当您在<code>beforeStart</code>中选择以<code>RowByRowAccessStrategy</code>的策略消费原始数据时，这个数据处理方法就会被调用。输入参数以<code>Row</code>的形式传入，输出结果通过<code>PointCollector</code>输出。您需要在该方法内自行调用<code>collector</code>提供的数据收集方法，以决定最终的输出数据。</td>
+<td>与下面的方法二选一</td>
+</tr>
+<tr>
+<td align="left"><code>void transform(RowWindow rowWindow, PointCollector collector) throws Exception</code></td>
+<td align="left">这个方法由框架调用。当您在<code>beforeStart</code>中选择以<code>SlidingSizeWindowAccessStrategy</code>或者<code>SlidingTimeWindowAccessStrategy</code>的策略消费原始数据时，这个数据处理方法就会被调用。输入参数以<code>RowWindow</code>的形式传入，输出结果通过<code>PointCollector</code>输出。您需要在该方法内自行调用<code>collector</code>提供的数据收集方法，以决定最终的输出数据。</td>
+<td>与上面的方法二选一</td>
+</tr>
+<tr>
+<td align="left"><code>void terminate(PointCollector collector) throws Exception</code></td>
+<td align="left">这个方法由框架调用。该方法会在所有的<code>transform</code>调用执行完成后，在<code>beforeDestory</code>方法执行前被调用。在一个 UDF 查询过程中，该方法会且只会调用一次。您需要在该方法内自行调用<code>collector</code>提供的数据收集方法，以决定最终的输出数据。</td>
+<td>否</td>
+</tr>
+<tr>
+<td align="left"><code>void beforeDestroy()</code></td>
+<td align="left">UDTF 的结束方法。此方法由框架调用，并且只会被调用一次，即在处理完最后一条记录之后被调用。</td>
+<td>否</td>
+</tr>
+</tbody></table>
+<p>其中比较核心的就是beforeStart和transform两个方法。</p>
+<p>beforeStart的作用是：</p>
+<ol>
+<li>解析用户输入的参数</li>
+<li>确定用户原始数据访问策略，例如按行访问、滑动时间窗口访问、固定窗口访问</li>
+<li>为查询分配一些自定义的资源，例如打开文件、建立外部链接等</li>
+</ol>
+<p>transform的作用是：</p>
+<ol>
+<li>将原始数据按照预定逻辑处理成输出</li>
+</ol>
+<h1 id="使用"><a href="#使用" class="headerlink" title="使用"></a>使用</h1><h1 id="参考"><a href="#参考" class="headerlink" title="参考"></a>参考</h1><ol>
+<li><a target="_blank" rel="noopener" href="https://cwiki.apache.org/confluence/pages/viewpage.action?pageId=165221503">https://cwiki.apache.org/confluence/pages/viewpage.action?pageId=165221503</a></li>
+<li><a target="_blank" rel="noopener" href="https://cwiki.apache.org/confluence/pages/viewpage.action?pageId=165220355">https://cwiki.apache.org/confluence/pages/viewpage.action?pageId=165220355</a></li>
+<li><a target="_blank" rel="noopener" href="https://iotdb.apache.org/zh/UserGuide/Master/Process-Data/UDF-User-Defined-Function.html#udtf-user-defined-timeseries-generating-function">https://iotdb.apache.org/zh/UserGuide/Master/Process-Data/UDF-User-Defined-Function.html#udtf-user-defined-timeseries-generating-function</a></li>
+</ol>
+<!-- flag of hidden posts -->
     </div>
 
     

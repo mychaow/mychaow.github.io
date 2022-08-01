@@ -1,0 +1,453 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 5.3.0">
+
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+
+<link rel="stylesheet" href="//cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@5.15.1/css/all.min.css">
+  <link rel="stylesheet" href="//cdn.jsdelivr.net/npm/animate.css@3.1.1/animate.min.css">
+
+<script class="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"example.com","root":"/","images":"/images","scheme":"Gemini","version":"8.2.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12},"copycode":false,"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"fadeInDown","post_body":"fadeInDown","coll_header":"fadeInLeft","sidebar":"fadeInUp"}},"prism":false,"i18n":{"placeholder":"搜索...","empty":"没有找到任何搜索结果：${query}","hits_time":"找到 ${hits} 个搜索结果（用时 ${time} 毫秒）","hits":"找到 ${hits} 个搜索结果"}};
+  </script>
+<meta name="description" content="多缓存使用不同的算子实现有不同的缓冲区需求。 例如，选择运算符的流水线实现非常有效地使用单个缓冲区，并且不需要额外的缓冲区。 另一方面，排序运算符的物化实现一次合并多个运行，并且每个运行都需要一个缓冲区。 本章考虑了运算符实现可以使用附加缓冲区的各种方式，并为排序、乘积和连接运算符提供了有效的多缓冲区算法。 多缓存排序回想一下，mergesort 算法有两个阶段：第一个阶段将记录拆分为运行，第二个">
+<meta property="og:type" content="article">
+<meta property="og:title" content="simpleDB-高效缓存使用">
+<meta property="og:url" content="http://example.com/2022/01/24/simpleDB-%E9%AB%98%E6%95%88%E7%BC%93%E5%AD%98%E4%BD%BF%E7%94%A8/index.html">
+<meta property="og:site_name" content="我住8楼">
+<meta property="og:description" content="多缓存使用不同的算子实现有不同的缓冲区需求。 例如，选择运算符的流水线实现非常有效地使用单个缓冲区，并且不需要额外的缓冲区。 另一方面，排序运算符的物化实现一次合并多个运行，并且每个运行都需要一个缓冲区。 本章考虑了运算符实现可以使用附加缓冲区的各种方式，并为排序、乘积和连接运算符提供了有效的多缓冲区算法。 多缓存排序回想一下，mergesort 算法有两个阶段：第一个阶段将记录拆分为运行，第二个">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="http://example.com/2022/01/24/simpleDB-%E9%AB%98%E6%95%88%E7%BC%93%E5%AD%98%E4%BD%BF%E7%94%A8/%E4%BC%81%E4%B8%9A%E5%BE%AE%E4%BF%A1%E6%88%AA%E5%9B%BE_16430245428584.png">
+<meta property="og:image" content="http://example.com/2022/01/24/simpleDB-%E9%AB%98%E6%95%88%E7%BC%93%E5%AD%98%E4%BD%BF%E7%94%A8/%E4%BC%81%E4%B8%9A%E5%BE%AE%E4%BF%A1%E6%88%AA%E5%9B%BE_16430334213491.png">
+<meta property="article:published_time" content="2022-01-24T01:26:19.000Z">
+<meta property="article:modified_time" content="2022-01-24T14:53:47.852Z">
+<meta property="article:author" content="Jason Chao">
+<meta property="article:tag" content="database">
+<meta property="article:tag" content="simpleDB">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http://example.com/2022/01/24/simpleDB-%E9%AB%98%E6%95%88%E7%BC%93%E5%AD%98%E4%BD%BF%E7%94%A8/%E4%BC%81%E4%B8%9A%E5%BE%AE%E4%BF%A1%E6%88%AA%E5%9B%BE_16430245428584.png">
+
+
+<link rel="canonical" href="http://example.com/2022/01/24/simpleDB-%E9%AB%98%E6%95%88%E7%BC%93%E5%AD%98%E4%BD%BF%E7%94%A8/">
+
+
+<script class="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'zh-CN'
+  };
+</script>
+<title>simpleDB-高效缓存使用 | 我住8楼</title><meta name="robots" content="noindex">
+  
+
+
+
+
+  <noscript>
+  <style>
+  body { margin-top: 2rem; }
+
+  .use-motion .menu-item,
+  .use-motion .sidebar,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header {
+    visibility: visible;
+  }
+
+  .use-motion .header,
+  .use-motion .site-brand-container .toggle,
+  .use-motion .footer { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle,
+  .use-motion .custom-logo-image {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line {
+    transform: scaleX(1);
+  }
+
+  .search-pop-overlay, .sidebar-nav { display: none; }
+  .sidebar-panel { display: block; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" class="use-motion">
+  <div class="headband"></div>
+
+  <main class="main">
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏" role="button">
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <i class="logo-line"></i>
+      <h1 class="site-title">我住8楼</h1>
+      <i class="logo-line"></i>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+    </div>
+  </div>
+</div>
+
+
+
+<nav class="site-nav">
+  <ul class="main-menu menu">
+        <li class="menu-item menu-item-home"><a href="/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a></li>
+        <li class="menu-item menu-item-tags"><a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>标签</a></li>
+        <li class="menu-item menu-item-categories"><a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>分类</a></li>
+        <li class="menu-item menu-item-archives"><a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档</a></li>
+  </ul>
+</nav>
+
+
+
+
+</div>
+        
+  
+  <div class="toggle sidebar-toggle" role="button">
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+  </div>
+
+  <aside class="sidebar">
+
+    <div class="sidebar-inner sidebar-nav-active sidebar-toc-active">
+      <ul class="sidebar-nav">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <div class="sidebar-panel-container">
+        <!--noindex-->
+        <div class="post-toc-wrap sidebar-panel">
+            <div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#%E5%A4%9A%E7%BC%93%E5%AD%98%E4%BD%BF%E7%94%A8"><span class="nav-number">1.</span> <span class="nav-text">多缓存使用</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%A4%9A%E7%BC%93%E5%AD%98%E6%8E%92%E5%BA%8F"><span class="nav-number">1.1.</span> <span class="nav-text">多缓存排序</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%A4%9A%E7%BC%93%E5%AD%98%E4%B9%98%E7%A7%AF"><span class="nav-number">1.2.</span> <span class="nav-text">多缓存乘积</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E7%A1%AE%E5%AE%9A%E7%BC%93%E5%AD%98%E5%88%86%E9%85%8D"><span class="nav-number">1.3.</span> <span class="nav-text">确定缓存分配</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%A4%9A%E7%BC%93%E5%AD%98%E6%8E%92%E5%BA%8F%E5%AE%9E%E7%8E%B0"><span class="nav-number">1.4.</span> <span class="nav-text">多缓存排序实现</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%A4%9A%E7%BC%93%E5%AD%98%E4%B9%98%E7%A7%AF%E5%AE%9E%E7%8E%B0"><span class="nav-number">1.5.</span> <span class="nav-text">多缓存乘积实现</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#HashJoin%E7%AE%97%E6%B3%95"><span class="nav-number">1.6.</span> <span class="nav-text">HashJoin算法</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E4%BB%A3%E4%BB%B7%E5%88%86%E6%9E%90"><span class="nav-number">1.6.1.</span> <span class="nav-text">代价分析</span></a></li></ol></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E6%80%BB%E7%BB%93"><span class="nav-number">2.</span> <span class="nav-text">总结</span></a></li></ol></div>
+        </div>
+        <!--/noindex-->
+
+        <div class="site-overview-wrap sidebar-panel">
+          <div class="site-author site-overview-item animated" itemprop="author" itemscope itemtype="http://schema.org/Person">
+  <p class="site-author-name" itemprop="name">Jason Chao</p>
+  <div class="site-description" itemprop="description"></div>
+</div>
+<div class="site-state-wrap site-overview-item animated">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">27</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+          
+        <span class="site-state-item-count">2</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+          
+        <span class="site-state-item-count">24</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+
+
+
+        </div>
+      </div>
+    </div>
+  </aside>
+  <div class="sidebar-dimmer"></div>
+
+
+    </header>
+
+    
+  <div class="back-to-top" role="button">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+<noscript>
+  <div class="noscript-warning">Theme NexT works best with JavaScript enabled</div>
+</noscript>
+
+
+    <div class="main-inner post posts-expand">
+
+
+  
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="http://example.com/2022/01/24/simpleDB-%E9%AB%98%E6%95%88%E7%BC%93%E5%AD%98%E4%BD%BF%E7%94%A8/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="Jason Chao">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="我住8楼">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          simpleDB-高效缓存使用
+        </h1>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">发表于</span>
+      
+
+      <time title="创建时间：2022-01-24 09:26:19 / 修改时间：22:53:47" itemprop="dateCreated datePublished" datetime="2022-01-24T09:26:19+08:00">2022-01-24</time>
+    </span>
+
+  
+</div>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+        <h1 id="多缓存使用"><a href="#多缓存使用" class="headerlink" title="多缓存使用"></a>多缓存使用</h1><p>不同的算子实现有不同的缓冲区需求。 例如，选择运算符的流水线实现非常有效地使用单个缓冲区，并且不需要额外的缓冲区。 另一方面，排序运算符的物化实现一次合并多个运行，并且每个运行都需要一个缓冲区。</p>
+<p>本章考虑了运算符实现可以使用附加缓冲区的各种方式，并为排序、乘积和连接运算符提供了有效的多缓冲区算法。</p>
+<h2 id="多缓存排序"><a href="#多缓存排序" class="headerlink" title="多缓存排序"></a>多缓存排序</h2><p>回想一下，mergesort 算法有两个阶段：第一个阶段将记录拆分为运行，第二个阶段合并运行，直到表被排序。 第 13 章讨论了在合并阶段使用多个缓冲区的好处。 事实证明，拆分阶段还可以利用额外的缓冲区。</p>
+<p>假设有 k 个缓冲区可用。 拆分阶段可以一次将表的 k 个块读取到 k 个缓冲区中，使用内部排序算法将它们排序到单个 k-block run中，然后将这些块写入临时表。 也就是说，它不是将记录拆分成一个块长的run，而是将记录拆分成 k 个块长的run。 如果 k 足够大（特别是如果 k √B），那么拆分阶段将产生不超过 k 个初始run，这意味着预处理阶段不需要做任何事情。 多缓冲区归并排序算法融合了这些思想； 见图 14.1。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line">&#x2F;&#x2F; 拆分阶段，使用 k 个缓冲区</span><br><span class="line">1.重复直到没有更多的输入记录：</span><br><span class="line">    a. 固定 k 个缓冲区，并将 k 个输入记录块读入其中。</span><br><span class="line">    b. 使用内部排序算法对这些记录进行排序。</span><br><span class="line">    C. 将缓冲区的内容写入临时表。</span><br><span class="line">    d. 取消固定缓冲区。</span><br><span class="line">    e. 将临时表添加到run列表。</span><br><span class="line">    </span><br><span class="line">&#x2F;&#x2F; 合并阶段，使用 k+1 个缓冲区</span><br><span class="line">2. 重复直到run列表包含一个临时表：</span><br><span class="line">	&#x2F;&#x2F; 做一次迭代</span><br><span class="line">	a. 重复直到run列表为空：</span><br><span class="line">		i. 打开对 k 个临时表的扫描。</span><br><span class="line">		ii. 打开新临时表的扫描。</span><br><span class="line">		iii. 将 k 个扫描合并到新的扫描中。</span><br><span class="line">		iv. 将新的临时表添加到列表 L。</span><br><span class="line">	b. 将 L 的内容添加到run列表中。</span><br></pre></td></tr></table></figure>
+
+
+<p>该算法的第 1 步产生 B/k 初始运行。 使用 Sect.13.4.4 的成本分析，多缓冲区合并排序需要 logk(B/k) 次合并迭代。<br>这比基本合并排序（初始运行大小为 1）少一次合并迭代。 换句话说，多缓冲区归并排序在预处理阶段节省了 2B 块访问，这意味着使用 k 个缓冲区对 B 块表进行多缓冲区排序具有以下成本：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">预处理成本&#x3D; 2BlogkB - 3B + 其输入成本</span><br><span class="line">扫描成本 &#x3D;  B </span><br></pre></td></tr></table></figure>
+<p>如何选择k的最佳值？ k 的值决定了合并迭代的次数。 特别是，在预处理期间执行的迭代次数等于 logk(B)-2。 它遵循：</p>
+<img src="/2022/01/24/simpleDB-%E9%AB%98%E6%95%88%E7%BC%93%E5%AD%98%E4%BD%BF%E7%94%A8/%E4%BC%81%E4%B8%9A%E5%BE%AE%E4%BF%A1%E6%88%AA%E5%9B%BE_16430245428584.png" class="" title="img">
+
+<ul>
+<li>当 k=√B 时，将有 0 次迭代。</li>
+<li>当k=3√B 时将进行1 次迭代。</li>
+<li>当k=4√B 时将进行2 次迭代</li>
+</ul>
+<p>这个计算对你来说应该是直观的。 如果 k=√B，则分裂阶段将产生 k 个大小为 k 的运行。 这些运行可以在扫描阶段合并，这意味着在预处理期间不需要合并迭代。 如果 k=3√B，那么分裂阶段将产生 k^2 次运行，大小为 k。 一次合并迭代将产生 k 次运行（大小为 k^2），然后可以在扫描阶段合并。</p>
+<p>此示例还表明，对于给定的表大小 B，多缓冲区归并排序只能有效地使用特定数量的缓冲区，即 √B、3√B、4√B 等。 图 14.2 列出了 B = 1,000,000 的这些值。 其他缓冲区值呢？ 如果你有 500 个缓冲区可用，会发生什么？ 我们知道 100 个缓冲区会导致 1 次预处理合并迭代。 让我们看看这额外的 400 个缓冲区是否可以得到很好的利用。 使用 500 个缓冲区，拆分阶段将导致2000 个run，每个run 500 个块。 第一次合并迭代将一次合并 500 个run，产生 4 个run（每次 250,000 个块）。 然后可以在扫描阶段合并这些run。 所以实际上额外的 400 个缓冲区并没有帮助，因为您仍然需要与 100 个缓冲区相同的迭代次数。</p>
+<p>这种分析可以表述为如下规则：如果使用k个缓冲区对一个B块长的表进行排序，那么k应该是B的根。</p>
+<h2 id="多缓存乘积"><a href="#多缓存乘积" class="headerlink" title="多缓存乘积"></a>多缓存乘积</h2><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">product(T1, T2)</span><br></pre></td></tr></table></figure>
+<p>​    该实现将检查 T1 的每个记录对应的所有 T2记录，使用单个缓冲区保存来自 T2 的记录。 也就是说，在代码检查 T2 块的最后一条记录后，它会取消固定该块并固定 T2 的下一个块。 这种取消固定允许缓冲区管理器替换每个 T2 块，这意味着当检查 T1 的下一条记录时，它们可能都需要从磁盘重新读取。 在最坏的情况下，T2 的每个块将被读取与 T1 中的记录一样多的次数。 如果我们假设 T1 和 T2 都是 1000 块表，每个块包含 20 条记录，那么查询将需要 20,001,000 次块访问。</p>
+<p>​    相反，假设实现没有从 T2 取消固定任何块。 然后缓冲区管理器将被迫将 T2 的每个块放置在它自己的缓冲区中。因此，T2 的块将从磁盘读取一次，并在整个查询期间保留在内存中。 这种扫描会非常有效，因为它会读取 T1 的每个块一次，T2 的每个块读取一次。</p>
+<p>​    当然，这种策略只有在有足够的缓冲区来容纳所有 T2 时才有效。 T2过大怎么办？ 例如，假设 T2 有 1000 个块，但只有 500 个缓冲区可用。 最好的办法是分两阶段处理 T2 。 首先，将前 500 个块读入可用缓冲区并计算 T1 与这些块的乘积； 然后将剩余的 500 个 T2 块读入这些缓冲区并计算它们与 T1 的乘积。 </p>
+<p>​    这种策略非常有效。第一阶段需要读取 T1 一次和 T2 的前半部分，第二阶段需要再次读取 T1 和 T2 的后半部分。总共，T1 被读取两次，T2 被读取一次，总共只有 3000 次块访问。</p>
+<p>​    多缓冲乘积算法概括了这些思想；见图 14.3。在该算法中，每个块将读取一次 T1 的块。由于有 B2/k 块，乘积操作将需要 B2 + (B1* B2/k) 块访问。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">令 T1 和 T2 为两个输入表。 假设 T2 被存储（作为用户定义表或物化临时表）并包含 B2 块。</span><br><span class="line">1. 对于某个整数 i，让 k &#x3D; B2&#x2F;i。 也就是说，k是B2的因子。</span><br><span class="line">2. 将 T2 视为由 i 个chunk组成，每个chunk有 k 个块。 对于每个块 C：</span><br><span class="line">	a) 将 C 的所有块读入 k 个缓冲区。</span><br><span class="line">	b) 取 T1 和 C 的乘积。</span><br><span class="line">	c) 取消固定 C 的块。</span><br></pre></td></tr></table></figure>
+<p>​    注意多缓冲区产品实现如何处理 T1 和 T2 与第 8 章的基本乘积实现如何处理它们的方式相反。在那一章中，T2 被多次扫描，而在这里，T1 被多次扫描。</p>
+<p>​    再次假设 T1 和 T2 都是 1000 块表。图 14.4 列出了多缓冲区乘积算法对不同数量的缓冲区所需的块访问。如果有 1000 个缓冲区可用，那么 T2 可以在单个块中处理，导致只有 2000 个块访问。另一方面，如果有 250 个缓冲区可用，那么多缓冲区乘积算法将使用 4 个块，每个块 250 个块；因此表 T1 将被扫描 4 次，而 T2 将被扫描一次，总共 5000 块访问。如果只有 100 个缓冲区可用，那么该算法将使用 10 个块，因此总共有 11,000 个块访问。所有这些值都远低于基本产品实施所需的值。</p>
+<p>​    与排序一样，图 14.4 也证明了并非所有的 k 值都是有用的。在这个例子中，如果有 300 个缓冲区可用，那么多缓冲区乘积算法只能使用其中的 250 个。</p>
+<img src="/2022/01/24/simpleDB-%E9%AB%98%E6%95%88%E7%BC%93%E5%AD%98%E4%BD%BF%E7%94%A8/%E4%BC%81%E4%B8%9A%E5%BE%AE%E4%BF%A1%E6%88%AA%E5%9B%BE_16430334213491.png" class="" title="img">
+
+<h2 id="确定缓存分配"><a href="#确定缓存分配" class="headerlink" title="确定缓存分配"></a>确定缓存分配</h2><p>每个多缓冲区算法都选择 k 个缓冲区，但没有指定 k 的确切值。 k 的正确值取决于可用缓冲区的数量、输入表的大小和所涉及的运算符。 对于排序，k 是输入表大小的根； 对于乘积，k 是表大小的一个因子。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">BufferNeeds</span> </span>&#123;</span><br><span class="line">   <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">int</span> <span class="title">bestRoot</span><span class="params">(<span class="keyword">int</span> available, <span class="keyword">int</span> size)</span> </span>&#123;</span><br><span class="line">      <span class="keyword">int</span> avail = available - <span class="number">2</span>; <span class="comment">//reserve a couple</span></span><br><span class="line">      <span class="keyword">if</span> (avail &lt;= <span class="number">1</span>)</span><br><span class="line">         <span class="keyword">return</span> <span class="number">1</span>;</span><br><span class="line">      <span class="keyword">int</span> k = Integer.MAX_VALUE;</span><br><span class="line">      <span class="keyword">double</span> i = <span class="number">1.0</span>;</span><br><span class="line">      <span class="keyword">while</span> (k &gt; avail) &#123;</span><br><span class="line">         i++;</span><br><span class="line">         k = (<span class="keyword">int</span>)Math.ceil(Math.pow(size, <span class="number">1</span>/i));</span><br><span class="line">      &#125;</span><br><span class="line">      <span class="keyword">return</span> k;</span><br><span class="line">   &#125;</span><br><span class="line">   </span><br><span class="line">   <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">int</span> <span class="title">bestFactor</span><span class="params">(<span class="keyword">int</span> available, <span class="keyword">int</span> size)</span> </span>&#123;</span><br><span class="line">      <span class="keyword">int</span> avail = available - <span class="number">2</span>;  <span class="comment">//reserve a couple </span></span><br><span class="line">      <span class="keyword">if</span> (avail &lt;= <span class="number">1</span>)</span><br><span class="line">         <span class="keyword">return</span> <span class="number">1</span>;</span><br><span class="line">      <span class="keyword">int</span> k = size;</span><br><span class="line">      <span class="keyword">double</span> i = <span class="number">1.0</span>;</span><br><span class="line">      <span class="keyword">while</span> (k &gt; avail) &#123;</span><br><span class="line">         i++;</span><br><span class="line">         k = (<span class="keyword">int</span>)Math.ceil(size / i);</span><br><span class="line">      &#125;</span><br><span class="line">      <span class="keyword">return</span> k;</span><br><span class="line">   &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+<p>​    目标是选择 k 作为小于可用缓冲区数量的最大根（或因子）。 SimpleDB 类 BufferNeeds 包含计算这些值的方法； 其代码如图 14.5 所示。</p>
+<p>​    该类包含公共静态方法 bestRoot 和 bestFactor。 这两种方法几乎相同。 每个方法的输入是可用缓冲区的数量和表的大小。 这些方法计算缓冲区的最佳数量，或者作为最大根或小于avail 的最大因子。 bestRoot 方法将变量 k 初始化为 MAX_VALUE 以强制循环至少执行一次（因此 k 不能超过 √B）。</p>
+<p>​    请注意，BufferNeeds 中的方法实际上并不从缓冲区管理器中保留缓冲区。 相反，他们只是询问缓冲区管理器当前有多少缓冲区可用，然后为 k 选择一个小于该值的值。 当多缓冲区 算法试图固定那些 k 块，一些缓冲区可能不再可用。 在这种情况下，算法将等到缓冲区再次可用。 </p>
+<h2 id="多缓存排序实现"><a href="#多缓存排序实现" class="headerlink" title="多缓存排序实现"></a>多缓存排序实现</h2><p>在 SimpleDB 类 SortPlan 中，方法 splitIntoRuns 和 doAMergeIteration 确定要使用多少个缓冲区。目前，splitIntoRuns 使用附加到临时表的一个缓冲区增量创建其运行，而 doAMergeIteration 使用三个缓冲区（两个缓冲区用于输入运行和一个用于输出运行的缓冲区）。本节考虑如何更改这些方法以实现多缓冲区排序。<br>考虑 splitIntoRuns。这个方法实际上并不知道排序后的表会有多大，因为该表尚未创建。但是，该方法可以使用方法 blocksAccessed 进行此估计。特别是， splitIntoRuns 可以执行以下代码片段：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">int</span> size = blocksAccessed();</span><br><span class="line"><span class="keyword">int</span> available = tx.availableBuffs();</span><br><span class="line"><span class="keyword">int</span> numbuffs = BufferNeeds.bestRoot(available, size);</span><br></pre></td></tr></table></figure>
+<p>然后它可以固定 numbuffs 缓冲区，用输入记录填充它们，在内部对它们进行排序，并将它们写入临时表，如图 14.1 所示。现在考虑方法 doAMergeIteration。最好的策略是从run列表中删除 k 个临时表的方法，其中 k 是初始run个数的根：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">int</span> available = tx.availableBuffs();</span><br><span class="line"><span class="keyword">int</span> numbuffs = BufferNeeds.bestRoot(available, runs.size());</span><br><span class="line">List&lt;TempTable&gt; runsToMerge = <span class="keyword">new</span> ArrayList&lt;&gt;();</span><br><span class="line"><span class="keyword">for</span> (<span class="keyword">int</span> i=<span class="number">0</span>; i&lt;numbuffs; i++)</span><br><span class="line">runsToMerge.add(runs.remove(<span class="number">0</span>));</span><br></pre></td></tr></table></figure>
+<p>然后该方法可以将 runsToMerge 列表传递给该方法mergeTwoRuns（可以重命名为 mergeSeveralRuns）合并到一个run中。 SimpleDB 分发代码不包含执行多缓冲区排序的 SortPlan 版本。该任务留给练习 14.15-14.17。最后，请注意使用 SortPlan 的代码，例如 GroupByPlan 和 MergeJoinPlan，无法判断它使用的是常规排序算法还是多缓冲区算法。因此，这些类不需要更改。 （然而，有一些与 MergeJoinPlan 使用的缓冲区数量相关的小问题；参见练习 14.5。）</p>
+<h2 id="多缓存乘积实现"><a href="#多缓存乘积实现" class="headerlink" title="多缓存乘积实现"></a>多缓存乘积实现</h2><p>要实现多缓冲区乘积算法，您需要实现chunk的概念。回想一下，块是物化表的 k 块部分，具有块的所有块都适合可用缓冲区的属性。 ChunkScan 类将块实现为记录扫描；见图 14.6。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">ChunkScan</span> <span class="keyword">implements</span> <span class="title">Scan</span> </span>&#123;</span><br><span class="line">   <span class="keyword">private</span> List&lt;RecordPage&gt; buffs = <span class="keyword">new</span> ArrayList&lt;&gt;();</span><br><span class="line">   <span class="keyword">private</span> Transaction tx;</span><br><span class="line">   <span class="keyword">private</span> String filename;</span><br><span class="line">   <span class="keyword">private</span> Layout layout;</span><br><span class="line">   <span class="keyword">private</span> <span class="keyword">int</span> startbnum, endbnum, currentbnum;</span><br><span class="line">   <span class="keyword">private</span> RecordPage rp;</span><br><span class="line">   <span class="keyword">private</span> <span class="keyword">int</span> currentslot;</span><br><span class="line"></span><br><span class="line">   <span class="function"><span class="keyword">public</span> <span class="title">ChunkScan</span><span class="params">(Transaction tx, String filename, Layout layout, <span class="keyword">int</span> startbnum, <span class="keyword">int</span> endbnum)</span> </span>&#123;</span><br><span class="line">      <span class="keyword">this</span>.tx = tx;</span><br><span class="line">      <span class="keyword">this</span>.filename = filename;</span><br><span class="line">      <span class="keyword">this</span>.layout = layout;</span><br><span class="line">      <span class="keyword">this</span>.startbnum = startbnum;</span><br><span class="line">      <span class="keyword">this</span>.endbnum   = endbnum;</span><br><span class="line">      <span class="keyword">for</span> (<span class="keyword">int</span> i=startbnum; i&lt;=endbnum; i++) &#123;</span><br><span class="line">         BlockId blk = <span class="keyword">new</span> BlockId(filename, i);</span><br><span class="line">         buffs.add(<span class="keyword">new</span> RecordPage(tx, blk, layout));</span><br><span class="line">      &#125;</span><br><span class="line">      moveToBlock(startbnum);</span><br><span class="line">   &#125;</span><br><span class="line"></span><br><span class="line">   <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">close</span><span class="params">()</span> </span>&#123;</span><br><span class="line">      <span class="keyword">for</span> (<span class="keyword">int</span> i=<span class="number">0</span>; i&lt;buffs.size(); i++) &#123;</span><br><span class="line">         BlockId blk = <span class="keyword">new</span> BlockId(filename, startbnum+i);</span><br><span class="line">         tx.unpin(blk);</span><br><span class="line">      &#125;</span><br><span class="line">   &#125;</span><br><span class="line"></span><br><span class="line">   <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">beforeFirst</span><span class="params">()</span> </span>&#123;</span><br><span class="line">      moveToBlock(startbnum);</span><br><span class="line">   &#125;</span><br><span class="line"></span><br><span class="line">   <span class="function"><span class="keyword">public</span> <span class="keyword">boolean</span> <span class="title">next</span><span class="params">()</span> </span>&#123;</span><br><span class="line">      currentslot = rp.nextAfter(currentslot);</span><br><span class="line">      <span class="keyword">while</span> (currentslot &lt; <span class="number">0</span>) &#123;</span><br><span class="line">         <span class="keyword">if</span> (currentbnum == endbnum)</span><br><span class="line">            <span class="keyword">return</span> <span class="keyword">false</span>;</span><br><span class="line">         moveToBlock(rp.block().number()+<span class="number">1</span>);</span><br><span class="line">         currentslot = rp.nextAfter(currentslot);</span><br><span class="line">      &#125;</span><br><span class="line">      <span class="keyword">return</span> <span class="keyword">true</span>;</span><br><span class="line">   &#125;</span><br><span class="line"></span><br><span class="line">   <span class="function"><span class="keyword">public</span> <span class="keyword">int</span> <span class="title">getInt</span><span class="params">(String fldname)</span> </span>&#123;</span><br><span class="line">      <span class="keyword">return</span> rp.getInt(currentslot, fldname);</span><br><span class="line">   &#125;</span><br><span class="line"></span><br><span class="line">   <span class="function"><span class="keyword">public</span> String <span class="title">getString</span><span class="params">(String fldname)</span> </span>&#123;</span><br><span class="line">      <span class="keyword">return</span> rp.getString(currentslot, fldname);</span><br><span class="line">   &#125;</span><br><span class="line"></span><br><span class="line">   <span class="function"><span class="keyword">public</span> Constant <span class="title">getVal</span><span class="params">(String fldname)</span> </span>&#123;</span><br><span class="line">      <span class="keyword">if</span> (layout.schema().type(fldname) == INTEGER)</span><br><span class="line">         <span class="keyword">return</span> <span class="keyword">new</span> Constant(getInt(fldname));</span><br><span class="line">      <span class="keyword">else</span></span><br><span class="line">         <span class="keyword">return</span> <span class="keyword">new</span> Constant(getString(fldname));</span><br><span class="line">   &#125;</span><br><span class="line"></span><br><span class="line">   <span class="function"><span class="keyword">public</span> <span class="keyword">boolean</span> <span class="title">hasField</span><span class="params">(String fldname)</span> </span>&#123;</span><br><span class="line">      <span class="keyword">return</span> layout.schema().hasField(fldname);</span><br><span class="line">   &#125;</span><br><span class="line"></span><br><span class="line">   <span class="function"><span class="keyword">private</span> <span class="keyword">void</span> <span class="title">moveToBlock</span><span class="params">(<span class="keyword">int</span> blknum)</span> </span>&#123;</span><br><span class="line">      currentbnum = blknum;</span><br><span class="line">      rp = buffs.get(currentbnum - startbnum);</span><br><span class="line">      currentslot = -<span class="number">1</span>;</span><br><span class="line">   &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>​    ChunkScan 构造函数被赋予存储表的元数据以及chunk的第一个和最后一个块的块号。构造函数为chunk中的每个块打开记录页并将它们存储在列表中。扫描还跟踪当前记录页面；最初，当前页面是列表中的第一页。 next 方法移动到当前页面中的下一条记录。如果当前页面没有更多记录，则列表中的下一页变为当前页面。与表扫描不同，在chunk扫描中的块之间移动不会关闭前一个记录页面（这将取消其缓冲区的固定）。相反，只有在chunk本身关闭时才会取消固定块中的记录页面。</p>
+<p>​    MultibufferProductPlan 类实现了多缓冲区乘积算法；其代码如图 14.7 所示。方法 open 实现了左侧和右侧的记录——左侧作为 MaterializeScan，右侧作为临时表。方法blocksAccessed需要知道物化右表的大小，这样才能计算出chunk的数量。由于该表在计划打开之前不存在，因此该方法使用 MaterializePlan 提供的估计值来估计大小。方法 recordsOutput 和 distinctValues 的代码与 ProductPlan 中的代码相同，并且很简单。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">MultibufferProductPlan</span> <span class="keyword">implements</span> <span class="title">Plan</span> </span>&#123;</span><br><span class="line">   <span class="keyword">private</span> Transaction tx;</span><br><span class="line">   <span class="keyword">private</span> Plan lhs, rhs;</span><br><span class="line">   <span class="keyword">private</span> Schema schema = <span class="keyword">new</span> Schema();</span><br><span class="line"></span><br><span class="line">   <span class="function"><span class="keyword">public</span> <span class="title">MultibufferProductPlan</span><span class="params">(Transaction tx, Plan lhs, Plan rhs)</span> </span>&#123;</span><br><span class="line">      <span class="keyword">this</span>.tx = tx;</span><br><span class="line">      <span class="keyword">this</span>.lhs = <span class="keyword">new</span> MaterializePlan(tx, lhs);</span><br><span class="line">      <span class="keyword">this</span>.rhs = rhs;</span><br><span class="line">      schema.addAll(lhs.schema());</span><br><span class="line">      schema.addAll(rhs.schema());</span><br><span class="line">   &#125;</span><br><span class="line"></span><br><span class="line">   <span class="function"><span class="keyword">public</span> Scan <span class="title">open</span><span class="params">()</span> </span>&#123;</span><br><span class="line">      Scan leftscan = lhs.open();</span><br><span class="line">      TempTable tt = copyRecordsFrom(rhs);</span><br><span class="line">      <span class="keyword">return</span> <span class="keyword">new</span> MultibufferProductScan(tx, leftscan, tt.tableName(), tt.getLayout());</span><br><span class="line">   &#125;</span><br><span class="line"></span><br><span class="line">   <span class="function"><span class="keyword">public</span> <span class="keyword">int</span> <span class="title">blocksAccessed</span><span class="params">()</span> </span>&#123;</span><br><span class="line">      <span class="comment">// this guesses at the # of chunks</span></span><br><span class="line">      <span class="keyword">int</span> avail = tx.availableBuffs();</span><br><span class="line">      <span class="keyword">int</span> size = <span class="keyword">new</span> MaterializePlan(tx, rhs).blocksAccessed();</span><br><span class="line">      <span class="keyword">int</span> numchunks = size / avail;</span><br><span class="line">      <span class="keyword">return</span> rhs.blocksAccessed() +</span><br><span class="line">            (lhs.blocksAccessed() * numchunks);</span><br><span class="line">   &#125;</span><br><span class="line"></span><br><span class="line">   <span class="function"><span class="keyword">public</span> <span class="keyword">int</span> <span class="title">recordsOutput</span><span class="params">()</span> </span>&#123;</span><br><span class="line">      <span class="keyword">return</span> lhs.recordsOutput() * rhs.recordsOutput();</span><br><span class="line">   &#125;</span><br><span class="line"></span><br><span class="line">   <span class="function"><span class="keyword">public</span> <span class="keyword">int</span> <span class="title">distinctValues</span><span class="params">(String fldname)</span> </span>&#123;</span><br><span class="line">      <span class="keyword">if</span> (lhs.schema().hasField(fldname))</span><br><span class="line">         <span class="keyword">return</span> lhs.distinctValues(fldname);</span><br><span class="line">      <span class="keyword">else</span></span><br><span class="line">         <span class="keyword">return</span> rhs.distinctValues(fldname);</span><br><span class="line">   &#125;</span><br><span class="line"></span><br><span class="line">   <span class="function"><span class="keyword">public</span> Schema <span class="title">schema</span><span class="params">()</span> </span>&#123;</span><br><span class="line">      <span class="keyword">return</span> schema;</span><br><span class="line">   &#125;</span><br><span class="line"></span><br><span class="line">   <span class="function"><span class="keyword">private</span> TempTable <span class="title">copyRecordsFrom</span><span class="params">(Plan p)</span> </span>&#123;</span><br><span class="line">      Scan   src = p.open(); </span><br><span class="line">      Schema sch = p.schema();</span><br><span class="line">      TempTable t = <span class="keyword">new</span> TempTable(tx, sch);</span><br><span class="line">      UpdateScan dest = (UpdateScan) t.open();</span><br><span class="line">      <span class="keyword">while</span> (src.next()) &#123;</span><br><span class="line">         dest.insert();</span><br><span class="line">         <span class="keyword">for</span> (String fldname : sch.fields())</span><br><span class="line">            dest.setVal(fldname, src.getVal(fldname));</span><br><span class="line">      &#125;</span><br><span class="line">      src.close();</span><br><span class="line">      dest.close();</span><br><span class="line">      <span class="keyword">return</span> t;</span><br><span class="line">   &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+<p>​    MultibufferProductScan 的代码如图 14.8 所示。它的构造函数通过在右侧文件的大小上调用 BufferNeeds.bestFactor 来确定块大小。然后它将左侧扫描定位在第一条记录上，为右侧的第一块打开一个 ChunkScan，并从这两个扫描中创建一个 ProductScan。也就是说，变量 prodscan 包含左侧扫描和当前块之间的基本乘积扫描。大多数扫描方法都使用此乘积扫描。 next 方法是个例外。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br><span class="line">88</span><br><span class="line">89</span><br><span class="line">90</span><br><span class="line">91</span><br><span class="line">92</span><br><span class="line">93</span><br><span class="line">94</span><br><span class="line">95</span><br><span class="line">96</span><br><span class="line">97</span><br><span class="line">98</span><br><span class="line">99</span><br><span class="line">100</span><br><span class="line">101</span><br><span class="line">102</span><br><span class="line">103</span><br><span class="line">104</span><br><span class="line">105</span><br><span class="line">106</span><br><span class="line">107</span><br><span class="line">108</span><br><span class="line">109</span><br><span class="line">110</span><br><span class="line">111</span><br><span class="line">112</span><br><span class="line">113</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">MultibufferProductScan</span> <span class="keyword">implements</span> <span class="title">Scan</span> </span>&#123;</span><br><span class="line">   <span class="keyword">private</span> Transaction tx;</span><br><span class="line">   <span class="keyword">private</span> Scan lhsscan, rhsscan=<span class="keyword">null</span>, prodscan;</span><br><span class="line">   <span class="keyword">private</span> String filename;</span><br><span class="line">   <span class="keyword">private</span> Layout layout;</span><br><span class="line">   <span class="keyword">private</span> <span class="keyword">int</span> chunksize, nextblknum, filesize;</span><br><span class="line">   </span><br><span class="line">   </span><br><span class="line">   <span class="comment">/**</span></span><br><span class="line"><span class="comment">    * Creates the scan class for the product of the LHS scan and a table.</span></span><br><span class="line"><span class="comment">    * <span class="doctag">@param</span> lhsscan the LHS scan</span></span><br><span class="line"><span class="comment">    * <span class="doctag">@param</span> layout the metadata for the RHS table</span></span><br><span class="line"><span class="comment">    * <span class="doctag">@param</span> tx the current transaction</span></span><br><span class="line"><span class="comment">    */</span></span><br><span class="line">   <span class="function"><span class="keyword">public</span> <span class="title">MultibufferProductScan</span><span class="params">(Transaction tx, Scan lhsscan, String tblname, Layout layout)</span> </span>&#123;</span><br><span class="line">      <span class="keyword">this</span>.tx = tx;</span><br><span class="line">      <span class="keyword">this</span>.lhsscan = lhsscan;</span><br><span class="line">      <span class="keyword">this</span>.filename = tblname + <span class="string">&quot;.tbl&quot;</span>;</span><br><span class="line">      <span class="keyword">this</span>.layout = layout;</span><br><span class="line">      filesize = tx.size(filename);</span><br><span class="line">      <span class="keyword">int</span> available = tx.availableBuffs();</span><br><span class="line">      chunksize = BufferNeeds.bestFactor(available, filesize);</span><br><span class="line">      beforeFirst();</span><br><span class="line">   &#125;</span><br><span class="line">   </span><br><span class="line">   <span class="comment">/**</span></span><br><span class="line"><span class="comment">    * Positions the scan before the first record.</span></span><br><span class="line"><span class="comment">    * That is, the LHS scan is positioned at its first record,</span></span><br><span class="line"><span class="comment">    * and the RHS scan is positioned before the first record of the first chunk.</span></span><br><span class="line"><span class="comment">    * <span class="doctag">@see</span> simpledb.query.Scan#beforeFirst()</span></span><br><span class="line"><span class="comment">    */</span></span><br><span class="line">   <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">beforeFirst</span><span class="params">()</span> </span>&#123;</span><br><span class="line">      nextblknum = <span class="number">0</span>;</span><br><span class="line">      useNextChunk();</span><br><span class="line">   &#125;</span><br><span class="line">   </span><br><span class="line">   <span class="comment">/**</span></span><br><span class="line"><span class="comment">    * Moves to the next record in the current scan.</span></span><br><span class="line"><span class="comment">    * If there are no more records in the current chunk,</span></span><br><span class="line"><span class="comment">    * then move to the next LHS record and the beginning of that chunk.</span></span><br><span class="line"><span class="comment">    * If there are no more LHS records, then move to the next chunk</span></span><br><span class="line"><span class="comment">    * and begin again.</span></span><br><span class="line"><span class="comment">    * <span class="doctag">@see</span> simpledb.query.Scan#next()</span></span><br><span class="line"><span class="comment">    */</span></span><br><span class="line">   <span class="function"><span class="keyword">public</span> <span class="keyword">boolean</span> <span class="title">next</span><span class="params">()</span> </span>&#123;</span><br><span class="line">      <span class="keyword">while</span> (!prodscan.next()) </span><br><span class="line">         <span class="keyword">if</span> (!useNextChunk())</span><br><span class="line">         <span class="keyword">return</span> <span class="keyword">false</span>;</span><br><span class="line">      <span class="keyword">return</span> <span class="keyword">true</span>;</span><br><span class="line">   &#125;</span><br><span class="line">   </span><br><span class="line">   <span class="comment">/**</span></span><br><span class="line"><span class="comment">    * Closes the current scans.</span></span><br><span class="line"><span class="comment">    * <span class="doctag">@see</span> simpledb.query.Scan#close()</span></span><br><span class="line"><span class="comment">    */</span></span><br><span class="line">   <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">close</span><span class="params">()</span> </span>&#123;</span><br><span class="line">      prodscan.close();</span><br><span class="line">   &#125;</span><br><span class="line">   </span><br><span class="line">   <span class="comment">/** </span></span><br><span class="line"><span class="comment">    * Returns the value of the specified field.</span></span><br><span class="line"><span class="comment">    * The value is obtained from whichever scan</span></span><br><span class="line"><span class="comment">    * contains the field.</span></span><br><span class="line"><span class="comment">    * <span class="doctag">@see</span> simpledb.query.Scan#getVal(java.lang.String)</span></span><br><span class="line"><span class="comment">    */</span></span><br><span class="line">   <span class="function"><span class="keyword">public</span> Constant <span class="title">getVal</span><span class="params">(String fldname)</span> </span>&#123;</span><br><span class="line">      <span class="keyword">return</span> prodscan.getVal(fldname);</span><br><span class="line">   &#125;</span><br><span class="line">   </span><br><span class="line">   <span class="comment">/** </span></span><br><span class="line"><span class="comment">    * Returns the integer value of the specified field.</span></span><br><span class="line"><span class="comment">    * The value is obtained from whichever scan</span></span><br><span class="line"><span class="comment">    * contains the field.</span></span><br><span class="line"><span class="comment">    * <span class="doctag">@see</span> simpledb.query.Scan#getInt(java.lang.String)</span></span><br><span class="line"><span class="comment">    */</span></span><br><span class="line">   <span class="function"><span class="keyword">public</span> <span class="keyword">int</span> <span class="title">getInt</span><span class="params">(String fldname)</span> </span>&#123;</span><br><span class="line">      <span class="keyword">return</span> prodscan.getInt(fldname);</span><br><span class="line">   &#125;</span><br><span class="line">   </span><br><span class="line">   <span class="comment">/** </span></span><br><span class="line"><span class="comment">    * Returns the string value of the specified field.</span></span><br><span class="line"><span class="comment">    * The value is obtained from whichever scan</span></span><br><span class="line"><span class="comment">    * contains the field.</span></span><br><span class="line"><span class="comment">    * <span class="doctag">@see</span> simpledb.query.Scan#getString(java.lang.String)</span></span><br><span class="line"><span class="comment">    */</span></span><br><span class="line">   <span class="function"><span class="keyword">public</span> String <span class="title">getString</span><span class="params">(String fldname)</span> </span>&#123;</span><br><span class="line">      <span class="keyword">return</span> prodscan.getString(fldname);</span><br><span class="line">   &#125;</span><br><span class="line">   </span><br><span class="line">   <span class="comment">/**</span></span><br><span class="line"><span class="comment">    * Returns true if the specified field is in</span></span><br><span class="line"><span class="comment">    * either of the underlying scans.</span></span><br><span class="line"><span class="comment">    * <span class="doctag">@see</span> simpledb.query.Scan#hasField(java.lang.String)</span></span><br><span class="line"><span class="comment">    */</span></span><br><span class="line">   <span class="function"><span class="keyword">public</span> <span class="keyword">boolean</span> <span class="title">hasField</span><span class="params">(String fldname)</span> </span>&#123;</span><br><span class="line">      <span class="keyword">return</span> prodscan.hasField(fldname);</span><br><span class="line">   &#125;</span><br><span class="line">   </span><br><span class="line">   <span class="function"><span class="keyword">private</span> <span class="keyword">boolean</span> <span class="title">useNextChunk</span><span class="params">()</span> </span>&#123;</span><br><span class="line">      <span class="keyword">if</span> (nextblknum &gt;= filesize)</span><br><span class="line">         <span class="keyword">return</span> <span class="keyword">false</span>;</span><br><span class="line">      <span class="keyword">if</span> (rhsscan != <span class="keyword">null</span>)</span><br><span class="line">         rhsscan.close();</span><br><span class="line">      <span class="keyword">int</span> end = nextblknum + chunksize - <span class="number">1</span>;</span><br><span class="line">      <span class="keyword">if</span> (end &gt;= filesize)</span><br><span class="line">         end = filesize - <span class="number">1</span>;</span><br><span class="line">      rhsscan = <span class="keyword">new</span> ChunkScan(tx, filename, layout, nextblknum, end);</span><br><span class="line">      lhsscan.beforeFirst();</span><br><span class="line">      prodscan = <span class="keyword">new</span> ProductScan(lhsscan, rhsscan);</span><br><span class="line">      nextblknum = end + <span class="number">1</span>;</span><br><span class="line">      <span class="keyword">return</span> <span class="keyword">true</span>;</span><br><span class="line">   &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>​    next方法移动到当前乘积扫描中的下一条记录。如果该扫描没有更多记录，则该方法关闭该扫描，为下一个块创建新的乘积扫描，并移至其第一条记录。当没有更多块要处理时，该方法返回 false。</p>
+<h2 id="HashJoin算法"><a href="#HashJoin算法" class="headerlink" title="HashJoin算法"></a>HashJoin算法</h2><p>​    hashjoin 算法是递归的，基于 T2 的大小。 如果 T2 足够小以适合可用缓冲区，则该算法使用多缓冲区乘积连接 T1 和 T2。 如果 T2 太大而无法放入内存，则算法使用散列来减小 T2 的大小。 它创建两组临时表：一组 {V0,…,Vk-1} 用于 T1，一组 {W0,…,Wk-1} 用于 T2。 这些临时表充当散列函数的存储桶。 每个 T1 记录在其连接字段上进行哈希处理，并放置在与哈希值关联的存储桶中。 每个 T2 记录都经过类似的哈希处理。 然后递归地连接相应的表（Vi，Wi）。</p>
+<p>​    请注意，对 hashjoin 算法的每个递归调用都必须使用不同的散列函数。 原因是临时表中的所有记录都在那里，因为它们都散列到相同的值。 不同的散列函数确保这些记录将均匀分布在新的临时表中。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><span class="line">Let T1 and T2 be the tables to be joined. </span><br><span class="line">1. Choose a value k that is less than the number of available buffers.</span><br><span class="line">2. If the size of T2 is no more than k blocks, then:</span><br><span class="line">	a) Join T1 and T2, using a multibuffer product followed by a selection </span><br><span class="line">	on the join predicate.</span><br><span class="line">	b) Return.</span><br><span class="line">&#x2F;&#x2F; Otherwise:</span><br><span class="line">3. Choose a hash function that returns a value between 0 and k-1.</span><br><span class="line">4. For the table T1: </span><br><span class="line">	a) Open a scan for k temporary tables.</span><br><span class="line">	b) For each record of T1:</span><br><span class="line">		i. Hash the record’s join field, to get the hash value h.</span><br><span class="line">		ii. Copy the record to the hth temporary table.</span><br><span class="line">	c) Close the temporary table scans.</span><br><span class="line">5. Repeat Step 4 for the table T2.</span><br><span class="line">6. For each i between 0 and k-1:</span><br><span class="line">	a) Let Vi be the ith temporary table of T1.</span><br><span class="line">	b) Let Wi be the ith temporary table of T2.</span><br><span class="line">	c) Recursively perform the hashjoin of Vi and Wi.</span><br></pre></td></tr></table></figure>
+<h3 id="代价分析"><a href="#代价分析" class="headerlink" title="代价分析"></a>代价分析</h3><p>​    为了分析使用 hashjoin 连接 T1 和 T2 的成本，假设 T1 中的物化记录需要 B1 块，而 T2 中的记录需要 B2 块。选择k作为B2的第n个根；也就是说，B2 = k^n。然后假设记录均匀地散列，您可以计算成本如下：</p>
+<p>​    第一轮哈希会产生k个临时表； T2 的每个表都有 k^(n-1) 个块。当您递归地散列这些临时表时，您将留下 k^2 个临时表，每个临时表都有 k^(n-2) 个块。继续，T2 最终会以 k^(n-1) 个临时表结束，每个临时表有 k 个块。然后可以使用多缓冲区产品连接这些表（连同它们来自 T1 的相应表）。</p>
+<p>​    因此，将有 n-1 轮散列。第一轮的成本为 B1 + B2，加上读取输入的成本。在随后的轮次中，每个临时表的每个块将被读取一次并写入一次；因此那些成本轮数为 2(B1 + B2)。多缓冲区产品出现在扫描阶段。每个临时表块将被读取一次，成本为 B1 + B2。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">Preprocessing cost &#x3D; (2B1logkB2 - 3B1) + (2B2logkB2 - 3B2) + the cost of the input</span><br><span class="line">Scanning cost &#x3D; B1 + B2</span><br></pre></td></tr></table></figure>
+<p>​    令人惊讶的是，这个成本几乎与多缓冲区合并的成本相同！ 有一个区别：在这个公式中，两个对数的自变量都是 B2； 而在mergejoin的公式中，第一个对数的参数将是 B1。 造成这种差异的原因是，在 hashjoin 中，哈希的轮数仅由 T2 决定，而在 mergejoin 中，排序阶段的合并迭代次数由 T1 和 T2 共同决定</p>
+<h1 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h1><ul>
+<li><p>在缓冲区使用方面，非物化扫描非常节省。 特别是：</p>
+<ul>
+<li>表扫描只使用一个缓冲区。</li>
+<li>扫描选择、项目和产品不使用额外的缓冲区。</li>
+<li>静态哈希或 B 树索引需要一个额外的缓冲区（用于查询）</li>
+</ul>
+</li>
+<li><p>合并排序算法在创建初始运行和合并它们时可以利用多个缓冲区。 它选择 k =n√B，其中 B 是输入表的大小，n 是最小整数，使得 k 小于可用缓冲区的数量。 生成的算法称为多缓冲区合并排序，如下所示：</p>
+<ul>
+<li>从缓冲区管理器分配 k 个缓冲区。</li>
+<li>一次将表的 k 个块读取到 k 个缓冲区中，并使用内部排序算法将它们排序到 k 块run中。</li>
+<li> 使用 k 个临时表对结果run执行合并迭代，直到剩余的运行不超过 k 个。 由于拆分阶段会导致 B/k 次运行，因此将有 n-2 次合并迭代。</li>
+<li>在扫描阶段合并最后的 k 个run。</li>
+</ul>
+</li>
+<li><p>多缓冲区乘积算法是乘积算子的一种有效实现，其工作原理如下：</p>
+</li>
+</ul>
+<ol>
+<li><p>将 RHS 表具体化为临时表 T2。 令 B2 为 T2 中的块数。</p>
+</li>
+<li><p>设 i 是最小的数，使得 B2/i 小于可用缓冲区的数量。</p>
+</li>
+<li><p>将 T2 视为 i个 chunk，每个chunk有 k 个块。 对于每个chunk  C：<br>(a) 将 C 的所有块读入 k 个缓冲区。<br>(b) 取 T1 和 C 的乘积。<br>(c) 取消固定 C 的块。</p>
+<p>也就是说，T1 的块将为每个块读取一次。 因此，在乘积中的块数是B2 + B1* B2/k</p>
+</li>
+</ol>
+<ul>
+<li><p>并非所有的缓冲区分配都是有用的。 多缓冲区归并排序只能使用作为其表大小的根的缓冲区分配。 多缓冲区产品只能使用与其右侧表大小有关的分配。</p>
+</li>
+<li><p>hashjoin 算法是 multibuffer 产品的扩展，其工作原理如下：</p>
+</li>
+</ul>
+<ol>
+<li>选择一个小于可用缓冲区数量的值 k。</li>
+<li>如果 T2 适合 k 个缓冲区，则使用多缓冲区积来连接 T1 和 T2。</li>
+<li>否则，散列 T1 和 T2，每个使用 k 个临时表。</li>
+<li>对对应的散列桶递归执行hashjoin。</li>
+</ol>
+<!-- flag of hidden posts -->
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/database/" rel="tag"># database</a>
+              <a href="/tags/simpleDB/" rel="tag"># simpleDB</a>
+          </div>
+
+        
+
+    </footer>
+  </article>
+</div>
+
+
+
+
+
+
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      const activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      const commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+</div>
+  </main>
+
+  <footer class="footer">
+    <div class="footer-inner">
+
+
+<div class="copyright">
+  &copy; 2021 – 
+  <span itemprop="copyrightYear">2022</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Jason Chao</span>
+</div>
+  <div class="powered-by">由 <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://theme-next.js.org/" class="theme-link" rel="noopener" target="_blank">NexT.Gemini</a> 强力驱动
+  </div>
+
+    </div>
+  </footer>
+
+  
+  <script src="//cdn.jsdelivr.net/npm/animejs@3.2.1/lib/anime.min.js"></script>
+<script src="/js/utils.js"></script><script src="/js/motion.js"></script><script src="/js/next-boot.js"></script>
+
+  
+
+
+
+
+
+
+  
+
+
+
+
+
+</body>
+</html>

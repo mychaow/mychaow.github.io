@@ -1,0 +1,513 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 5.3.0">
+
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+
+<link rel="stylesheet" href="//cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@5.15.1/css/all.min.css">
+  <link rel="stylesheet" href="//cdn.jsdelivr.net/npm/animate.css@3.1.1/animate.min.css">
+
+<script class="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"example.com","root":"/","images":"/images","scheme":"Gemini","version":"8.2.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12},"copycode":false,"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"fadeInDown","post_body":"fadeInDown","coll_header":"fadeInLeft","sidebar":"fadeInUp"}},"prism":false,"i18n":{"placeholder":"搜索...","empty":"没有找到任何搜索结果：${query}","hits_time":"找到 ${hits} 个搜索结果（用时 ${time} 毫秒）","hits":"找到 ${hits} 个搜索结果"}};
+  </script>
+<meta name="description" content="物化和排序本章讨论关系代数运算符materialize、sort、groupby和mergejoin。这些操作符通过将输入记录保存在临时表。这种物化允许操作算子访问其记录多次而不重新计算，这可以获得比仅使用流水线操作算子要高效得多的查询性能。 物化的价值到目前为止，我们看到的每个操作符都有一个流水线实现。这样的实现具有以下特征：  根据需要一次计算一个记录，不保存。  访问以前看到的记录的唯一方法">
+<meta property="og:type" content="article">
+<meta property="og:title" content="simpleDB-物化和排序">
+<meta property="og:url" content="http://example.com/2022/01/22/simpleDB-%E7%89%A9%E5%8C%96%E5%92%8C%E6%8E%92%E5%BA%8F/index.html">
+<meta property="og:site_name" content="我住8楼">
+<meta property="og:description" content="物化和排序本章讨论关系代数运算符materialize、sort、groupby和mergejoin。这些操作符通过将输入记录保存在临时表。这种物化允许操作算子访问其记录多次而不重新计算，这可以获得比仅使用流水线操作算子要高效得多的查询性能。 物化的价值到目前为止，我们看到的每个操作符都有一个流水线实现。这样的实现具有以下特征：  根据需要一次计算一个记录，不保存。  访问以前看到的记录的唯一方法">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="http://example.com/2022/01/22/simpleDB-%E7%89%A9%E5%8C%96%E5%92%8C%E6%8E%92%E5%BA%8F/%E4%BC%81%E4%B8%9A%E5%BE%AE%E4%BF%A1%E6%88%AA%E5%9B%BE_16428630669493.png">
+<meta property="og:image" content="http://example.com/2022/01/22/simpleDB-%E7%89%A9%E5%8C%96%E5%92%8C%E6%8E%92%E5%BA%8F/%E4%BC%81%E4%B8%9A%E5%BE%AE%E4%BF%A1%E6%88%AA%E5%9B%BE_16428630956641.png">
+<meta property="og:image" content="http://example.com/2022/01/22/simpleDB-%E7%89%A9%E5%8C%96%E5%92%8C%E6%8E%92%E5%BA%8F/%E4%BC%81%E4%B8%9A%E5%BE%AE%E4%BF%A1%E6%88%AA%E5%9B%BE_16429362834749.png">
+<meta property="article:published_time" content="2022-01-22T13:38:45.000Z">
+<meta property="article:modified_time" content="2022-01-24T13:51:07.286Z">
+<meta property="article:author" content="Jason Chao">
+<meta property="article:tag" content="database">
+<meta property="article:tag" content="simpleDB">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http://example.com/2022/01/22/simpleDB-%E7%89%A9%E5%8C%96%E5%92%8C%E6%8E%92%E5%BA%8F/%E4%BC%81%E4%B8%9A%E5%BE%AE%E4%BF%A1%E6%88%AA%E5%9B%BE_16428630669493.png">
+
+
+<link rel="canonical" href="http://example.com/2022/01/22/simpleDB-%E7%89%A9%E5%8C%96%E5%92%8C%E6%8E%92%E5%BA%8F/">
+
+
+<script class="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'zh-CN'
+  };
+</script>
+<title>simpleDB-物化和排序 | 我住8楼</title><meta name="robots" content="noindex">
+  
+
+
+
+
+  <noscript>
+  <style>
+  body { margin-top: 2rem; }
+
+  .use-motion .menu-item,
+  .use-motion .sidebar,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header {
+    visibility: visible;
+  }
+
+  .use-motion .header,
+  .use-motion .site-brand-container .toggle,
+  .use-motion .footer { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle,
+  .use-motion .custom-logo-image {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line {
+    transform: scaleX(1);
+  }
+
+  .search-pop-overlay, .sidebar-nav { display: none; }
+  .sidebar-panel { display: block; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" class="use-motion">
+  <div class="headband"></div>
+
+  <main class="main">
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏" role="button">
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <i class="logo-line"></i>
+      <h1 class="site-title">我住8楼</h1>
+      <i class="logo-line"></i>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+    </div>
+  </div>
+</div>
+
+
+
+<nav class="site-nav">
+  <ul class="main-menu menu">
+        <li class="menu-item menu-item-home"><a href="/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a></li>
+        <li class="menu-item menu-item-tags"><a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>标签</a></li>
+        <li class="menu-item menu-item-categories"><a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>分类</a></li>
+        <li class="menu-item menu-item-archives"><a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档</a></li>
+  </ul>
+</nav>
+
+
+
+
+</div>
+        
+  
+  <div class="toggle sidebar-toggle" role="button">
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+  </div>
+
+  <aside class="sidebar">
+
+    <div class="sidebar-inner sidebar-nav-active sidebar-toc-active">
+      <ul class="sidebar-nav">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <div class="sidebar-panel-container">
+        <!--noindex-->
+        <div class="post-toc-wrap sidebar-panel">
+            <div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#%E7%89%A9%E5%8C%96%E5%92%8C%E6%8E%92%E5%BA%8F"><span class="nav-number">1.</span> <span class="nav-text">物化和排序</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E7%89%A9%E5%8C%96%E7%9A%84%E4%BB%B7%E5%80%BC"><span class="nav-number">1.1.</span> <span class="nav-text">物化的价值</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E4%B8%B4%E6%97%B6%E8%A1%A8"><span class="nav-number">1.2.</span> <span class="nav-text">临时表</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E7%89%A9%E5%8C%96"><span class="nav-number">1.3.</span> <span class="nav-text">物化</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E7%89%A9%E5%8C%96%E7%9A%84%E7%A4%BA%E4%BE%8B"><span class="nav-number">1.3.1.</span> <span class="nav-text">物化的示例</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E7%89%A9%E5%8C%96%E7%9A%84%E4%BB%A3%E4%BB%B7"><span class="nav-number">1.3.2.</span> <span class="nav-text">物化的代价</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E7%89%A9%E5%8C%96%E7%AE%97%E5%AD%90%E5%AE%9E%E7%8E%B0"><span class="nav-number">1.3.3.</span> <span class="nav-text">物化算子实现</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%8E%92%E5%BA%8F"><span class="nav-number">1.4.</span> <span class="nav-text">排序</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%90%88%E5%B9%B6%E6%8E%92%E5%BA%8F"><span class="nav-number">1.4.1.</span> <span class="nav-text">合并排序</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#%E5%90%88%E5%B9%B6%E6%8E%92%E5%BA%8F%E6%95%88%E7%8E%87%E4%BC%98%E5%8C%96"><span class="nav-number">1.4.1.1.</span> <span class="nav-text">合并排序效率优化</span></a><ol class="nav-child"><li class="nav-item nav-level-5"><a class="nav-link" href="#%E5%A2%9E%E5%8A%A0%E6%AF%8F%E6%AC%A1%E5%90%88%E5%B9%B6%E7%9A%84run%E4%B8%AA%E6%95%B0"><span class="nav-number">1.4.1.1.1.</span> <span class="nav-text">增加每次合并的run个数</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#%E5%87%8F%E5%B0%91%E5%88%9D%E5%A7%8Brun%E7%9A%84%E4%B8%AA%E6%95%B0"><span class="nav-number">1.4.1.1.2.</span> <span class="nav-text">减少初始run的个数</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#%E9%81%BF%E5%85%8D%E5%86%99%E6%9C%80%E7%BB%88%E7%9A%84%E6%8E%92%E5%BA%8F%E8%A1%A8"><span class="nav-number">1.4.1.1.3.</span> <span class="nav-text">避免写最终的排序表</span></a></li></ol></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E5%90%88%E5%B9%B6%E6%8E%92%E5%BA%8F%E7%9A%84%E4%BB%A3%E4%BB%B7"><span class="nav-number">1.4.1.2.</span> <span class="nav-text">合并排序的代价</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E5%90%88%E5%B9%B6%E6%8E%92%E5%BA%8F%E5%AE%9E%E7%8E%B0"><span class="nav-number">1.4.1.3.</span> <span class="nav-text">合并排序实现</span></a></li></ol></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%88%86%E7%BB%84%E5%92%8C%E8%81%9A%E5%90%88"><span class="nav-number">1.5.</span> <span class="nav-text">分组和聚合</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#mergeJoin"><span class="nav-number">1.6.</span> <span class="nav-text">mergeJoin</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#simpleDB%E7%9A%84merge-join%E5%AE%9E%E7%8E%B0"><span class="nav-number">1.6.1.</span> <span class="nav-text">simpleDB的merge join实现</span></a></li></ol></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E6%80%BB%E7%BB%93"><span class="nav-number">2.</span> <span class="nav-text">总结</span></a></li></ol></div>
+        </div>
+        <!--/noindex-->
+
+        <div class="site-overview-wrap sidebar-panel">
+          <div class="site-author site-overview-item animated" itemprop="author" itemscope itemtype="http://schema.org/Person">
+  <p class="site-author-name" itemprop="name">Jason Chao</p>
+  <div class="site-description" itemprop="description"></div>
+</div>
+<div class="site-state-wrap site-overview-item animated">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">27</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+          
+        <span class="site-state-item-count">2</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+          
+        <span class="site-state-item-count">24</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+
+
+
+        </div>
+      </div>
+    </div>
+  </aside>
+  <div class="sidebar-dimmer"></div>
+
+
+    </header>
+
+    
+  <div class="back-to-top" role="button">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+<noscript>
+  <div class="noscript-warning">Theme NexT works best with JavaScript enabled</div>
+</noscript>
+
+
+    <div class="main-inner post posts-expand">
+
+
+  
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="http://example.com/2022/01/22/simpleDB-%E7%89%A9%E5%8C%96%E5%92%8C%E6%8E%92%E5%BA%8F/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="Jason Chao">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="我住8楼">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          simpleDB-物化和排序
+        </h1>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">发表于</span>
+
+      <time title="创建时间：2022-01-22 21:38:45" itemprop="dateCreated datePublished" datetime="2022-01-22T21:38:45+08:00">2022-01-22</time>
+    </span>
+      <span class="post-meta-item">
+        <span class="post-meta-item-icon">
+          <i class="far fa-calendar-check"></i>
+        </span>
+        <span class="post-meta-item-text">更新于</span>
+        <time title="修改时间：2022-01-24 21:51:07" itemprop="dateModified" datetime="2022-01-24T21:51:07+08:00">2022-01-24</time>
+      </span>
+
+  
+</div>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+        <h1 id="物化和排序"><a href="#物化和排序" class="headerlink" title="物化和排序"></a>物化和排序</h1><p>本章讨论关系代数运算符materialize、sort、groupby和mergejoin。这些操作符通过将输入记录保存在临时表。这种物化允许操作算子访问其记录多次而不重新计算，这可以获得比仅使用流水线操作算子要高效得多的查询性能。</p>
+<h2 id="物化的价值"><a href="#物化的价值" class="headerlink" title="物化的价值"></a>物化的价值</h2><p>到目前为止，我们看到的每个操作符都有一个流水线实现。这样的实现具有以下特征：</p>
+<ul>
+<li><p>根据需要一次计算一个记录，不保存。</p>
+</li>
+<li><p>访问以前看到的记录的唯一方法是重新计算</p>
+</li>
+</ul>
+<p>本章考虑会物化其输入的运算符。这些操作算子在打开输入记录进行扫描，然后保存输出记录在一个或多个临时表中。这些实现据说是预处理它们的输入，因为它们在生成任何输出记录之前执行所有计算请求。这种物化的目的是提高随后的扫描的效率。例如，考虑GroupBy运算符， 这操作算子根据指定的分组字段对其输入记录进行分组，计算每个组的聚合函数。确定组的最简单方法是对分组字段上的输入记录进行排序，这将导致每个组中的记录彼此相邻。因此，一个好的实施策略是首先物化输入，将记录保存在按分组排序的临时表中领域。然后，可以通过一次通过临时表来实现聚合计算。</p>
+<p>物化是一把双刃剑。一方面，使用临时表可以显著提高扫描效率。另一方面，创临时表在写入和读取数据时会产生大量开销临时表。此外，创建临时表意味着预处理整个输入，即使客户端只对几个输出记录感兴趣。只有当这些成本被提高了扫描效率。本章中的四个操作符都具有高度的高效的物化实现。</p>
+<h2 id="临时表"><a href="#临时表" class="headerlink" title="临时表"></a>临时表</h2><p>物化实现将其输入记录存储在临时表中。临时表与常规表有三个不同之处：</p>
+<ul>
+<li><p>临时表不是使用表管理器的createTable创建的方法，并且其元数据不显示在系统目录中。在SimpleDB中，每个临时表管理自己的元数据，并具有自己的getLayout方法</p>
+</li>
+<li><p>临时表在运行时由数据库系统自动删除不再需要了。在SimpleDB中，文件管理器在系统运行期间删除表初始化。</p>
+</li>
+<li><p>recovery manager不会将更改记录到临时表中。没有必要恢复临时表的以前状态，因为该表永远不会在其查询完成后使用。</p>
+</li>
+</ul>
+<p>SimpleDB通过类TmpTable实现临时表，该类的代码如图13.1所示。构造函数创建一个空表并为其分配一个唯一的名称（某些整数N的形式为“tempN”）。该类包含三个公共方法。</p>
+<ul>
+<li>打开表扫描</li>
+<li>tableName返回表名</li>
+<li>getLayout返回临时表的元数据。</li>
+</ul>
+<h2 id="物化"><a href="#物化" class="headerlink" title="物化"></a>物化</h2><p>物化算子没有任何显示的功能。它输入是表中记录，输出也是表中记录，一一对应。唯一的作用是这些记录会存入临时表中。</p>
+<p>SimpleDB的临时表实现如下：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">TempTable</span> </span>&#123;</span><br><span class="line">   <span class="keyword">private</span> <span class="keyword">static</span> <span class="keyword">int</span> nextTableNum = <span class="number">0</span>;</span><br><span class="line">   <span class="keyword">private</span> Transaction tx;</span><br><span class="line">   <span class="keyword">private</span> String tblname;</span><br><span class="line">   <span class="keyword">private</span> Layout layout;</span><br><span class="line">   </span><br><span class="line">   <span class="function"><span class="keyword">public</span> <span class="title">TempTable</span><span class="params">(Transaction tx, Schema sch)</span> </span>&#123;</span><br><span class="line">      <span class="keyword">this</span>.tx = tx;</span><br><span class="line">      tblname = nextTableName();</span><br><span class="line">      layout = <span class="keyword">new</span> Layout(sch);</span><br><span class="line">   &#125;</span><br><span class="line">   </span><br><span class="line">   <span class="function"><span class="keyword">public</span> UpdateScan <span class="title">open</span><span class="params">()</span> </span>&#123;</span><br><span class="line">      <span class="keyword">return</span> <span class="keyword">new</span> TableScan(tx, tblname, layout);</span><br><span class="line">   &#125;</span><br><span class="line">   </span><br><span class="line">   <span class="function"><span class="keyword">public</span> String <span class="title">tableName</span><span class="params">()</span> </span>&#123;</span><br><span class="line">      <span class="keyword">return</span> tblname;</span><br><span class="line">   &#125;</span><br><span class="line">   </span><br><span class="line">   <span class="function"><span class="keyword">public</span> Layout <span class="title">getLayout</span><span class="params">()</span> </span>&#123;</span><br><span class="line">      <span class="keyword">return</span> layout;</span><br><span class="line">   &#125;</span><br><span class="line"></span><br><span class="line">   <span class="function"><span class="keyword">private</span> <span class="keyword">static</span> <span class="keyword">synchronized</span> String <span class="title">nextTableName</span><span class="params">()</span> </span>&#123;</span><br><span class="line">      nextTableNum++;</span><br><span class="line">      <span class="keyword">return</span> <span class="string">&quot;temp&quot;</span> + nextTableNum;</span><br><span class="line">   &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+
+<h3 id="物化的示例"><a href="#物化的示例" class="headerlink" title="物化的示例"></a>物化的示例</h3><p>举个例子，如下图所示，假设Student表总共有4.5k个block，其中中2005年毕业的有900个学生。enroll表有50k个block。如果是流水线的实现，那这900个学生，每次为一个学生执行join时，会遍历一次enroll表，总共就需要50k*900=45m次block访问。这个查询的总共查询代价是45m+4.5k=450045000个block访问。</p>
+<img src="/2022/01/22/simpleDB-%E7%89%A9%E5%8C%96%E5%92%8C%E6%8E%92%E5%BA%8F/%E4%BC%81%E4%B8%9A%E5%BE%AE%E4%BF%A1%E6%88%AA%E5%9B%BE_16428630669493.png" class="" title="img">
+
+<p>如果我们为查询树添加上两个物化算子，那执行join时，只需要对两个物化临时表进行join操作即可。</p>
+<p>先考虑右边物化节点。对于enroll表，其临时表比enroll小14倍，也就是只有3572个block。也就是说，右侧的代价是50k+3572=53.572k个block访问代价。物化表和左侧的900条记录进行join时，代价就是900*3572=3214800次block访问。再加上4500次student表的读取代价，最终总的代价也就是3272872次block访问。比上面的原始访问代价节省了92%。创建临时表的代价跟省得代价比起来微不足道。</p>
+<p>如果考虑左边物化节点。左边物化节点只是把900条记录物化下来，后续join时实际上也只是访问一次物化临时表。这跟原始的不物化一样，但是却增加了物化表的代价。通常来说，物化算子在需要被重复计算的地方比较有用。</p>
+<img src="/2022/01/22/simpleDB-%E7%89%A9%E5%8C%96%E5%92%8C%E6%8E%92%E5%BA%8F/%E4%BC%81%E4%B8%9A%E5%BE%AE%E4%BF%A1%E6%88%AA%E5%9B%BE_16428630956641.png" class="" title="img">
+
+<h3 id="物化的代价"><a href="#物化的代价" class="headerlink" title="物化的代价"></a>物化的代价</h3><p>假设物化临时表总共有B个block，物化算子处理的输入block个数为C</p>
+<p>分成两部分：</p>
+<ol>
+<li>物化算子预处理的代价=C+B</li>
+<li>扫描物化表的代价=B</li>
+</ol>
+<h3 id="物化算子实现"><a href="#物化算子实现" class="headerlink" title="物化算子实现"></a>物化算子实现</h3><p>代码如下。需要注意的是这里物化算子没有计算物化的预处理代价，因为假设物化算子会被scan多次，因此其物化代价可以忽略。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">MaterializePlan</span> <span class="keyword">implements</span> <span class="title">Plan</span> </span>&#123;</span><br><span class="line">   <span class="keyword">private</span> Plan srcplan;</span><br><span class="line">   <span class="keyword">private</span> Transaction tx;</span><br><span class="line">   </span><br><span class="line">   <span class="function"><span class="keyword">public</span> <span class="title">MaterializePlan</span><span class="params">(Transaction tx, Plan srcplan)</span> </span>&#123;</span><br><span class="line">      <span class="keyword">this</span>.srcplan = srcplan;</span><br><span class="line">      <span class="keyword">this</span>.tx = tx;</span><br><span class="line">   &#125;</span><br><span class="line">   </span><br><span class="line">    <span class="comment">/**</span></span><br><span class="line"><span class="comment">    * 创建临时表，并从物化算子下面的查询里取出记录塞到临时表里，然后返回一个临时表的scan</span></span><br><span class="line"><span class="comment"> 	*/</span></span><br><span class="line">   <span class="function"><span class="keyword">public</span> Scan <span class="title">open</span><span class="params">()</span> </span>&#123;</span><br><span class="line">      Schema sch = srcplan.schema();</span><br><span class="line">      TempTable temp = <span class="keyword">new</span> TempTable(tx, sch);</span><br><span class="line">      Scan src = srcplan.open();</span><br><span class="line">      UpdateScan dest = temp.open();</span><br><span class="line">      <span class="keyword">while</span> (src.next()) &#123;</span><br><span class="line">         dest.insert();</span><br><span class="line">         <span class="keyword">for</span> (String fldname : sch.fields())</span><br><span class="line">            dest.setVal(fldname, src.getVal(fldname));</span><br><span class="line">      &#125;</span><br><span class="line">      src.close();</span><br><span class="line">      dest.beforeFirst();</span><br><span class="line">      <span class="keyword">return</span> dest;</span><br><span class="line">   &#125;</span><br><span class="line">   </span><br><span class="line">   <span class="comment">/**</span></span><br><span class="line"><span class="comment">   * 计算临时表的block个数</span></span><br><span class="line"><span class="comment">   */</span></span><br><span class="line">   <span class="function"><span class="keyword">public</span> <span class="keyword">int</span> <span class="title">blocksAccessed</span><span class="params">()</span> </span>&#123;</span><br><span class="line">      <span class="comment">// create a dummy Layout object to calculate record length</span></span><br><span class="line">      Layout layout = <span class="keyword">new</span> Layout(srcplan.schema());</span><br><span class="line">      <span class="keyword">double</span> rpb = (<span class="keyword">double</span>) (tx.blockSize() / layout.slotSize());</span><br><span class="line">      <span class="keyword">return</span> (<span class="keyword">int</span>) Math.ceil(srcplan.recordsOutput() / rpb);</span><br><span class="line">   &#125;</span><br><span class="line">   </span><br><span class="line">   <span class="function"><span class="keyword">public</span> <span class="keyword">int</span> <span class="title">recordsOutput</span><span class="params">()</span> </span>&#123;</span><br><span class="line">      <span class="keyword">return</span> srcplan.recordsOutput();</span><br><span class="line">   &#125;</span><br><span class="line">   </span><br><span class="line">   <span class="function"><span class="keyword">public</span> <span class="keyword">int</span> <span class="title">distinctValues</span><span class="params">(String fldname)</span> </span>&#123;</span><br><span class="line">      <span class="keyword">return</span> srcplan.distinctValues(fldname);</span><br><span class="line">   &#125;</span><br><span class="line">   </span><br><span class="line">   <span class="function"><span class="keyword">public</span> Schema <span class="title">schema</span><span class="params">()</span> </span>&#123;</span><br><span class="line">      <span class="keyword">return</span> srcplan.schema();</span><br><span class="line">   &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+<h2 id="排序"><a href="#排序" class="headerlink" title="排序"></a>排序</h2><p>排序算子一般用于sql的order by语句。并且在groupby和merge join里也很有用。</p>
+<h3 id="合并排序"><a href="#合并排序" class="headerlink" title="合并排序"></a>合并排序</h3><p>最常用的外部排序算法。</p>
+<p>定义一个run为一个表中部分有序的部分。</p>
+<p>分为两个阶段：</p>
+<ol>
+<li>分裂阶段，扫描整个表，找出每个run，并写入对应的临时表。</li>
+<li>合并阶段，重复合并这些run直到最后只有一个run。</li>
+</ol>
+<p>举例来说，假设Student表中sid字段值初始如下：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">2 6 20 4 1 16 19 3 18</span><br></pre></td></tr></table></figure>
+<p>表当前包含4个run，[2,6,20],[4],[1,16,19],[3,18]</p>
+<p>第一轮split，识别出四个runs，并且将它们存放在4个临时表中。</p>
+<p>第一轮merge，将run 1,2 合并成run 5, run 3,4合并成run 6。最终如下：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">run 5: 2,4,6,20</span><br><span class="line">run 6: 1,3,16,18,19</span><br></pre></td></tr></table></figure>
+<p>第二轮将run 5, 6合并成run 7</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">run 7: 1,2,3,46,16,18,19,20</span><br></pre></td></tr></table></figure>
+<p>此时只有一个run，因此算法结束。</p>
+<p>假设初始有2^N个runs，每一轮迭代都会将run降低为原来的一半，直到最后只有一个run。通常来说，一个表如果有R条记录，那就需要log2(R)次迭代。</p>
+<h4 id="合并排序效率优化"><a href="#合并排序效率优化" class="headerlink" title="合并排序效率优化"></a>合并排序效率优化</h4><p>有三种方式来提升合并排序的效率：</p>
+<ol>
+<li>每次merge时，增加run的个数</li>
+<li>减少初始run的个数</li>
+<li>避免写最终的排序表</li>
+</ol>
+<h5 id="增加每次合并的run个数"><a href="#增加每次合并的run个数" class="headerlink" title="增加每次合并的run个数"></a>增加每次合并的run个数</h5><p>每次合并时不再只是合并两个run，而是K个run，那迭代次数就是logk(R)次。那如果一次merge所有run呢，其实也是可以的，但是需要消耗相应的内存资源。每次merge，至少需要消耗k+1个buffer。</p>
+<h5 id="减少初始run的个数"><a href="#减少初始run的个数" class="headerlink" title="减少初始run的个数"></a>减少初始run的个数</h5><p>如果要减少初始run的个数，相当于要增加每个run的记录个数。有两种算法可以来实现这个目标：</p>
+<ol>
+<li>本算法基本思想是保证每个block都是有序的</li>
+</ol>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">重复以下动作到没有更多的输入记录：</span><br><span class="line">1. 读取输入的一个block的记录到内存临时表中</span><br><span class="line">2. 对该临时表使用内存排序算法排好序</span><br><span class="line">3. 把这个临时表存入磁盘中</span><br></pre></td></tr></table></figure>
+<ol start="2">
+<li>本算法基本思想是初始合并一次，使用一个缓存来尽量创建更大的初始run</li>
+</ol>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">1. 使用一个block大小的buffer，然后读取记录，填满该buffer</span><br><span class="line">2. 开始一个新的run</span><br><span class="line">3. 重复如下操作直到buffer空：</span><br><span class="line">	1. 如果buffer中没有记录可以放进当前run，那就关闭当前run，并开始一个新的run</span><br><span class="line">	2. 从buffer中选择一个最小的但是刚刚大于当前run的最大值的记录</span><br><span class="line">	3. 把这个记录拷贝到当前run中</span><br><span class="line">	4. 从buffer里删除该记录</span><br><span class="line">	5. 从表中读取下一条记录放进buffer里</span><br></pre></td></tr></table></figure>
+<h5 id="避免写最终的排序表"><a href="#避免写最终的排序表" class="headerlink" title="避免写最终的排序表"></a>避免写最终的排序表</h5><p>合并排序最终是把k个run，一次合并成一个run。其实，最后一次merge不做，后续如果要找排序后的值，可以通过k个run对应的临时表的scan来进行查找也是一样的。</p>
+<h4 id="合并排序的代价"><a href="#合并排序的代价" class="headerlink" title="合并排序的代价"></a>合并排序的代价</h4><img src="/2022/01/22/simpleDB-%E7%89%A9%E5%8C%96%E5%92%8C%E6%8E%92%E5%BA%8F/%E4%BC%81%E4%B8%9A%E5%BE%AE%E4%BF%A1%E6%88%AA%E5%9B%BE_16429362834749.png" class="" title="img">
+
+<p>合并排序的代价分为两部分：</p>
+<ol>
+<li>预处理代价，拆分run+中间多轮merge的代价</li>
+<li>扫描代价,即最终的合并操作代价</li>
+</ol>
+<p>假设：</p>
+<ol>
+<li>算法每次合并k个run</li>
+<li>T2表有R个初始run</li>
+<li>物化输入有B个block</li>
+</ol>
+<p>则：</p>
+<ol>
+<li>每一轮merge都需要读取每个record一次，并且写一次，因此每一轮merge的代价是2B个block访问</li>
+<li>扫描的代价其实就是每个record都会被读一次，因此代价就是B个block访问</li>
+</ol>
+<p>因此代价就是：</p>
+<ol>
+<li>预处理代价=2B * logk(R) - B + 输入的代价</li>
+<li>扫描代价=B</li>
+</ol>
+<h4 id="合并排序实现"><a href="#合并排序实现" class="headerlink" title="合并排序实现"></a>合并排序实现</h4><p>simpleDB通过SortScan和SortPlan来实现sort算子。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br><span class="line">88</span><br><span class="line">89</span><br><span class="line">90</span><br><span class="line">91</span><br><span class="line">92</span><br><span class="line">93</span><br><span class="line">94</span><br><span class="line">95</span><br><span class="line">96</span><br><span class="line">97</span><br><span class="line">98</span><br><span class="line">99</span><br><span class="line">100</span><br><span class="line">101</span><br><span class="line">102</span><br><span class="line">103</span><br><span class="line">104</span><br><span class="line">105</span><br><span class="line">106</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">SortPlan</span> <span class="keyword">implements</span> <span class="title">Plan</span> </span>&#123;</span><br><span class="line">   <span class="keyword">private</span> Transaction tx;</span><br><span class="line">   <span class="keyword">private</span> Plan p;</span><br><span class="line">   <span class="keyword">private</span> Schema sch;</span><br><span class="line">   <span class="keyword">private</span> RecordComparator comp;</span><br><span class="line">   </span><br><span class="line">   <span class="function"><span class="keyword">public</span> <span class="title">SortPlan</span><span class="params">(Transaction tx, Plan p, List&lt;String&gt; sortfields)</span> </span>&#123;</span><br><span class="line">      <span class="keyword">this</span>.tx = tx;</span><br><span class="line">      <span class="keyword">this</span>.p = p;</span><br><span class="line">      sch = p.schema();</span><br><span class="line">      comp = <span class="keyword">new</span> RecordComparator(sortfields);</span><br><span class="line">   &#125;</span><br><span class="line">   </span><br><span class="line">   <span class="function"><span class="keyword">public</span> Scan <span class="title">open</span><span class="params">()</span> </span>&#123;</span><br><span class="line">      Scan src = p.open();</span><br><span class="line">      List&lt;TempTable&gt; runs = splitIntoRuns(src);</span><br><span class="line">      src.close();</span><br><span class="line">      <span class="keyword">while</span> (runs.size() &gt; <span class="number">2</span>)</span><br><span class="line">         runs = doAMergeIteration(runs);</span><br><span class="line">      <span class="keyword">return</span> <span class="keyword">new</span> SortScan(runs, comp);</span><br><span class="line">   &#125;</span><br><span class="line">   </span><br><span class="line">   <span class="function"><span class="keyword">public</span> <span class="keyword">int</span> <span class="title">blocksAccessed</span><span class="params">()</span> </span>&#123;</span><br><span class="line">      <span class="comment">// does not include the one-time cost of sorting</span></span><br><span class="line">      Plan mp = <span class="keyword">new</span> MaterializePlan(tx, p); <span class="comment">// not opened; just for analysis</span></span><br><span class="line">      <span class="keyword">return</span> mp.blocksAccessed();</span><br><span class="line">   &#125;</span><br><span class="line">   </span><br><span class="line">   <span class="function"><span class="keyword">public</span> <span class="keyword">int</span> <span class="title">recordsOutput</span><span class="params">()</span> </span>&#123;</span><br><span class="line">      <span class="keyword">return</span> p.recordsOutput();</span><br><span class="line">   &#125;</span><br><span class="line">   </span><br><span class="line">   <span class="function"><span class="keyword">public</span> <span class="keyword">int</span> <span class="title">distinctValues</span><span class="params">(String fldname)</span> </span>&#123;</span><br><span class="line">      <span class="keyword">return</span> p.distinctValues(fldname);</span><br><span class="line">   &#125;</span><br><span class="line">   </span><br><span class="line">   <span class="function"><span class="keyword">public</span> Schema <span class="title">schema</span><span class="params">()</span> </span>&#123;</span><br><span class="line">      <span class="keyword">return</span> sch;</span><br><span class="line">   &#125;</span><br><span class="line">   </span><br><span class="line">   <span class="function"><span class="keyword">private</span> List&lt;TempTable&gt; <span class="title">splitIntoRuns</span><span class="params">(Scan src)</span> </span>&#123;</span><br><span class="line">      List&lt;TempTable&gt; temps = <span class="keyword">new</span> ArrayList&lt;&gt;();</span><br><span class="line">      src.beforeFirst();</span><br><span class="line">      <span class="keyword">if</span> (!src.next())</span><br><span class="line">         <span class="keyword">return</span> temps;</span><br><span class="line">      TempTable currenttemp = <span class="keyword">new</span> TempTable(tx, sch);</span><br><span class="line">      temps.add(currenttemp);</span><br><span class="line">      UpdateScan currentscan = currenttemp.open();</span><br><span class="line">      <span class="keyword">while</span> (copy(src, currentscan))</span><br><span class="line">         <span class="keyword">if</span> (comp.compare(src, currentscan) &lt; <span class="number">0</span>) &#123;</span><br><span class="line">         <span class="comment">// start a new run</span></span><br><span class="line">         currentscan.close();</span><br><span class="line">         currenttemp = <span class="keyword">new</span> TempTable(tx, sch);</span><br><span class="line">         temps.add(currenttemp);</span><br><span class="line">         currentscan = (UpdateScan) currenttemp.open();</span><br><span class="line">      &#125;</span><br><span class="line">      currentscan.close();</span><br><span class="line">      <span class="keyword">return</span> temps;</span><br><span class="line">   &#125;</span><br><span class="line">   </span><br><span class="line">   <span class="function"><span class="keyword">private</span> List&lt;TempTable&gt; <span class="title">doAMergeIteration</span><span class="params">(List&lt;TempTable&gt; runs)</span> </span>&#123;</span><br><span class="line">      List&lt;TempTable&gt; result = <span class="keyword">new</span> ArrayList&lt;&gt;();</span><br><span class="line">      <span class="keyword">while</span> (runs.size() &gt; <span class="number">1</span>) &#123;</span><br><span class="line">         TempTable p1 = runs.remove(<span class="number">0</span>);</span><br><span class="line">         TempTable p2 = runs.remove(<span class="number">0</span>);</span><br><span class="line">         result.add(mergeTwoRuns(p1, p2));</span><br><span class="line">      &#125;</span><br><span class="line">      <span class="keyword">if</span> (runs.size() == <span class="number">1</span>)</span><br><span class="line">         result.add(runs.get(<span class="number">0</span>));</span><br><span class="line">      <span class="keyword">return</span> result;</span><br><span class="line">   &#125;</span><br><span class="line">   </span><br><span class="line">   <span class="function"><span class="keyword">private</span> TempTable <span class="title">mergeTwoRuns</span><span class="params">(TempTable p1, TempTable p2)</span> </span>&#123;</span><br><span class="line">      Scan src1 = p1.open();</span><br><span class="line">      Scan src2 = p2.open();</span><br><span class="line">      TempTable result = <span class="keyword">new</span> TempTable(tx, sch);</span><br><span class="line">      UpdateScan dest = result.open();</span><br><span class="line">      </span><br><span class="line">      <span class="keyword">boolean</span> hasmore1 = src1.next();</span><br><span class="line">      <span class="keyword">boolean</span> hasmore2 = src2.next();</span><br><span class="line">      <span class="keyword">while</span> (hasmore1 &amp;&amp; hasmore2)</span><br><span class="line">         <span class="keyword">if</span> (comp.compare(src1, src2) &lt; <span class="number">0</span>)</span><br><span class="line">         hasmore1 = copy(src1, dest);</span><br><span class="line">      <span class="keyword">else</span></span><br><span class="line">         hasmore2 = copy(src2, dest);</span><br><span class="line">      </span><br><span class="line">      <span class="keyword">if</span> (hasmore1)</span><br><span class="line">         <span class="keyword">while</span> (hasmore1)</span><br><span class="line">         hasmore1 = copy(src1, dest);</span><br><span class="line">      <span class="keyword">else</span></span><br><span class="line">         <span class="keyword">while</span> (hasmore2)</span><br><span class="line">         hasmore2 = copy(src2, dest);</span><br><span class="line">      src1.close();</span><br><span class="line">      src2.close();</span><br><span class="line">      dest.close();</span><br><span class="line">      <span class="keyword">return</span> result;</span><br><span class="line">   &#125;</span><br><span class="line">   </span><br><span class="line">   <span class="function"><span class="keyword">private</span> <span class="keyword">boolean</span> <span class="title">copy</span><span class="params">(Scan src, UpdateScan dest)</span> </span>&#123;</span><br><span class="line">      dest.insert();</span><br><span class="line">      <span class="keyword">for</span> (String fldname : sch.fields())</span><br><span class="line">         dest.setVal(fldname, src.getVal(fldname));</span><br><span class="line">      <span class="keyword">return</span> src.next();</span><br><span class="line">   &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+<p>​    open方法执行mergesort算法。特别是，它一次运行合并两个run（即k¼2），也不尝试减少初始运行次数。私有方法splitIntoRuns执行mergesort的拆分阶段算法，方法doAMergeIteration执行合并阶段的一次迭代。重复调用此方法，直到返回的run个数不超过两个。此时open将run列表传递给SortScan构造函数，该构造函数将处理最后的合并操作。</p>
+<p>​    方法splitIntoRuns首先创建一个临时表并打开对其进行扫描（“目标扫描”）。然后，该方法迭代输入扫描。每个输入记录都插入到目标扫描中。每次新的跑步开始时，目标扫描关闭，并创建并打开另一个临时表。在此方法结束时，将创建几个临时表，每个临时表包含一次运行。</p>
+<p>​    方法doAMergeIteration给出了当前临时表的列表。它会为每对临时表重复调用mergeTwoRuns方法，并返回包含生成的（合并的）临时表的列表。</p>
+<p>​    方法mergeTwoRuns为其两个表中的每个表打开一个扫描，并创建一个用于保存结果的临时表。该方法从输入扫描中重复选择最小值的记录，并将该记录复制到结果中。当其中一个扫描完成后，其他扫描的剩余记录将添加到结果中。</p>
+<p>成本估算方法很简单。方法 recordsOutput 和 distinctValues 返回与输入表相同的值，因为排序表包含相同的记录和值分布。 blocksAccessed 方法估计遍历排序扫描所需的块访问次数，该次数等于排序表中的块数。由于排序表和物化表的大小完全相同，因此此计算将与 MaterializePlan 中的完全相同。因此，该方法创建了一个“虚拟”物化计划，其唯一目的是调用它的 blocksAccessed 方法。预处理成本不包含在 blocksAccessed 方法中，原因与 MaterializePlan 相同。</p>
+<p>比较记录的工作由 RecordComparator 类执行，其代码如图 13.10 所示。该类比较两次扫描的当前记录。它的 compare 方法遍历排序字段，使用 compareTo 来比较每个扫描的当前记录中的值。如果所有值都相等，则 compareTo 返回 0。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br></pre></td><td class="code"><pre><span class="line"></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">SortScan</span> <span class="keyword">implements</span> <span class="title">Scan</span> </span>&#123;</span><br><span class="line">   <span class="keyword">private</span> UpdateScan s1, s2=<span class="keyword">null</span>, currentscan=<span class="keyword">null</span>;</span><br><span class="line">   <span class="keyword">private</span> RecordComparator comp;</span><br><span class="line">   <span class="keyword">private</span> <span class="keyword">boolean</span> hasmore1, hasmore2=<span class="keyword">false</span>;</span><br><span class="line">   <span class="keyword">private</span> List&lt;RID&gt; savedposition;</span><br><span class="line">   </span><br><span class="line">   <span class="function"><span class="keyword">public</span> <span class="title">SortScan</span><span class="params">(List&lt;TempTable&gt; runs, RecordComparator comp)</span> </span>&#123;</span><br><span class="line">      <span class="keyword">this</span>.comp = comp;</span><br><span class="line">      s1 = (UpdateScan) runs.get(<span class="number">0</span>).open();</span><br><span class="line">      hasmore1 = s1.next();</span><br><span class="line">      <span class="keyword">if</span> (runs.size() &gt; <span class="number">1</span>) &#123;</span><br><span class="line">         s2 = (UpdateScan) runs.get(<span class="number">1</span>).open();</span><br><span class="line">         hasmore2 = s2.next();</span><br><span class="line">      &#125;</span><br><span class="line">   &#125;</span><br><span class="line">   </span><br><span class="line">   <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">beforeFirst</span><span class="params">()</span> </span>&#123;</span><br><span class="line">      currentscan = <span class="keyword">null</span>;</span><br><span class="line">      s1.beforeFirst();</span><br><span class="line">      hasmore1 = s1.next();</span><br><span class="line">      <span class="keyword">if</span> (s2 != <span class="keyword">null</span>) &#123;</span><br><span class="line">         s2.beforeFirst();</span><br><span class="line">         hasmore2 = s2.next();</span><br><span class="line">      &#125;</span><br><span class="line">   &#125;</span><br><span class="line">   </span><br><span class="line">   <span class="function"><span class="keyword">public</span> <span class="keyword">boolean</span> <span class="title">next</span><span class="params">()</span> </span>&#123;</span><br><span class="line">      <span class="keyword">if</span> (currentscan != <span class="keyword">null</span>) &#123;</span><br><span class="line">         <span class="keyword">if</span> (currentscan == s1)</span><br><span class="line">            hasmore1 = s1.next();</span><br><span class="line">         <span class="keyword">else</span> <span class="keyword">if</span> (currentscan == s2)</span><br><span class="line">            hasmore2 = s2.next();</span><br><span class="line">      &#125;</span><br><span class="line">      </span><br><span class="line">      <span class="keyword">if</span> (!hasmore1 &amp;&amp; !hasmore2)</span><br><span class="line">         <span class="keyword">return</span> <span class="keyword">false</span>;</span><br><span class="line">      <span class="keyword">else</span> <span class="keyword">if</span> (hasmore1 &amp;&amp; hasmore2) &#123;</span><br><span class="line">         <span class="keyword">if</span> (comp.compare(s1, s2) &lt; <span class="number">0</span>)</span><br><span class="line">            currentscan = s1;</span><br><span class="line">         <span class="keyword">else</span></span><br><span class="line">            currentscan = s2;</span><br><span class="line">      &#125;</span><br><span class="line">      <span class="keyword">else</span> <span class="keyword">if</span> (hasmore1)</span><br><span class="line">         currentscan = s1;</span><br><span class="line">      <span class="keyword">else</span> <span class="keyword">if</span> (hasmore2)</span><br><span class="line">         currentscan = s2;</span><br><span class="line">      <span class="keyword">return</span> <span class="keyword">true</span>;</span><br><span class="line">   &#125;</span><br><span class="line">   </span><br><span class="line">   <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">close</span><span class="params">()</span> </span>&#123;</span><br><span class="line">      s1.close();</span><br><span class="line">      <span class="keyword">if</span> (s2 != <span class="keyword">null</span>)</span><br><span class="line">         s2.close();</span><br><span class="line">   &#125;</span><br><span class="line">   </span><br><span class="line">   <span class="function"><span class="keyword">public</span> Constant <span class="title">getVal</span><span class="params">(String fldname)</span> </span>&#123;</span><br><span class="line">      <span class="keyword">return</span> currentscan.getVal(fldname);</span><br><span class="line">   &#125;</span><br><span class="line">   </span><br><span class="line">   <span class="function"><span class="keyword">public</span> <span class="keyword">int</span> <span class="title">getInt</span><span class="params">(String fldname)</span> </span>&#123;</span><br><span class="line">      <span class="keyword">return</span> currentscan.getInt(fldname);</span><br><span class="line">   &#125;</span><br><span class="line">   </span><br><span class="line">   <span class="function"><span class="keyword">public</span> String <span class="title">getString</span><span class="params">(String fldname)</span> </span>&#123;</span><br><span class="line">      <span class="keyword">return</span> currentscan.getString(fldname);</span><br><span class="line">   &#125;</span><br><span class="line">   </span><br><span class="line">   <span class="function"><span class="keyword">public</span> <span class="keyword">boolean</span> <span class="title">hasField</span><span class="params">(String fldname)</span> </span>&#123;</span><br><span class="line">      <span class="keyword">return</span> currentscan.hasField(fldname);</span><br><span class="line">   &#125;</span><br><span class="line">   </span><br><span class="line">   <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">savePosition</span><span class="params">()</span> </span>&#123;</span><br><span class="line">      RID rid1 = s1.getRid();</span><br><span class="line">      RID rid2 = (s2 == <span class="keyword">null</span>) ? <span class="keyword">null</span> : s2.getRid();</span><br><span class="line">      savedposition = Arrays.asList(rid1,rid2);</span><br><span class="line">   &#125;</span><br><span class="line">   </span><br><span class="line">   <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">restorePosition</span><span class="params">()</span> </span>&#123;</span><br><span class="line">      RID rid1 = savedposition.get(<span class="number">0</span>);</span><br><span class="line">      RID rid2 = savedposition.get(<span class="number">1</span>);</span><br><span class="line">      s1.moveToRid(rid1);</span><br><span class="line">      <span class="keyword">if</span> (rid2 != <span class="keyword">null</span>)</span><br><span class="line">         s2.moveToRid(rid2);</span><br><span class="line">   &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+<p>SortScan 类实现了扫描。 构造函数需要一个包含一到两个run的列表。 它通过打开它们的表并移动到它们的第一条记录来初始化run。 （如果只有一个run，则变量 hasmore2 设置为 false，并且永远不会考虑第二个run。）</p>
+<p>变量 currentscan 指向包含合并中最新记录的扫描。 get 方法从该扫描中获取它们的值。 next 方法移动到当前扫描的下一条记录，然后从两次扫描中选择最低值的记录。 然后变量 currentscan 指向该扫描。</p>
+<p>该类还有两个公共方法 savePosition 和 restorePosition。 这些方法允许客户端（特别是第 13.6 节的 mergejoin 扫描）移回以前看到的记录并从那里继续扫描。</p>
+<h2 id="分组和聚合"><a href="#分组和聚合" class="headerlink" title="分组和聚合"></a>分组和聚合</h2><p>groupby 关系代数运算符采用三个参数：输入表、一组分组字段和一组聚合表达式。 它将其输入记录组织成组，其中分组字段具有相同值的记录在同一个组中。 它的输出表包含每一组的一行； 该行对每个分组字段和聚合表达式都有一列。</p>
+<p>实现 groupby 运算符的主要问题是如何创建记录组。 最好的解决方案是创建一个临时表，其中的记录按分组字段排序。 然后每个组中的记录将彼此相邻，因此实现可以通过一次遍历排序表来计算每个组的信息。 图 13.13 给出了算法。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">1. 创建一个包含输入记录的临时表，按分组字段排序。</span><br><span class="line">2. 移动到表中的第一条记录。</span><br><span class="line">3. 重复直到临时表用完：</span><br><span class="line">	1. 让“分组值”为当前记录的分组字段的值。</span><br><span class="line">	2. 对于分组字段值等于组值的每条记录：将记录读入组列表。</span><br><span class="line">	3. 为组列表中的记录计算指定的聚合函数。</span><br></pre></td></tr></table></figure>
+<p>聚合算法的成本可以分为预处理成本和扫描成本。这些成本很简单。预处理成本是排序的成本，扫描成本是对已排序记录的单次迭代。换句话说，groupby 运算符与 sort 具有相同的成本。</p>
+<p>SimpleDB 使用 GroupByPlan 和 GroupByScan 类来实现 groupby 算法。</p>
+<p>GroupByPlan 中的 open 方法为输入记录创建并打开一个排序计划。生成的排序扫描被传递到 GroupByScan 的构造函数中。 groupby 扫描根据需要读取排序扫描的记录。特别是，该方法每次调用时都会读取下一组中的记录。此方法在从另一个组中读取记录时（或者当它检测到排序扫描中没有更多记录时）识别组的结尾；因此，每次调用 next 时，底层扫描中的当前记录将始终是下一组中的第一条记录。</p>
+<p>GroupValue 类保存有关当前组的信息。扫描与分组字段一起传递到其构造函数中。当前记录的字段值定义组。 getVal 方法返回指定字段的值。当两个 GroupValue 对象的分组字段值相同时，equals 方法返回 true，并且 hashCode 方法为每个 GroupValue 对象分配一个哈希值。</p>
+<p>SimpleDB 将每个聚合函数（如 MIN、COUNT 等）实现为一个类。类的一个对象负责跟踪组中记录的相关信息，计算该组的聚合值，并确定计算字段的名称。这些方法属于 AggregationFn 接口，其代码如图 13.17 所示。方法 processFirst 使用当前记录作为该组的第一条记录来启动一个新组。方法 processNext 将另一条记录添加到现有组。</p>
+<p>聚合函数类的一个例子是 MaxFn，它实现了 MAX；见图 13.18。客户端将聚合字段的名称传递给构造函数。该对象使用该字段名称来检查组中每条记录的字段值，并将最大值保存在其变量 val 中。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br><span class="line">88</span><br><span class="line">89</span><br><span class="line">90</span><br><span class="line">91</span><br><span class="line">92</span><br><span class="line">93</span><br><span class="line">94</span><br><span class="line">95</span><br><span class="line">96</span><br><span class="line">97</span><br><span class="line">98</span><br><span class="line">99</span><br><span class="line">100</span><br><span class="line">101</span><br><span class="line">102</span><br><span class="line">103</span><br><span class="line">104</span><br><span class="line">105</span><br><span class="line">106</span><br><span class="line">107</span><br><span class="line">108</span><br><span class="line">109</span><br><span class="line">110</span><br><span class="line">111</span><br><span class="line">112</span><br><span class="line">113</span><br><span class="line">114</span><br><span class="line">115</span><br><span class="line">116</span><br><span class="line">117</span><br><span class="line">118</span><br><span class="line">119</span><br><span class="line">120</span><br><span class="line">121</span><br><span class="line">122</span><br><span class="line">123</span><br><span class="line">124</span><br><span class="line">125</span><br><span class="line">126</span><br><span class="line">127</span><br><span class="line">128</span><br><span class="line">129</span><br><span class="line">130</span><br><span class="line">131</span><br><span class="line">132</span><br><span class="line">133</span><br><span class="line">134</span><br><span class="line">135</span><br><span class="line">136</span><br><span class="line">137</span><br><span class="line">138</span><br><span class="line">139</span><br><span class="line">140</span><br><span class="line">141</span><br><span class="line">142</span><br><span class="line">143</span><br><span class="line">144</span><br><span class="line">145</span><br><span class="line">146</span><br><span class="line">147</span><br><span class="line">148</span><br><span class="line">149</span><br><span class="line">150</span><br><span class="line">151</span><br><span class="line">152</span><br><span class="line">153</span><br><span class="line">154</span><br><span class="line">155</span><br><span class="line">156</span><br><span class="line">157</span><br><span class="line">158</span><br><span class="line">159</span><br><span class="line">160</span><br><span class="line">161</span><br><span class="line">162</span><br><span class="line">163</span><br><span class="line">164</span><br><span class="line">165</span><br><span class="line">166</span><br><span class="line">167</span><br><span class="line">168</span><br><span class="line">169</span><br><span class="line">170</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">GroupByPlan</span> <span class="keyword">implements</span> <span class="title">Plan</span> </span>&#123;</span><br><span class="line">   <span class="keyword">private</span> Plan p;</span><br><span class="line">   <span class="keyword">private</span> List&lt;String&gt; groupfields;</span><br><span class="line">   <span class="keyword">private</span> List&lt;AggregationFn&gt; aggfns;</span><br><span class="line">   <span class="keyword">private</span> Schema sch = <span class="keyword">new</span> Schema();</span><br><span class="line">   </span><br><span class="line">   <span class="function"><span class="keyword">public</span> <span class="title">GroupByPlan</span><span class="params">(Transaction tx, Plan p, List&lt;String&gt; groupfields, List&lt;AggregationFn&gt; aggfns)</span> </span>&#123;</span><br><span class="line">      <span class="keyword">this</span>.p = <span class="keyword">new</span> SortPlan(tx, p, groupfields);</span><br><span class="line">      <span class="keyword">this</span>.groupfields = groupfields;</span><br><span class="line">      <span class="keyword">this</span>.aggfns = aggfns;</span><br><span class="line">      <span class="keyword">for</span> (String fldname : groupfields)</span><br><span class="line">         sch.add(fldname, p.schema());</span><br><span class="line">      <span class="keyword">for</span> (AggregationFn fn : aggfns)</span><br><span class="line">         sch.addIntField(fn.fieldName());</span><br><span class="line">   &#125;</span><br><span class="line">   </span><br><span class="line">   <span class="function"><span class="keyword">public</span> Scan <span class="title">open</span><span class="params">()</span> </span>&#123;</span><br><span class="line">      Scan s = p.open();</span><br><span class="line">      <span class="keyword">return</span> <span class="keyword">new</span> GroupByScan(s, groupfields, aggfns);</span><br><span class="line">   &#125;</span><br><span class="line">   </span><br><span class="line">   <span class="function"><span class="keyword">public</span> <span class="keyword">int</span> <span class="title">blocksAccessed</span><span class="params">()</span> </span>&#123;</span><br><span class="line">      <span class="keyword">return</span> p.blocksAccessed();</span><br><span class="line">   &#125;</span><br><span class="line">   </span><br><span class="line">   <span class="function"><span class="keyword">public</span> <span class="keyword">int</span> <span class="title">recordsOutput</span><span class="params">()</span> </span>&#123;</span><br><span class="line">      <span class="keyword">int</span> numgroups = <span class="number">1</span>;</span><br><span class="line">      <span class="keyword">for</span> (String fldname : groupfields)</span><br><span class="line">         numgroups *= p.distinctValues(fldname);</span><br><span class="line">      <span class="keyword">return</span> numgroups;</span><br><span class="line">   &#125;</span><br><span class="line">   </span><br><span class="line">   <span class="function"><span class="keyword">public</span> <span class="keyword">int</span> <span class="title">distinctValues</span><span class="params">(String fldname)</span> </span>&#123;</span><br><span class="line">      <span class="keyword">if</span> (p.schema().hasField(fldname))</span><br><span class="line">         <span class="keyword">return</span> p.distinctValues(fldname);</span><br><span class="line">      <span class="keyword">else</span></span><br><span class="line">         <span class="keyword">return</span> recordsOutput();</span><br><span class="line">   &#125;</span><br><span class="line">   </span><br><span class="line">   <span class="function"><span class="keyword">public</span> Schema <span class="title">schema</span><span class="params">()</span> </span>&#123;</span><br><span class="line">      <span class="keyword">return</span> sch;</span><br><span class="line">   &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">GroupValue</span> </span>&#123;</span><br><span class="line">   <span class="keyword">private</span> Map&lt;String,Constant&gt; vals = <span class="keyword">new</span> HashMap&lt;&gt;();</span><br><span class="line">   </span><br><span class="line">   <span class="function"><span class="keyword">public</span> <span class="title">GroupValue</span><span class="params">(Scan s, List&lt;String&gt; fields)</span> </span>&#123;</span><br><span class="line">      vals = <span class="keyword">new</span> HashMap&lt;String,Constant&gt;();</span><br><span class="line">      <span class="keyword">for</span> (String fldname : fields)</span><br><span class="line">         vals.put(fldname, s.getVal(fldname));</span><br><span class="line">   &#125;</span><br><span class="line">   </span><br><span class="line">   <span class="function"><span class="keyword">public</span> Constant <span class="title">getVal</span><span class="params">(String fldname)</span> </span>&#123;</span><br><span class="line">      <span class="keyword">return</span> vals.get(fldname);</span><br><span class="line">   &#125;</span><br><span class="line">   </span><br><span class="line">   <span class="function"><span class="keyword">public</span> <span class="keyword">boolean</span> <span class="title">equals</span><span class="params">(Object obj)</span> </span>&#123;</span><br><span class="line">      GroupValue gv = (GroupValue) obj;</span><br><span class="line">      <span class="keyword">for</span> (String fldname : vals.keySet()) &#123;</span><br><span class="line">         Constant v1 = vals.get(fldname);</span><br><span class="line">         Constant v2 = gv.getVal(fldname);</span><br><span class="line">         <span class="keyword">if</span> (!v1.equals(v2))</span><br><span class="line">            <span class="keyword">return</span> <span class="keyword">false</span>;</span><br><span class="line">      &#125;</span><br><span class="line">      <span class="keyword">return</span> <span class="keyword">true</span>;</span><br><span class="line">   &#125;</span><br><span class="line">   </span><br><span class="line">   <span class="function"><span class="keyword">public</span> <span class="keyword">int</span> <span class="title">hashCode</span><span class="params">()</span> </span>&#123;</span><br><span class="line">      <span class="keyword">int</span> hashval = <span class="number">0</span>;</span><br><span class="line">      <span class="keyword">for</span> (Constant c: vals.values())</span><br><span class="line">         hashval += c.hashCode();</span><br><span class="line">      <span class="keyword">return</span> hashval;</span><br><span class="line">   &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">GroupByScan</span> <span class="keyword">implements</span> <span class="title">Scan</span> </span>&#123;</span><br><span class="line">   <span class="keyword">private</span> Scan s;</span><br><span class="line">   <span class="keyword">private</span> List&lt;String&gt; groupfields;</span><br><span class="line">   <span class="keyword">private</span> List&lt;AggregationFn&gt; aggfns;</span><br><span class="line">   <span class="keyword">private</span> GroupValue groupval;</span><br><span class="line">   <span class="keyword">private</span> <span class="keyword">boolean</span> moregroups;</span><br><span class="line">   </span><br><span class="line">   <span class="function"><span class="keyword">public</span> <span class="title">GroupByScan</span><span class="params">(Scan s, List&lt;String&gt; groupfields, List&lt;AggregationFn&gt; aggfns)</span> </span>&#123;</span><br><span class="line">      <span class="keyword">this</span>.s = s;</span><br><span class="line">      <span class="keyword">this</span>.groupfields = groupfields;</span><br><span class="line">      <span class="keyword">this</span>.aggfns = aggfns;</span><br><span class="line">      beforeFirst();</span><br><span class="line">   &#125;</span><br><span class="line">   </span><br><span class="line">   <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">beforeFirst</span><span class="params">()</span> </span>&#123;</span><br><span class="line">      s.beforeFirst();</span><br><span class="line">      moregroups = s.next();</span><br><span class="line">   &#125;</span><br><span class="line">   </span><br><span class="line">   <span class="function"><span class="keyword">public</span> <span class="keyword">boolean</span> <span class="title">next</span><span class="params">()</span> </span>&#123;</span><br><span class="line">      <span class="keyword">if</span> (!moregroups)</span><br><span class="line">         <span class="keyword">return</span> <span class="keyword">false</span>;</span><br><span class="line">      <span class="keyword">for</span> (AggregationFn fn : aggfns)</span><br><span class="line">         fn.processFirst(s);</span><br><span class="line">      groupval = <span class="keyword">new</span> GroupValue(s, groupfields);</span><br><span class="line">      <span class="keyword">while</span>(moregroups = s.next()) &#123;</span><br><span class="line">         GroupValue gv = <span class="keyword">new</span> GroupValue(s, groupfields);</span><br><span class="line">         <span class="keyword">if</span> (!groupval.equals(gv))</span><br><span class="line">            <span class="keyword">break</span>;</span><br><span class="line">         <span class="keyword">for</span> (AggregationFn fn : aggfns)</span><br><span class="line">            fn.processNext(s);</span><br><span class="line">      &#125;</span><br><span class="line">      <span class="keyword">return</span> <span class="keyword">true</span>;</span><br><span class="line">   &#125;</span><br><span class="line">   </span><br><span class="line">   <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">close</span><span class="params">()</span> </span>&#123;</span><br><span class="line">      s.close();</span><br><span class="line">   &#125;</span><br><span class="line">   </span><br><span class="line">   <span class="function"><span class="keyword">public</span> Constant <span class="title">getVal</span><span class="params">(String fldname)</span> </span>&#123;</span><br><span class="line">      <span class="keyword">if</span> (groupfields.contains(fldname))</span><br><span class="line">         <span class="keyword">return</span> groupval.getVal(fldname);</span><br><span class="line">      <span class="keyword">for</span> (AggregationFn fn : aggfns)</span><br><span class="line">         <span class="keyword">if</span> (fn.fieldName().equals(fldname))</span><br><span class="line">         <span class="keyword">return</span> fn.value();</span><br><span class="line">      <span class="keyword">throw</span> <span class="keyword">new</span> RuntimeException(<span class="string">&quot;field &quot;</span> + fldname + <span class="string">&quot; not found.&quot;</span>);</span><br><span class="line">   &#125;</span><br><span class="line"></span><br><span class="line">   <span class="function"><span class="keyword">public</span> <span class="keyword">int</span> <span class="title">getInt</span><span class="params">(String fldname)</span> </span>&#123;</span><br><span class="line">      <span class="keyword">return</span> getVal(fldname).asInt();</span><br><span class="line">   &#125;</span><br><span class="line">   </span><br><span class="line">   <span class="function"><span class="keyword">public</span> String <span class="title">getString</span><span class="params">(String fldname)</span> </span>&#123;</span><br><span class="line">      <span class="keyword">return</span> getVal(fldname).asString();</span><br><span class="line">   &#125;</span><br><span class="line">   </span><br><span class="line">   <span class="function"><span class="keyword">public</span> <span class="keyword">boolean</span> <span class="title">hasField</span><span class="params">(String fldname)</span> </span>&#123;</span><br><span class="line">      <span class="keyword">if</span> (groupfields.contains(fldname))</span><br><span class="line">         <span class="keyword">return</span> <span class="keyword">true</span>;</span><br><span class="line">      <span class="keyword">for</span> (AggregationFn fn : aggfns)</span><br><span class="line">         <span class="keyword">if</span> (fn.fieldName().equals(fldname))</span><br><span class="line">         <span class="keyword">return</span> <span class="keyword">true</span>;</span><br><span class="line">      <span class="keyword">return</span> <span class="keyword">false</span>;</span><br><span class="line">   &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">MaxFn</span> <span class="keyword">implements</span> <span class="title">AggregationFn</span> </span>&#123;</span><br><span class="line">   <span class="keyword">private</span> String fldname;</span><br><span class="line">   <span class="keyword">private</span> Constant val;</span><br><span class="line">   </span><br><span class="line">   <span class="function"><span class="keyword">public</span> <span class="title">MaxFn</span><span class="params">(String fldname)</span> </span>&#123;</span><br><span class="line">      <span class="keyword">this</span>.fldname = fldname;</span><br><span class="line">   &#125;</span><br><span class="line">   </span><br><span class="line">   <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">processFirst</span><span class="params">(Scan s)</span> </span>&#123;</span><br><span class="line">      val = s.getVal(fldname);</span><br><span class="line">   &#125;</span><br><span class="line">   </span><br><span class="line">   <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">processNext</span><span class="params">(Scan s)</span> </span>&#123;</span><br><span class="line">      Constant newval = s.getVal(fldname);</span><br><span class="line">      <span class="keyword">if</span> (newval.compareTo(val) &gt; <span class="number">0</span>)</span><br><span class="line">         val = newval;</span><br><span class="line">   &#125;</span><br><span class="line">   </span><br><span class="line">   <span class="function"><span class="keyword">public</span> String <span class="title">fieldName</span><span class="params">()</span> </span>&#123;</span><br><span class="line">      <span class="keyword">return</span> <span class="string">&quot;maxof&quot;</span> + fldname;</span><br><span class="line">   &#125;</span><br><span class="line">   </span><br><span class="line">   <span class="function"><span class="keyword">public</span> Constant <span class="title">value</span><span class="params">()</span> </span>&#123;</span><br><span class="line">      <span class="keyword">return</span> val;</span><br><span class="line">   &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+<h2 id="mergeJoin"><a href="#mergeJoin" class="headerlink" title="mergeJoin"></a>mergeJoin</h2><p>第 12 章开发了一个高效的 indexjoin 运算符，用于连接两个表，此时连接谓词的形式为“A = B”，其中 A 在左侧表中，B 在右侧表中。 这些字段称为连接字段。 indexjoin 运算符适用于存储右侧表并在其连接字段上有索引的情况。 本节分析一个有效的连接运算符，称为 mergejoin，它总是适用的。 其算法如图 13.19 所示。</p>
+<p>考虑算法的第 2 步。 如果您暂时假设连接左侧的表在其连接字段中没有重复值，那么该算法类似于笛卡尔积扫描。 也就是说，它扫描左侧表一次。 对于每个左侧记录，它会在右侧表中搜索匹配记录。 但是，记录已排序的事实大大简化了搜索。 特别是：</p>
+<ol>
+<li>匹配的右侧记录必须在前一个左侧记录的记录之后开始。</li>
+<li>匹配的记录在表中彼此相邻。</li>
+</ol>
+<p>因此，每次考虑新的左侧记录时，从其停止的位置继续扫描右侧表并在达到大于左侧连接值的连接值时停止就足够了。 即，右侧表只需要扫描一次。</p>
+<p>要计算 mergejoin 算法的成本，请注意预处理阶段对每个输入表进行排序，扫描阶段遍历排序后的表。<br>如果没有重复的左侧值，则每个排序表都被扫描一次，连接的成本是两个排序操作的成本之和。 如果存在重复的左侧值，则将多次读取右侧扫描中的相应记录。</p>
+<h3 id="simpleDB的merge-join实现"><a href="#simpleDB的merge-join实现" class="headerlink" title="simpleDB的merge join实现"></a>simpleDB的merge join实现</h3><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">MergeJoinPlan</span> <span class="keyword">implements</span> <span class="title">Plan</span> </span>&#123;</span><br><span class="line">   <span class="keyword">private</span> Plan p1, p2;</span><br><span class="line">   <span class="keyword">private</span> String fldname1, fldname2;</span><br><span class="line">   <span class="keyword">private</span> Schema sch = <span class="keyword">new</span> Schema();</span><br><span class="line">   </span><br><span class="line">   <span class="function"><span class="keyword">public</span> <span class="title">MergeJoinPlan</span><span class="params">(Transaction tx, Plan p1, Plan p2, String fldname1, String fldname2)</span> </span>&#123;</span><br><span class="line">      <span class="keyword">this</span>.fldname1 = fldname1;</span><br><span class="line">      List&lt;String&gt; sortlist1 = Arrays.asList(fldname1);</span><br><span class="line">      <span class="keyword">this</span>.p1 = <span class="keyword">new</span> SortPlan(tx, p1, sortlist1);</span><br><span class="line">      </span><br><span class="line">      <span class="keyword">this</span>.fldname2 = fldname2;</span><br><span class="line">      List&lt;String&gt; sortlist2 = Arrays.asList(fldname2);</span><br><span class="line">      <span class="keyword">this</span>.p2 = <span class="keyword">new</span> SortPlan(tx, p2, sortlist2);</span><br><span class="line">      </span><br><span class="line">      sch.addAll(p1.schema());</span><br><span class="line">      sch.addAll(p2.schema());</span><br><span class="line">   &#125;</span><br><span class="line">   </span><br><span class="line">   <span class="function"><span class="keyword">public</span> Scan <span class="title">open</span><span class="params">()</span> </span>&#123;</span><br><span class="line">      Scan s1 = p1.open();</span><br><span class="line">      SortScan s2 = (SortScan) p2.open();</span><br><span class="line">      <span class="keyword">return</span> <span class="keyword">new</span> MergeJoinScan(s1, s2, fldname1, fldname2);</span><br><span class="line">   &#125;</span><br><span class="line">   </span><br><span class="line">   <span class="function"><span class="keyword">public</span> <span class="keyword">int</span> <span class="title">blocksAccessed</span><span class="params">()</span> </span>&#123;</span><br><span class="line">      <span class="keyword">return</span> p1.blocksAccessed() + p2.blocksAccessed();</span><br><span class="line">   &#125;</span><br><span class="line">   </span><br><span class="line">   <span class="function"><span class="keyword">public</span> <span class="keyword">int</span> <span class="title">recordsOutput</span><span class="params">()</span> </span>&#123;</span><br><span class="line">      <span class="keyword">int</span> maxvals = Math.max(p1.distinctValues(fldname1),</span><br><span class="line">                             p2.distinctValues(fldname2));</span><br><span class="line">      <span class="keyword">return</span> (p1.recordsOutput() * p2.recordsOutput()) / maxvals;</span><br><span class="line">   &#125;</span><br><span class="line">   </span><br><span class="line">   <span class="function"><span class="keyword">public</span> <span class="keyword">int</span> <span class="title">distinctValues</span><span class="params">(String fldname)</span> </span>&#123;</span><br><span class="line">      <span class="keyword">if</span> (p1.schema().hasField(fldname))</span><br><span class="line">         <span class="keyword">return</span> p1.distinctValues(fldname);</span><br><span class="line">      <span class="keyword">else</span></span><br><span class="line">         <span class="keyword">return</span> p2.distinctValues(fldname);</span><br><span class="line">   &#125;</span><br><span class="line">   </span><br><span class="line">   <span class="function"><span class="keyword">public</span> Schema <span class="title">schema</span><span class="params">()</span> </span>&#123;</span><br><span class="line">      <span class="keyword">return</span> sch;</span><br><span class="line">   &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"></span><br></pre></td></tr></table></figure>
+<p>MergeJoinPlan 的代码如图 13.21 所示。 方法 open 使用指定的连接字段为两个输入表中的每一个打开排序扫描。 然后它将这些扫描传递给 MergeJoinScan 构造函数。</p>
+<p>方法 blocksAccessed 假设每次扫描都会被遍历一次。这个想法是，即使存在重复的左侧值，匹配的右侧记录也将位于同一块中或最近访问的块中。 因此，可能需要很少（或可能为零）额外的块访问。</p>
+<p>方法recordsOutput 计算连接的记录数。 该值将是产品中的记录数除以连接谓词过滤掉的记录数。 distinctValues 方法的代码很简单。 由于连接不会增加或减少字段值，因此估计值与相应的基础查询中的相同。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">MergeJoinScan</span> <span class="keyword">implements</span> <span class="title">Scan</span> </span>&#123;</span><br><span class="line">   <span class="keyword">private</span> Scan s1;</span><br><span class="line">   <span class="keyword">private</span> SortScan s2;</span><br><span class="line">   <span class="keyword">private</span> String fldname1, fldname2;</span><br><span class="line">   <span class="keyword">private</span> Constant joinval = <span class="keyword">null</span>;</span><br><span class="line">   </span><br><span class="line">   <span class="function"><span class="keyword">public</span> <span class="title">MergeJoinScan</span><span class="params">(Scan s1, SortScan s2, String fldname1, String fldname2)</span> </span>&#123;</span><br><span class="line">      <span class="keyword">this</span>.s1 = s1;</span><br><span class="line">      <span class="keyword">this</span>.s2 = s2;</span><br><span class="line">      <span class="keyword">this</span>.fldname1 = fldname1;</span><br><span class="line">      <span class="keyword">this</span>.fldname2 = fldname2;</span><br><span class="line">      beforeFirst();</span><br><span class="line">   &#125;</span><br><span class="line">   </span><br><span class="line">   <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">close</span><span class="params">()</span> </span>&#123;</span><br><span class="line">      s1.close();</span><br><span class="line">      s2.close();</span><br><span class="line">   &#125;</span><br><span class="line">   </span><br><span class="line">   <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">beforeFirst</span><span class="params">()</span> </span>&#123;</span><br><span class="line">      s1.beforeFirst();</span><br><span class="line">      s2.beforeFirst();</span><br><span class="line">   &#125;</span><br><span class="line">   </span><br><span class="line">   <span class="function"><span class="keyword">public</span> <span class="keyword">boolean</span> <span class="title">next</span><span class="params">()</span> </span>&#123;</span><br><span class="line">      <span class="keyword">boolean</span> hasmore2 = s2.next();</span><br><span class="line">      <span class="keyword">if</span> (hasmore2 &amp;&amp; s2.getVal(fldname2).equals(joinval))</span><br><span class="line">         <span class="keyword">return</span> <span class="keyword">true</span>;</span><br><span class="line">      </span><br><span class="line">      <span class="keyword">boolean</span> hasmore1 = s1.next();</span><br><span class="line">      <span class="keyword">if</span> (hasmore1 &amp;&amp; s1.getVal(fldname1).equals(joinval)) &#123;</span><br><span class="line">         s2.restorePosition();</span><br><span class="line">         <span class="keyword">return</span> <span class="keyword">true</span>;</span><br><span class="line">      &#125;</span><br><span class="line">      </span><br><span class="line">      <span class="keyword">while</span> (hasmore1 &amp;&amp; hasmore2) &#123;</span><br><span class="line">         Constant v1 = s1.getVal(fldname1);</span><br><span class="line">         Constant v2 = s2.getVal(fldname2);</span><br><span class="line">         <span class="keyword">if</span> (v1.compareTo(v2) &lt; <span class="number">0</span>)</span><br><span class="line">            hasmore1 = s1.next();</span><br><span class="line">         <span class="keyword">else</span> <span class="keyword">if</span> (v1.compareTo(v2) &gt; <span class="number">0</span>)</span><br><span class="line">            hasmore2 = s2.next();</span><br><span class="line">         <span class="keyword">else</span> &#123;</span><br><span class="line">            s2.savePosition();</span><br><span class="line">            joinval  = s2.getVal(fldname2);</span><br><span class="line">            <span class="keyword">return</span> <span class="keyword">true</span>;</span><br><span class="line">         &#125;</span><br><span class="line">      &#125;</span><br><span class="line">      <span class="keyword">return</span> <span class="keyword">false</span>;</span><br><span class="line">   &#125;</span><br><span class="line">   </span><br><span class="line">   <span class="function"><span class="keyword">public</span> <span class="keyword">int</span> <span class="title">getInt</span><span class="params">(String fldname)</span> </span>&#123;</span><br><span class="line">      <span class="keyword">if</span> (s1.hasField(fldname))</span><br><span class="line">         <span class="keyword">return</span> s1.getInt(fldname);</span><br><span class="line">      <span class="keyword">else</span></span><br><span class="line">         <span class="keyword">return</span> s2.getInt(fldname);</span><br><span class="line">   &#125;</span><br><span class="line">   </span><br><span class="line">   <span class="function"><span class="keyword">public</span> String <span class="title">getString</span><span class="params">(String fldname)</span> </span>&#123;</span><br><span class="line">      <span class="keyword">if</span> (s1.hasField(fldname))</span><br><span class="line">         <span class="keyword">return</span> s1.getString(fldname);</span><br><span class="line">      <span class="keyword">else</span></span><br><span class="line">         <span class="keyword">return</span> s2.getString(fldname);</span><br><span class="line">   &#125;</span><br><span class="line">   </span><br><span class="line">   <span class="function"><span class="keyword">public</span> Constant <span class="title">getVal</span><span class="params">(String fldname)</span> </span>&#123;</span><br><span class="line">      <span class="keyword">if</span> (s1.hasField(fldname))</span><br><span class="line">         <span class="keyword">return</span> s1.getVal(fldname);</span><br><span class="line">      <span class="keyword">else</span></span><br><span class="line">         <span class="keyword">return</span> s2.getVal(fldname);</span><br><span class="line">   &#125;</span><br><span class="line">   </span><br><span class="line">   <span class="function"><span class="keyword">public</span> <span class="keyword">boolean</span> <span class="title">hasField</span><span class="params">(String fldname)</span> </span>&#123;</span><br><span class="line">      <span class="keyword">return</span> s1.hasField(fldname) || s2.hasField(fldname);</span><br><span class="line">   &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>MergeJoinScan 的代码如图 13.22 所示。 方法 next 执行查找匹配项的艰巨工作。 扫描使用变量 joinval 来跟踪最近的连接值。 当调用 next 时，它读取下一个右侧记录。 如果此记录的连接值等于 joinval，则找到匹配项，并且该方法返回。 如果不是，则该方法移动到下一个左侧记录。 如果这条记录的连接值等于 joinval，那么我们有一个重复的左侧值。 该方法将右侧扫描重新定位到具有该连接值的第一条记录并返回。 否则，该方法重复从具有最低连接值的扫描中读取，直到找到匹配或扫描结束。 如果找到匹配项，则设置变量 joinval，并保存当前右侧位置。 如果扫描用完，则该方法返回 false。</p>
+<h1 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h1><ol>
+<li>操作符的物化实现预处理其底层记录，将它们存储在一个或多个临时表中。 对它的扫描因此更有效，因为它们只需要检查临时表。</li>
+<li>物化实现只计算一次输入，并可以利用排序。 但是，即使用户只对其中一些记录感兴趣，他们也必须计算整个输入表。 尽管可以为任何关系运算符编写物化实现，但物化实现只有在其预处理成本被结果扫描的节省所抵消时才有用。</li>
+<li>materialize 运算符创建一个包含其所有输入记录的临时表。 每当会重复执行其输入时，它很有用，例如当它位于乘积连接节点的右侧时。</li>
+<li>数据库系统使用外部排序算法将其记录排序到临时表中。 最简单和最常见的外部排序算法称为归并排序。 合并排序算法将输入记录拆分为run，然后重复合并run，直到记录有序。</li>
+<li>当初始run的数量较少时，合并排序更有效。 一种直接的方法是创建一个块长的初始run，方法是将输入记录读入一个块，然后使用内部排序算法对它们进行排序。 另一种方法是将输入记录读入一个块长的暂存区域，并通过重复选择该区域中最低值的记录来构建run。</li>
+<li>当一次合并更多run时，Mergesort 也更有效。 合并的run个数越多，所需的迭代次数就越少。 需要一个缓冲区来管理每个合并的run，因此最大run个数受可用缓冲区数量的限制。</li>
+<li>Mergesort 需要 2Blogk(R)-B 块访问（加上输入的成本）来预处理其输入，其中 B 是保存排序表所需的块数，R 是初始run个数，k 是次数 一次合并的run个数。</li>
+<li>groupby 运算符的实现对分组字段上的记录进行排序，使每个组中的记录彼此相邻。 然后，它通过单次遍历已排序的记录来计算每个组的信息。</li>
+<li>mergejoin 算法实现了两个表的连接。 它首先在其连接字段上对每个表进行排序。 然后它并行扫描两个已排序的表。 每次调用 next 方法都会让具有最小值的扫描走向下一条记录。</li>
+</ol>
+<!-- flag of hidden posts -->
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/database/" rel="tag"># database</a>
+              <a href="/tags/simpleDB/" rel="tag"># simpleDB</a>
+          </div>
+
+        
+
+    </footer>
+  </article>
+</div>
+
+
+
+
+
+
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      const activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      const commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+</div>
+  </main>
+
+  <footer class="footer">
+    <div class="footer-inner">
+
+
+<div class="copyright">
+  &copy; 2021 – 
+  <span itemprop="copyrightYear">2022</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Jason Chao</span>
+</div>
+  <div class="powered-by">由 <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://theme-next.js.org/" class="theme-link" rel="noopener" target="_blank">NexT.Gemini</a> 强力驱动
+  </div>
+
+    </div>
+  </footer>
+
+  
+  <script src="//cdn.jsdelivr.net/npm/animejs@3.2.1/lib/anime.min.js"></script>
+<script src="/js/utils.js"></script><script src="/js/motion.js"></script><script src="/js/next-boot.js"></script>
+
+  
+
+
+
+
+
+
+  
+
+
+
+
+
+</body>
+</html>
